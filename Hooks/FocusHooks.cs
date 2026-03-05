@@ -3,7 +3,9 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using Sts2AccessibilityMod.Speech;
+using Sts2AccessibilityMod.UI;
 
 namespace Sts2AccessibilityMod.Hooks;
 
@@ -14,27 +16,22 @@ public static class FocusHooks
 
     public static void Initialize(Harmony harmony)
     {
-        // Manual patching with explicit error reporting
+        // Patch NClickableControl.RefreshFocus for buttons, tickboxes, dropdowns, etc.
         var refreshFocus = AccessTools.Method(typeof(NClickableControl), "RefreshFocus");
         if (refreshFocus == null)
         {
             Log.Error("[AccessibilityMod] Could not find RefreshFocus method!");
-
-            // List all methods on NClickableControl for debugging
-            foreach (var m in typeof(NClickableControl).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-            {
-                Log.Info($"[AccessibilityMod]   Method: {m.Name} ({m.DeclaringType})");
-            }
             return;
         }
 
-        Log.Info($"[AccessibilityMod] Found RefreshFocus: {refreshFocus.DeclaringType}.{refreshFocus.Name}");
-
         var prefix = new HarmonyMethod(typeof(FocusHooks).GetMethod(nameof(RefreshFocusPrefix), BindingFlags.Static | BindingFlags.Public));
         var postfix = new HarmonyMethod(typeof(FocusHooks).GetMethod(nameof(RefreshFocusPostfix), BindingFlags.Static | BindingFlags.Public));
-
         harmony.Patch(refreshFocus, prefix: prefix, postfix: postfix);
-        Log.Info("[AccessibilityMod] Focus hooks patched successfully.");
+        Log.Info("[AccessibilityMod] RefreshFocus hook patched.");
+
+        // Patch NSettingsSlider.OnFocus and NPaginator.OnFocus (not NClickableControl subclasses)
+        PatchOnFocus<NSettingsSlider>(harmony, nameof(SettingsControlFocusPostfix), "Slider");
+        PatchOnFocus<NPaginator>(harmony, nameof(SettingsControlFocusPostfix), "Paginator");
     }
 
     public static void RefreshFocusPrefix(NClickableControl __instance, out bool __state)
@@ -47,57 +44,47 @@ public static class FocusHooks
         bool nowFocused = (bool)IsFocusedProp.GetValue(__instance)!;
         if (nowFocused && !__state)
         {
-            string text = GetAccessibleText(__instance);
-            Log.Info($"[AccessibilityMod] Focus: {__instance.Name} -> \"{text}\"");
-            if (!string.IsNullOrEmpty(text))
-            {
-                SpeechManager.Output(text, interrupt: true);
-            }
+            AnnounceElement(__instance);
         }
     }
 
-    private static string GetAccessibleText(Control control)
+    public static void SettingsControlFocusPostfix(Control __instance)
     {
-        string? labelText = FindChildText(control);
-        if (!string.IsNullOrEmpty(labelText))
-            return labelText;
-        return CleanNodeName(control.Name);
+        AnnounceElement(__instance);
     }
 
-    private static string? FindChildText(Node node)
+    private static void PatchOnFocus<T>(Harmony harmony, string postfixMethodName, string label)
     {
-        if (node is Label label && !string.IsNullOrWhiteSpace(label.Text))
-            return label.Text;
-        if (node is RichTextLabel rtl && !string.IsNullOrWhiteSpace(rtl.Text))
-            return StripBbcode(rtl.Text);
-
-        foreach (var childName in new[] { "Title", "Label" })
+        var onFocus = AccessTools.Method(typeof(T), "OnFocus");
+        if (onFocus != null)
         {
-            var child = node.GetNodeOrNull(childName);
-            if (child != null)
-            {
-                var text = FindChildText(child);
-                if (text != null) return text;
-            }
+            var postfix = new HarmonyMethod(typeof(FocusHooks).GetMethod(postfixMethodName, BindingFlags.Static | BindingFlags.Public));
+            harmony.Patch(onFocus, postfix: postfix);
+            Log.Info($"[AccessibilityMod] {label} focus hook patched.");
         }
-
-        for (int i = 0; i < node.GetChildCount(); i++)
+        else
         {
-            var child = node.GetChild(i);
-            var text = FindChildText(child);
-            if (text != null) return text;
+            Log.Error($"[AccessibilityMod] Could not find {typeof(T).Name}.OnFocus()!");
         }
-
-        return null;
     }
 
-    private static string StripBbcode(string text)
+    private static void AnnounceElement(Control control)
     {
-        return System.Text.RegularExpressions.Regex.Replace(text, @"\[.*?\]", "").Trim();
+        var element = ResolveElement(control);
+        var text = element.GetFocusString();
+        Log.Info($"[AccessibilityMod] Focus: {control.GetType().Name} ({control.Name}) -> \"{text}\"");
+        if (!string.IsNullOrEmpty(text))
+        {
+            SpeechManager.Output(text);
+        }
     }
 
-    private static string CleanNodeName(string name)
+    private static UIElement ResolveElement(Control control)
     {
-        return System.Text.RegularExpressions.Regex.Replace(name, @"([a-z])([A-Z])", "$1 $2");
+        var screenElement = GameScreenManager.ActiveScreen?.GetElement(control);
+        if (screenElement != null)
+            return screenElement;
+
+        return ProxyFactory.Create(control);
     }
 }

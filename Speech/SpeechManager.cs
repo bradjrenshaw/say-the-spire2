@@ -28,7 +28,7 @@ public static class SpeechManager
                     _activeHandler = handler;
                     _initialized = true;
                     Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
-                    Output("Accessibility mod loaded.", interrupt: true);
+                    Output("Accessibility mod loaded.");
                     return;
                 }
             }
@@ -41,13 +41,13 @@ public static class SpeechManager
         Log.Error("[AccessibilityMod] No speech handler could be loaded!");
     }
 
-    public static void Speak(string text, bool interrupt = true)
+    public static void Speak(string text, bool interrupt = false)
     {
         if (!_initialized || _activeHandler == null) return;
         _activeHandler.Speak(text, interrupt);
     }
 
-    public static void Output(string text, bool interrupt = true)
+    public static void Output(string text, bool interrupt = false)
     {
         if (!_initialized || _activeHandler == null) return;
         _activeHandler.Output(text, interrupt);
