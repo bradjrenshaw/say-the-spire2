@@ -1,0 +1,7 @@
+{
+  "pck_name": "sts2-accessibility-mod",
+  "name": "Accessibility Mod",
+  "author": "bradj",
+  "description": "Custom accessibility system for blind players, replacing Godot's built-in screen reader with a purpose-built solution.",
+  "version": "0.1.0"
+}
