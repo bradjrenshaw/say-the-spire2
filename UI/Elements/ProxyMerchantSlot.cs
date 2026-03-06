@@ -140,6 +140,20 @@ public class ProxyMerchantSlot : ProxyElement
             if (card.Rarity != CardRarity.Common)
                 cardBuffer.Add(card.Rarity.ToString());
 
+            if (card.Enchantment != null)
+            {
+                try
+                {
+                    var enchTitle = card.Enchantment.Title.GetFormattedText();
+                    var enchDesc = card.Enchantment.DynamicDescription.GetFormattedText();
+                    if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
+                        cardBuffer.Add($"Enchantment: {enchTitle} - {StripBbcode(enchDesc)}");
+                    else if (!string.IsNullOrEmpty(enchTitle))
+                        cardBuffer.Add($"Enchantment: {enchTitle}");
+                }
+                catch { }
+            }
+
             cardBuffer.Add($"Price: {cardEntry.Cost} gold");
             if (cardEntry.IsOnSale)
                 cardBuffer.Add("On sale!");
@@ -221,7 +235,7 @@ public class ProxyMerchantSlot : ProxyElement
         if (uiBuffer != null)
         {
             uiBuffer.Clear();
-            ProxyRelicHolder.PopulateRelicBuffer(uiBuffer, model);
+            ProxyRelicHolder.PopulateRelicBuffer(uiBuffer, model, buffers);
             uiBuffer.Add($"Price: {relicEntry.Cost} gold");
             buffers.EnableBuffer("ui", true);
         }

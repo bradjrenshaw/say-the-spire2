@@ -2,6 +2,7 @@ using System.Reflection;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
@@ -15,6 +16,9 @@ public static class EventHooks
 
     private static readonly FieldInfo? DialogueContainerField =
         typeof(NAncientEventLayout).GetField("_dialogueContainer", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    private static readonly FieldInfo? EventField =
+        typeof(NEventLayout).GetField("_event", BindingFlags.Instance | BindingFlags.NonPublic);
 
     public static void Initialize(Harmony harmony)
     {
@@ -30,6 +34,18 @@ public static class EventHooks
             Log.Error("[AccessibilityMod] Could not find NEventLayout.SetDescription!");
         }
 
+        var initVisuals = AccessTools.Method(typeof(NAncientEventLayout), "InitializeVisuals");
+        if (initVisuals != null)
+        {
+            harmony.Patch(initVisuals,
+                postfix: new HarmonyMethod(typeof(EventHooks), nameof(AncientInitializeVisualsPostfix)));
+            Log.Info("[AccessibilityMod] Ancient InitializeVisuals hook patched.");
+        }
+        else
+        {
+            Log.Error("[AccessibilityMod] Could not find NAncientEventLayout.InitializeVisuals!");
+        }
+
         var setDialogueLine = AccessTools.Method(typeof(NAncientEventLayout), "SetDialogueLineAndAnimate");
         if (setDialogueLine != null)
         {
@@ -40,6 +56,32 @@ public static class EventHooks
         else
         {
             Log.Error("[AccessibilityMod] Could not find NAncientEventLayout.SetDialogueLineAndAnimate!");
+        }
+    }
+
+    public static void AncientInitializeVisualsPostfix(NAncientEventLayout __instance)
+    {
+        try
+        {
+            var eventModel = EventField?.GetValue(__instance) as AncientEventModel;
+            if (eventModel == null) return;
+
+            var title = eventModel.Title?.GetFormattedText();
+            var epithet = eventModel.Epithet?.GetFormattedText();
+
+            var text = !string.IsNullOrEmpty(epithet)
+                ? $"{title}, {epithet}"
+                : title;
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                Log.Info($"[AccessibilityMod] Ancient event: \"{text}\"");
+                SpeechManager.Output(text);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Ancient InitializeVisuals hook error: {e.Message}");
         }
     }
 

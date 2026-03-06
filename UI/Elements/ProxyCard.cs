@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
@@ -63,6 +64,13 @@ public class ProxyCard : ProxyElement
         if (model.CurrentStarCost > 0)
             parts.Add($"{model.CurrentStarCost} stars");
 
+        // Enchantment
+        if (model.Enchantment != null)
+        {
+            try { parts.Add($"Enchanted: {model.Enchantment.Title.GetFormattedText()}"); }
+            catch { }
+        }
+
         return parts.Count > 0 ? string.Join(", ", parts) : null;
     }
 
@@ -117,6 +125,28 @@ public class ProxyCard : ProxyElement
             // Rarity
             if (model.Rarity != CardRarity.Common)
                 cardBuffer.Add(model.Rarity.ToString());
+
+            // Enchantment
+            if (model.Enchantment != null)
+            {
+                try
+                {
+                    var enchant = model.Enchantment;
+                    var enchTitle = enchant.Title.GetFormattedText();
+                    var enchDesc = enchant.DynamicDescription.GetFormattedText();
+                    if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
+                        cardBuffer.Add($"Enchantment: {enchTitle} - {StripBbcode(enchDesc)}");
+                    else if (!string.IsNullOrEmpty(enchTitle))
+                        cardBuffer.Add($"Enchantment: {enchTitle}");
+
+                    if (enchant.ShowAmount && enchant.DisplayAmount != 0)
+                        cardBuffer.Add($"Enchantment amount: {enchant.DisplayAmount}");
+
+                    if (enchant.Status == EnchantmentStatus.Disabled)
+                        cardBuffer.Add("Enchantment disabled");
+                }
+                catch { }
+            }
 
             // Hover tips (keywords, powers, etc.)
             try
@@ -197,5 +227,71 @@ public class ProxyCard : ProxyElement
         PlayerBufferHelper.Populate(buffers);
 
         return "card";
+    }
+
+    /// <summary>
+    /// Populates a card buffer from any CardModel. Used by other proxies
+    /// when their hover tips reference cards (e.g., relics that grant cards).
+    /// </summary>
+    public static void PopulateCardBuffer(Buffer buffer, CardModel model)
+    {
+        buffer.Add(model.Title);
+        buffer.Add(model.Type.ToString());
+
+        if (model.EnergyCost != null)
+        {
+            if (model.EnergyCost.CostsX)
+                buffer.Add("Cost: X energy");
+            else
+            {
+                try { buffer.Add($"Cost: {model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
+                catch { buffer.Add($"Cost: {model.EnergyCost.Canonical} energy"); }
+            }
+        }
+
+        if (model.CurrentStarCost > 0)
+            buffer.Add($"Star cost: {model.CurrentStarCost}");
+
+        try
+        {
+            var desc = model.GetDescriptionForPile(PileType.None);
+            if (!string.IsNullOrEmpty(desc))
+                buffer.Add(StripBbcode(desc));
+        }
+        catch { }
+
+        if (model.Rarity != CardRarity.Common)
+            buffer.Add(model.Rarity.ToString());
+
+        if (model.Enchantment != null)
+        {
+            try
+            {
+                var enchTitle = model.Enchantment.Title.GetFormattedText();
+                var enchDesc = model.Enchantment.DynamicDescription.GetFormattedText();
+                if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
+                    buffer.Add($"Enchantment: {enchTitle} - {StripBbcode(enchDesc)}");
+                else if (!string.IsNullOrEmpty(enchTitle))
+                    buffer.Add($"Enchantment: {enchTitle}");
+            }
+            catch { }
+        }
+
+        try
+        {
+            foreach (var tip in model.HoverTips)
+            {
+                if (tip is HoverTip hoverTip)
+                {
+                    var title = hoverTip.Title;
+                    var desc = hoverTip.Description;
+                    if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(desc))
+                        buffer.Add($"{title}: {StripBbcode(desc)}");
+                    else if (!string.IsNullOrEmpty(title))
+                        buffer.Add(title);
+                }
+            }
+        }
+        catch { }
     }
 }

@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Godot;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using SayTheSpire2.Buffers;
 
@@ -68,6 +70,47 @@ public class ProxyEventOptionButton : ProxyElement
 
             if (option.Relic != null)
                 uiBuffer.Add($"Relic: {option.Relic.Title.GetFormattedText()}");
+
+            // Hover tips (enchantments, keywords, cards, etc.)
+            try
+            {
+                var cardTips = new List<CardHoverTip>();
+                foreach (var tip in option.HoverTips)
+                {
+                    if (tip is CardHoverTip cardTip)
+                    {
+                        cardTips.Add(cardTip);
+                    }
+                    else if (tip is HoverTip hoverTip)
+                    {
+                        var tipTitle = hoverTip.Title;
+                        var tipDesc = hoverTip.Description;
+                        if (!string.IsNullOrEmpty(tipTitle) && !string.IsNullOrEmpty(tipDesc))
+                            uiBuffer.Add($"{tipTitle}: {StripBbcode(tipDesc)}");
+                        else if (!string.IsNullOrEmpty(tipTitle))
+                            uiBuffer.Add(tipTitle);
+                        else if (!string.IsNullOrEmpty(tipDesc))
+                            uiBuffer.Add(StripBbcode(tipDesc));
+                    }
+                }
+
+                if (cardTips.Count > 0)
+                {
+                    var cardBuffer = buffers.GetBuffer("card");
+                    if (cardBuffer != null)
+                    {
+                        cardBuffer.Clear();
+                        foreach (var cardTip in cardTips)
+                        {
+                            if (cardBuffer.Count > 0)
+                                cardBuffer.Add("---");
+                            ProxyCard.PopulateCardBuffer(cardBuffer, cardTip.Card);
+                        }
+                        buffers.EnableBuffer("card", true);
+                    }
+                }
+            }
+            catch { }
 
             buffers.EnableBuffer("ui", true);
         }
