@@ -64,6 +64,39 @@ public static class ScreenManager
     }
 
     /// <summary>
+    /// Remove a specific screen from anywhere in the stack.
+    /// Safe to call even if other screens have been pushed on top.
+    /// </summary>
+    public static void RemoveScreen(Screen screen)
+    {
+        var i = _screenStack.IndexOf(screen);
+        if (i < 0)
+        {
+            Log.Error($"[AccessibilityMod] RemoveScreen: {screen.GetType().Name} not found in stack");
+            return;
+        }
+
+        if (i == 0 && _screenStack.Count == 1)
+        {
+            Log.Error("[AccessibilityMod] Cannot remove the last Screen!");
+            return;
+        }
+
+        bool wasTop = i == _screenStack.Count - 1;
+
+        if (wasTop)
+            screen.OnUnfocus();
+
+        _screenStack.RemoveAt(i);
+        screen.OnPop();
+
+        if (wasTop && _screenStack.Count > 0)
+            _screenStack[^1].OnFocus();
+
+        Log.Info($"[AccessibilityMod] Screen removed: {screen.GetType().Name} from index {i} (stack depth: {_screenStack.Count})");
+    }
+
+    /// <summary>
     /// Replace a specific screen instance in the stack, preserving its position.
     /// </summary>
     public static void ReplaceScreen(Screen old, Screen replacement)
