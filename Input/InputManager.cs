@@ -11,8 +11,8 @@ public static class InputManager
 
     public static void Initialize()
     {
-        _actions.Add(new InputAction("buffer_next_item").AddBinding(Key.Down, ctrl: true));
-        _actions.Add(new InputAction("buffer_prev_item").AddBinding(Key.Up, ctrl: true));
+        _actions.Add(new InputAction("buffer_next_item").AddBinding(Key.Up, ctrl: true));
+        _actions.Add(new InputAction("buffer_prev_item").AddBinding(Key.Down, ctrl: true));
         _actions.Add(new InputAction("buffer_next").AddBinding(Key.Right, ctrl: true));
         _actions.Add(new InputAction("buffer_prev").AddBinding(Key.Left, ctrl: true));
         _actions.Add(new InputAction("reset_bindings").AddBinding(Key.R, ctrl: true, shift: true));

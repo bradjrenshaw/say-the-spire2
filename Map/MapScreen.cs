@@ -18,8 +18,8 @@ public class MapScreen : Screen
 
         // Claim the Ctrl+Arrow actions — on the map these become navigation
         // instead of buffer controls. Not propagated, so DefaultScreen won't see them.
-        ClaimAction("buffer_prev_item"); // Ctrl+Up -> forward (toward boss)
-        ClaimAction("buffer_next_item"); // Ctrl+Down -> backward (toward start)
+        ClaimAction("buffer_next_item"); // Ctrl+Up -> forward (toward boss)
+        ClaimAction("buffer_prev_item"); // Ctrl+Down -> backward (toward start)
         ClaimAction("buffer_next");      // Ctrl+Right -> next branch
         ClaimAction("buffer_prev");      // Ctrl+Left -> prev branch
     }
@@ -67,8 +67,8 @@ public class MapScreen : Screen
 
         string? result = action.Key switch
         {
-            "buffer_prev_item" => _viewer.MoveForward(),   // Ctrl+Up
-            "buffer_next_item" => _viewer.MoveBackward(),  // Ctrl+Down
+            "buffer_next_item" => _viewer.MoveForward(),   // Ctrl+Up
+            "buffer_prev_item" => _viewer.MoveBackward(),  // Ctrl+Down
             "buffer_next" => _viewer.NextBranch(),          // Ctrl+Right
             "buffer_prev" => _viewer.PreviousBranch(),      // Ctrl+Left
             _ => null,
