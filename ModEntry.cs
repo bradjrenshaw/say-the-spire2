@@ -68,6 +68,9 @@ public static class ModEntry
         BufferManager.Instance.Add(new Buffers.Buffer("ui"));
         BufferManager.Instance.Add(new Buffers.Buffer("character"));
         BufferManager.Instance.Add(new Buffers.Buffer("relic"));
+        BufferManager.Instance.Add(new Buffers.Buffer("card"));
+        BufferManager.Instance.Add(new Buffers.Buffer("creature"));
+        BufferManager.Instance.Add(new Buffers.Buffer("player"));
     }
 
     private static void RegisterScreens()

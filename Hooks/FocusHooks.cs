@@ -2,6 +2,8 @@ using System.Reflection;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using Sts2AccessibilityMod.Buffers;
@@ -33,6 +35,22 @@ public static class FocusHooks
         // Patch NSettingsSlider.OnFocus and NPaginator.OnFocus (not NClickableControl subclasses)
         PatchOnFocus<NSettingsSlider>(harmony, nameof(SettingsControlFocusPostfix), "Slider");
         PatchOnFocus<NPaginator>(harmony, nameof(SettingsControlFocusPostfix), "Paginator");
+
+        // Patch combat focus: card holders and creatures have their own focus systems
+        PatchOnFocus<NHandCardHolder>(harmony, nameof(CardHolderFocusPostfix), "HandCardHolder");
+        PatchOnFocus<NGridCardHolder>(harmony, nameof(CardHolderFocusPostfix), "GridCardHolder");
+
+        var creatureOnFocus = AccessTools.Method(typeof(NCreature), "OnFocus");
+        if (creatureOnFocus != null)
+        {
+            harmony.Patch(creatureOnFocus,
+                postfix: new HarmonyMethod(typeof(FocusHooks), nameof(CreatureFocusPostfix)));
+            Log.Info("[AccessibilityMod] Creature focus hook patched.");
+        }
+        else
+        {
+            Log.Error("[AccessibilityMod] Could not find NCreature.OnFocus()!");
+        }
     }
 
     public static void RefreshFocusPrefix(NClickableControl __instance, out bool __state)
@@ -54,6 +72,16 @@ public static class FocusHooks
         AnnounceElement(__instance);
     }
 
+    public static void CardHolderFocusPostfix(NCardHolder __instance)
+    {
+        AnnounceElement(__instance, new ProxyCard(__instance));
+    }
+
+    public static void CreatureFocusPostfix(NCreature __instance)
+    {
+        AnnounceElement(__instance, new ProxyCreature(__instance));
+    }
+
     private static void PatchOnFocus<T>(Harmony harmony, string postfixMethodName, string label)
     {
         var onFocus = AccessTools.Method(typeof(T), "OnFocus");
@@ -69,9 +97,9 @@ public static class FocusHooks
         }
     }
 
-    private static void AnnounceElement(Control control)
+    private static void AnnounceElement(Control control, UIElement? preResolved = null)
     {
-        var element = ResolveElement(control);
+        var element = preResolved ?? ResolveElement(control);
         var text = element.GetFocusString();
         Log.Info($"[AccessibilityMod] Focus: {control.GetType().Name} ({control.Name}) -> \"{text}\"");
         if (!string.IsNullOrEmpty(text))

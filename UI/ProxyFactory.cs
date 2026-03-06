@@ -1,4 +1,6 @@
 using Godot;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
@@ -29,11 +31,29 @@ public static class ProxyFactory
         if (control is NPaginator)
             return new ProxyPaginator(control);
 
+        // Check if this control is a hitbox inside a card holder or creature
+        var ancestor = FindAncestor(control);
+        if (ancestor != null) return ancestor;
+
         // Generic NButton and all other NClickableControl subclasses fall through to button
         if (control is NButton)
             return new ProxyButton(control);
 
         // Fallback for any other focusable control
         return new ProxyButton(control);
+    }
+
+    private static ProxyElement? FindAncestor(Control control)
+    {
+        Node? current = control.GetParent();
+        while (current != null)
+        {
+            if (current is NCardHolder)
+                return new ProxyCard(control);
+            if (current is NCreature)
+                return new ProxyCreature(control);
+            current = current.GetParent();
+        }
+        return null;
     }
 }
