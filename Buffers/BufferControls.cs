@@ -38,7 +38,7 @@ public static class BufferControls
         if (buffer == null)
         {
             var msg = LocalizationManager.Get("ui", "BUFFERS.NO_BUFFERS") ?? "No buffers available";
-            SpeechManager.Output(msg, interrupt: true);
+            SpeechManager.Output(msg);
             return;
         }
 
@@ -49,7 +49,7 @@ public static class BufferControls
                 msg = msg.Replace("{buffer}", buffer.Label);
             else
                 msg = $"{buffer.Label}: empty";
-            SpeechManager.Output(msg, interrupt: true);
+            SpeechManager.Output(msg);
             return;
         }
 
@@ -61,7 +61,7 @@ public static class BufferControls
             text = $"{buffer.Label}: {item}";
 
         Log.Info($"[AccessibilityMod] Buffer: {buffer.Key} -> \"{item}\"");
-        SpeechManager.Output(text, interrupt: true);
+        SpeechManager.Output(text);
     }
 
     private static void ReportCurrentItem(Buffer? buffer)
@@ -80,7 +80,7 @@ public static class BufferControls
                 msg = msg.Replace("{buffer}", buffer.Label);
             else
                 msg = $"{buffer.Label}: empty";
-            SpeechManager.Output(msg, interrupt: true);
+            SpeechManager.Output(msg);
             return;
         }
 
@@ -88,7 +88,7 @@ public static class BufferControls
         if (item != null)
         {
             Log.Info($"[AccessibilityMod] Buffer item: {buffer.Key}[{buffer.Position}] -> \"{item}\"");
-            SpeechManager.Output(item, interrupt: true);
+            SpeechManager.Output(item);
         }
     }
 }

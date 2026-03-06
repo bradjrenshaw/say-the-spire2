@@ -37,8 +37,28 @@ public abstract class UIElement
         return "ui";
     }
 
-    public virtual void OnFocus() { }
-    public virtual void OnUnfocus() { }
+    public bool IsFocused { get; private set; }
+
+    public void Focus()
+    {
+        IsFocused = true;
+        OnFocus();
+    }
+
+    public void Unfocus()
+    {
+        IsFocused = false;
+        OnUnfocus();
+    }
+
+    public virtual void Update()
+    {
+        OnUpdate();
+    }
+
+    protected virtual void OnFocus() { }
+    protected virtual void OnUnfocus() { }
+    protected virtual void OnUpdate() { }
 
     public string GetFocusString()
     {

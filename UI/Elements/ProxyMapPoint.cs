@@ -47,7 +47,7 @@ public class ProxyMapPoint : ProxyElement
             .ToString();
     }
 
-    public override void OnFocus()
+    protected override void OnFocus()
     {
         var mp = MapPointNode;
         if (mp?.Point == null) return;
@@ -56,7 +56,7 @@ public class ProxyMapPoint : ProxyElement
         ScreenManager.PushScreen(_mapScreen);
     }
 
-    public override void OnUnfocus()
+    protected override void OnUnfocus()
     {
         if (_mapScreen != null)
         {

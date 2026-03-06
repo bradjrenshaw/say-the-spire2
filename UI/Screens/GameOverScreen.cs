@@ -58,7 +58,7 @@ public class GameOverScreen : GameScreen
             if (!string.IsNullOrEmpty(message))
             {
                 Log.Info($"[AccessibilityMod] Game over: {message}");
-                SpeechManager.Output(message, interrupt: true);
+                SpeechManager.Output(message);
 
                 var uiBuffer = BufferManager.Instance.GetBuffer("ui");
                 if (uiBuffer != null)

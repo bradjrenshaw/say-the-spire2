@@ -1,6 +1,7 @@
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Speech;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -23,5 +24,24 @@ public class ProxyCheckbox : ProxyElement
             return LocalizationManager.Get("ui", key);
         }
         return null;
+    }
+
+    protected override void OnFocus()
+    {
+        if (Control is NTickbox tickbox)
+            tickbox.Toggled += OnToggled;
+    }
+
+    protected override void OnUnfocus()
+    {
+        if (Control is NTickbox tickbox)
+            tickbox.Toggled -= OnToggled;
+    }
+
+    private void OnToggled(NTickbox tickbox)
+    {
+        var status = GetStatusString();
+        if (!string.IsNullOrEmpty(status))
+            SpeechManager.Output(status);
     }
 }

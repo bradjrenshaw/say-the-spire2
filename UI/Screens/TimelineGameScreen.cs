@@ -127,7 +127,7 @@ public class TimelineGameScreen : GameScreen
             {
                 var message = string.Join(". ", parts);
                 Log.Info($"[AccessibilityMod] Unlock screen: {message}");
-                SpeechManager.Output(message, interrupt: true);
+                SpeechManager.Output(message);
             }
         }
         catch (System.Exception ex)

@@ -14,6 +14,7 @@ using SayTheSpire2.Events;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
+using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
 
@@ -43,6 +44,19 @@ public static class FocusHooks
         // Patch NSettingsSlider.OnFocus and NPaginator.OnFocus (not NClickableControl subclasses)
         PatchOnFocus<NSettingsSlider>(harmony, nameof(SettingsControlFocusPostfix), "Slider");
         PatchOnFocus<NPaginator>(harmony, nameof(SettingsControlFocusPostfix), "Paginator");
+
+        // Patch NPaginator.IndexChangeHelper to announce value changes while focused
+        var indexChangeHelper = AccessTools.Method(typeof(NPaginator), "IndexChangeHelper");
+        if (indexChangeHelper != null)
+        {
+            harmony.Patch(indexChangeHelper,
+                postfix: new HarmonyMethod(typeof(FocusHooks), nameof(PaginatorIndexChangePostfix)));
+            Log.Info("[AccessibilityMod] Paginator IndexChangeHelper hook patched.");
+        }
+        else
+        {
+            Log.Error("[AccessibilityMod] Could not find NPaginator.IndexChangeHelper()!");
+        }
 
         // Patch combat focus: card holders and creatures have their own focus systems
         PatchOnFocus<NHandCardHolder>(harmony, nameof(CardHolderFocusPostfix), "HandCardHolder");
@@ -132,6 +146,17 @@ public static class FocusHooks
     public static void SettingsControlFocusPostfix(Control __instance)
     {
         UIManager.QueueFocus(__instance);
+    }
+
+    public static void PaginatorIndexChangePostfix(NPaginator __instance)
+    {
+        var element = ScreenManager.ResolveElement(__instance);
+        if (element is { IsFocused: true })
+        {
+            var status = element.GetStatusString();
+            if (!string.IsNullOrEmpty(status))
+                SpeechManager.Output(status);
+        }
     }
 
     public static void CardHolderFocusPostfix(NCardHolder __instance)

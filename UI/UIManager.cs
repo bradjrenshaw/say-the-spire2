@@ -55,7 +55,7 @@ public static class UIManager
 
         if (!GodotObject.IsInstanceValid(control)) return;
 
-        _lastAnnouncedElement?.OnUnfocus();
+        _lastAnnouncedElement?.Unfocus();
 
         element ??= ResolveElement(control);
         _lastAnnouncedElement = element;
@@ -73,7 +73,7 @@ public static class UIManager
         if (currentBufferKey != null)
             buffers.SetCurrentBuffer(currentBufferKey);
 
-        element.OnFocus();
+        element.Focus();
     }
 
     private static string BuildFocusAnnouncement(UIElement element)

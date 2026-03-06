@@ -85,7 +85,7 @@ public static class InputRebindHooks
             text = $"Press a key to rebind {label}";
 
         Log.Info($"[AccessibilityMod] Rebind listening: {label}");
-        SpeechManager.Output(text, interrupt: true);
+        SpeechManager.Output(text);
     }
 
     public static void KeyInputPrefix(NInputSettingsPanel __instance)
@@ -144,7 +144,7 @@ public static class InputRebindHooks
                 boundText = $"{boundText}. {swapMessage}";
 
             Log.Info($"[AccessibilityMod] Rebind: {boundText}");
-            SpeechManager.Output(boundText, interrupt: true);
+            SpeechManager.Output(boundText);
         }
 
         _previousListeningEntry = null;
@@ -206,7 +206,7 @@ public static class InputRebindHooks
                 boundText = $"{boundText}. {swapMessage}";
 
             Log.Info($"[AccessibilityMod] Controller rebind: {boundText}");
-            SpeechManager.Output(boundText, interrupt: true);
+            SpeechManager.Output(boundText);
         }
 
         _previousListeningEntry = null;
@@ -217,7 +217,7 @@ public static class InputRebindHooks
     {
         var text = LocalizationManager.Get("ui", "KEYBIND.RESET") ?? "Bindings reset to defaults";
         Log.Info($"[AccessibilityMod] {text}");
-        SpeechManager.Output(text, interrupt: true);
+        SpeechManager.Output(text);
     }
 
     private static string GetEntryLabel(NInputSettingsEntry entry)

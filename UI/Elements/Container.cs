@@ -37,5 +37,12 @@ public abstract class Container : UIElement
     /// <summary>
     /// Returns a formatted position string for the child element, or null if not applicable.
     /// </summary>
+    public override void Update()
+    {
+        OnUpdate();
+        foreach (var child in _children)
+            child.Update();
+    }
+
     public abstract string? GetPositionString(UIElement child);
 }

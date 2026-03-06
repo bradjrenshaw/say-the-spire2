@@ -55,7 +55,7 @@ public class EpochInspectScreen : GameScreen
             {
                 var message = string.Join(". ", parts);
                 Log.Info($"[AccessibilityMod] Epoch inspect: {message}");
-                SpeechManager.Output(message, interrupt: true);
+                SpeechManager.Output(message);
             }
         }
         catch (System.Exception ex)
@@ -88,7 +88,7 @@ public class EpochInspectScreen : GameScreen
             {
                 var message = string.Join(". ", parts);
                 Log.Info($"[AccessibilityMod] Epoch paginate: {message}");
-                SpeechManager.Output(message, interrupt: true);
+                SpeechManager.Output(message);
             }
         }
         catch (System.Exception ex)
