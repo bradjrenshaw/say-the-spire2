@@ -47,11 +47,11 @@ public class FocusContext
         // Append position from immediate parent container
         if (element.Parent is { AnnouncePosition: true } parent)
         {
-            var pos = parent.GetChildPosition(element);
-            if (pos is var (index, count) && count > 1)
+            var posStr = parent.GetPositionString(element);
+            if (!string.IsNullOrEmpty(posStr))
             {
                 if (sb.Length > 0) sb.Append(", ");
-                sb.Append($"{index} of {count}");
+                sb.Append(posStr);
             }
         }
 

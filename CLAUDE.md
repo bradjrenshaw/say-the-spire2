@@ -5,11 +5,9 @@ Accessibility mod for blind players of Slay the Spire 2. Replaces Godot's buggy 
 
 ## Build & Deploy
 ```
-python build.py
+dotnet build -c Release
 ```
-This builds the DLL, creates the PCK, and copies everything to the game's `mods/` directory. Then restart the game to test.
-
-**IMPORTANT**: The Python 3 command on this system is `python`, NOT `python3`.
+This builds the DLL, creates the PCK, and copies everything to the game's `mods/` directory via MSBuild post-build targets. Then restart the game to test.
 
 ## Check Logs
 Game logs are at: `%APPDATA%/SlayTheSpire2/logs/godot.log`

@@ -7,7 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline.UnlockScreens;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
-using Container = SayTheSpire2.UI.Elements.Container;
+using ListContainer = SayTheSpire2.UI.Elements.ListContainer;
 
 namespace SayTheSpire2.UI.Screens;
 
@@ -158,7 +158,7 @@ public class TimelineGameScreen : GameScreen
 
     private void BuildContainerTree(List<(NEraColumn era, List<NEpochSlot> slots)> columns)
     {
-        var root = new Container { AnnounceName = false, AnnouncePosition = false };
+        var root = new ListContainer { AnnounceName = false, AnnouncePosition = false };
 
         ClearRegistry();
 
@@ -170,7 +170,7 @@ public class TimelineGameScreen : GameScreen
             if (string.IsNullOrEmpty(eraName))
                 eraName = eraCol.era.ToString();
 
-            var eraContainer = new Container
+            var eraContainer = new ListContainer
             {
                 ContainerLabel = eraName,
                 AnnounceName = true,

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace SayTheSpire2.UI.Elements;
 
-public class Container : UIElement
+public abstract class Container : UIElement
 {
     private readonly List<UIElement> _children = new();
 
@@ -35,13 +35,7 @@ public class Container : UIElement
     public int IndexOf(UIElement child) => _children.IndexOf(child);
 
     /// <summary>
-    /// Returns 1-based position and total count for a child element.
-    /// Returns null if the child is not in this container.
+    /// Returns a formatted position string for the child element, or null if not applicable.
     /// </summary>
-    public virtual (int index, int count)? GetChildPosition(UIElement child)
-    {
-        var idx = _children.IndexOf(child);
-        if (idx < 0) return null;
-        return (idx + 1, _children.Count);
-    }
+    public abstract string? GetPositionString(UIElement child);
 }

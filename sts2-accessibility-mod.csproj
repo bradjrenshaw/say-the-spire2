@@ -11,8 +11,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <ModName>sts2-accessibility-mod</ModName>
     <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2</GameDir>
     <GameDataDir>$(GameDir)\data_sts2_windows_x86_64</GameDataDir>
+    <ModsDir>$(GameDir)\mods</ModsDir>
+    <TolkBuildDir>$(MSBuildProjectDirectory)\tolk build</TolkBuildDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,5 +43,160 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <!-- Collect files for the PCK -->
+  <ItemGroup>
+    <PckFile Include="mod_manifest.json" ResPath="res://mod_manifest.json" />
+    <PckFile Include="localization\**\*.json" ResPath="res://localization/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Create PCK file after build -->
+  <UsingTask TaskName="CreatePck" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <OutputPath ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Class" Language="cs"><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+
+public class CreatePck : Task
+{
+    [Required]
+    public ITaskItem[] Files { get; set; }
+
+    [Required]
+    public string OutputPath { get; set; }
+
+    public override bool Execute()
+    {
+        var resPaths = new List<string>();
+        var fileData = new List<byte[]>();
+        foreach (var item in Files)
+        {
+            var path = item.ItemSpec;
+            if (!File.Exists(path))
+            {
+                Log.LogWarning("PCK file not found, skipping: " + path);
+                continue;
+            }
+            resPaths.Add(item.GetMetadata("ResPath").Replace('\\', '/'));
+            fileData.Add(File.ReadAllBytes(path));
+        }
+
+        if (resPaths.Count == 0)
+        {
+            Log.LogError("No files to pack into PCK.");
+            return false;
+        }
+
+        // Pre-calculate padded paths
+        var paddedPaths = new List<byte[]>();
+        var paddedLens = new List<int>();
+        for (int i = 0; i < resPaths.Count; i++)
+        {
+            var pathBytes = Encoding.UTF8.GetBytes(resPaths[i]);
+            int paddedLen = (pathBytes.Length + 4) & ~3;
+            var padded = new byte[paddedLen];
+            Array.Copy(pathBytes, padded, pathBytes.Length);
+            paddedPaths.Add(padded);
+            paddedLens.Add(paddedLen);
+        }
+
+        // Header: 4 magic + 4 ver + 4*3 engine + 4 flags + 8 file_base + 64 reserved = 96
+        int headerSize = 96;
+        int dirSize = 4; // file count
+        for (int i = 0; i < resPaths.Count; i++)
+            dirSize += 4 + paddedLens[i] + 8 + 8 + 16 + 4;
+
+        long dataStart = ((long)(headerSize + dirSize) + 63) & ~63;
+
+        var offsets = new long[resPaths.Count];
+        long cur = dataStart;
+        for (int i = 0; i < resPaths.Count; i++)
+        {
+            offsets[i] = cur;
+            cur += fileData[i].Length;
+            cur = (cur + 63) & ~63;
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(OutputPath));
+        using (var fs = File.Create(OutputPath))
+        using (var w = new BinaryWriter(fs))
+        {
+            // Header
+            w.Write(new byte[] { (byte)'G', (byte)'D', (byte)'P', (byte)'C' });
+            w.Write((uint)2);  // pack version
+            w.Write((uint)4);  // engine major
+            w.Write((uint)5);  // engine minor
+            w.Write((uint)1);  // engine patch
+            w.Write((uint)0);  // flags
+            w.Write((ulong)0); // file_base
+            w.Write(new byte[64]); // reserved
+
+            // File count
+            w.Write((uint)resPaths.Count);
+
+            // Directory entries
+            for (int i = 0; i < resPaths.Count; i++)
+            {
+                w.Write((uint)paddedLens[i]);
+                w.Write(paddedPaths[i]);
+                w.Write((ulong)offsets[i]);
+                w.Write((ulong)fileData[i].Length);
+                w.Write(new byte[16]); // md5
+                w.Write((uint)0);      // flags
+            }
+
+            // Pad to data start
+            long pos = fs.Position;
+            if (pos < dataStart)
+                w.Write(new byte[dataStart - pos]);
+
+            // File data
+            for (int i = 0; i < resPaths.Count; i++)
+            {
+                w.Write(fileData[i]);
+                pos = fs.Position;
+                long aligned = (pos + 63) & ~63;
+                if (pos < aligned)
+                    w.Write(new byte[aligned - pos]);
+            }
+        }
+
+        Log.LogMessage(MessageImportance.High,
+            "Created PCK with " + resPaths.Count + " file(s): " + string.Join(", ", resPaths));
+        return true;
+    }
+}
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="DeployMod" AfterTargets="Build">
+    <!-- Create PCK -->
+    <CreatePck Files="@(PckFile)" OutputPath="$(ModsDir)\$(ModName).pck" />
+
+    <!-- Copy mod DLL -->
+    <Copy SourceFiles="$(OutputPath)$(ModName).dll" DestinationFolder="$(ModsDir)" />
+
+    <!-- Copy System.Speech.dll -->
+    <Copy SourceFiles="$(OutputPath)System.Speech.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(OutputPath)System.Speech.dll')" />
+
+    <!-- Copy TolkDotNet.dll (managed) to mods/ -->
+    <Copy SourceFiles="$(TolkBuildDir)\TolkDotNet.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(TolkBuildDir)\TolkDotNet.dll')" />
+
+    <!-- Copy native Tolk DLLs to game root (Windows DLL search path) -->
+    <Copy SourceFiles="$(TolkBuildDir)\x64\Tolk.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\Tolk.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\x64\nvdaControllerClient64.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\nvdaControllerClient64.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\x64\SAAPI64.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\SAAPI64.dll')" />
+
+    <Message Text="Mod deployed to $(ModsDir)" Importance="high" />
+  </Target>
 
 </Project>
