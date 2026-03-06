@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Godot;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
+using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using Sts2AccessibilityMod.Input;
 using Sts2AccessibilityMod.UI.Elements;
 
@@ -14,6 +16,9 @@ public static class ScreenManager
     private static readonly List<Screen> _screenStack = new();
     private static readonly Dictionary<Type, Func<GameScreen>> _gameScreenFactories = new();
     private static IScreenContext? _lastScreenContext;
+
+    private static readonly FieldInfo? ListeningEntryField =
+        typeof(NInputSettingsPanel).GetField("_listeningEntry", BindingFlags.Instance | BindingFlags.NonPublic);
 
     public static Screen? CurrentScreen =>
         _screenStack.Count > 0 ? _screenStack[^1] : null;
@@ -89,6 +94,9 @@ public static class ScreenManager
     /// </summary>
     public static bool HandleKeyEvent(InputEventKey key)
     {
+        if (IsGameListeningForInput())
+            return false;
+
         var action = InputManager.MatchAction(key);
         if (action == null)
             return false;
@@ -153,6 +161,21 @@ public static class ScreenManager
         }
 
         Log.Info($"[AccessibilityMod] No GameScreen registered for {contextType.Name}");
+    }
+
+    /// <summary>
+    /// Check if the game is in a state that needs raw input (e.g., rebinding keys).
+    /// </summary>
+    private static bool IsGameListeningForInput()
+    {
+        if (ListeningEntryField == null)
+            return false;
+
+        var screen = ActiveScreenContext.Instance.GetCurrentScreen();
+        if (screen is not NInputSettingsPanel panel)
+            return false;
+
+        return ListeningEntryField.GetValue(panel) != null;
     }
 
     private static bool Dispatch(InputAction action, Func<Screen, InputAction, bool> handler)
