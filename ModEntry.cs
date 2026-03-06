@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using Sts2AccessibilityMod.Buffers;
 using Sts2AccessibilityMod.Hooks;
+using Sts2AccessibilityMod.Events;
 using Sts2AccessibilityMod.Patches;
 using Sts2AccessibilityMod.UI;
 using Sts2AccessibilityMod.UI.Screens;
@@ -49,6 +50,7 @@ public static class ModEntry
         KeyboardNavHooks.Initialize(_harmony);
         ModalHooks.Initialize(_harmony);
         ScreenHooks.Initialize(_harmony);
+        CombatEventManager.Initialize();
 
         Log.Info("[AccessibilityMod] Initialized. Custom TTS active.");
     }
@@ -71,6 +73,7 @@ public static class ModEntry
         BufferManager.Instance.Add(new Buffers.Buffer("card"));
         BufferManager.Instance.Add(new Buffers.Buffer("creature"));
         BufferManager.Instance.Add(new Buffers.Buffer("player"));
+        BufferManager.Instance.Add(new Buffers.Buffer("events"));
     }
 
     private static void RegisterScreens()

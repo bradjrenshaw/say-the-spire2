@@ -6,8 +6,6 @@ using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
-using Sts2AccessibilityMod.Buffers;
-using Sts2AccessibilityMod.Speech;
 using Sts2AccessibilityMod.UI;
 
 namespace Sts2AccessibilityMod.Hooks;
@@ -16,8 +14,6 @@ public static class FocusHooks
 {
     private static readonly PropertyInfo IsFocusedProp =
         typeof(NClickableControl).GetProperty("IsFocused", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
-    private static Control? _lastAnnouncedControl;
 
     public static void Initialize(Harmony harmony)
     {
@@ -68,23 +64,23 @@ public static class FocusHooks
         bool nowFocused = (bool)IsFocusedProp.GetValue(__instance)!;
         if (nowFocused && !__state)
         {
-            AnnounceElement(__instance);
+            UIManager.QueueFocus(__instance);
         }
     }
 
     public static void SettingsControlFocusPostfix(Control __instance)
     {
-        AnnounceElement(__instance);
+        UIManager.QueueFocus(__instance);
     }
 
     public static void CardHolderFocusPostfix(NCardHolder __instance)
     {
-        AnnounceElement(__instance, new ProxyCard(__instance));
+        UIManager.QueueFocus(__instance, new ProxyCard(__instance));
     }
 
     public static void CreatureFocusPostfix(NCreature __instance)
     {
-        AnnounceElement(__instance, new ProxyCreature(__instance));
+        UIManager.QueueFocus(__instance, new ProxyCreature(__instance));
     }
 
     private static void PatchOnFocus<T>(Harmony harmony, string postfixMethodName, string label)
@@ -127,40 +123,10 @@ public static class FocusHooks
         // Skip card holders and creatures - handled by their own hooks
         if (control is NCardHolder) return;
         if (control is NCreature) return;
-        // Skip if we just announced this control
-        if (control == _lastAnnouncedControl) return;
         // CardHolderContainer is a transient focus target - focus shifts away immediately
         if (control.Name == "CardHolderContainer") return;
 
         Log.Info($"[AccessibilityMod] Viewport focus (non-NClickable): {control.GetType().FullName} ({control.Name})");
-        AnnounceElement(control);
-    }
-
-    private static void AnnounceElement(Control control, UIElement? preResolved = null)
-    {
-        _lastAnnouncedControl = control;
-        var element = preResolved ?? ResolveElement(control);
-        var text = element.GetFocusString();
-        Log.Info($"[AccessibilityMod] Focus: {control.GetType().Name} ({control.Name}) -> \"{text}\"");
-        if (!string.IsNullOrEmpty(text))
-        {
-            SpeechManager.Output(text);
-        }
-
-        // Update buffers for the focused element
-        var buffers = BufferManager.Instance;
-        buffers.DisableAll();
-        var currentBufferKey = element.HandleBuffers(buffers);
-        if (currentBufferKey != null)
-            buffers.SetCurrentBuffer(currentBufferKey);
-    }
-
-    private static UIElement ResolveElement(Control control)
-    {
-        var screenElement = GameScreenManager.ActiveScreen?.GetElement(control);
-        if (screenElement != null)
-            return screenElement;
-
-        return ProxyFactory.Create(control);
+        UIManager.QueueFocus(control);
     }
 }
