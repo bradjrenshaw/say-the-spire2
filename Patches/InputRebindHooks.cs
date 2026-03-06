@@ -30,6 +30,9 @@ public static class InputRebindHooks
 
     public static void Initialize(Harmony harmony)
     {
+        // Add topPanel to remappable keyboard inputs so it can be rebound
+        EnableTopPanelKeyboardRebind();
+
         // Patch SetAsListeningEntry to announce listening mode
         var setListening = AccessTools.Method(typeof(NInputSettingsPanel), "SetAsListeningEntry");
         if (setListening != null)
@@ -226,6 +229,38 @@ public static class InputRebindHooks
             if (text != null) return text;
         }
         return entry.InputName?.ToString() ?? "unknown";
+    }
+
+    private static void EnableTopPanelKeyboardRebind()
+    {
+        try
+        {
+            // remappableKeyboardInputs is IReadOnlyList backed by List<StringName>
+            if (NInputManager.remappableKeyboardInputs is List<StringName> list)
+            {
+                var topPanel = MegaCrit.Sts2.Core.ControllerInput.MegaInput.topPanel;
+                if (!list.Contains(topPanel))
+                {
+                    list.Add(topPanel);
+                    Log.Info("[AccessibilityMod] Added topPanel to remappable keyboard inputs.");
+                }
+
+                // Ensure _keyboardInputMap has an entry for topPanel (default: T)
+                if (NInputManager.Instance != null)
+                {
+                    var map = KeyboardInputMapField.GetValue(NInputManager.Instance) as Dictionary<StringName, Key>;
+                    if (map != null && !map.ContainsKey(topPanel))
+                    {
+                        map[topPanel] = Key.T;
+                        Log.Info("[AccessibilityMod] Set default topPanel keyboard binding to T.");
+                    }
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Log.Error($"[AccessibilityMod] Failed to enable topPanel keyboard rebind: {ex.Message}");
+        }
     }
 
     private static string GetEntryLabelByInputName(StringName inputName)
