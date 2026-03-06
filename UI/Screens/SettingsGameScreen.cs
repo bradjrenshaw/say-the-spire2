@@ -5,7 +5,6 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
-using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
@@ -95,14 +94,7 @@ public class SettingsGameScreen : GameScreen
     {
         control.FocusEntered += () =>
         {
-            var element = GetElement(control);
-            if (element == null) return;
-            var text = element.GetFocusString();
-            Log.Info($"[AccessibilityMod] Focus (signal): {control.GetType().Name} ({control.Name}) -> \"{text}\"");
-            if (!string.IsNullOrEmpty(text))
-            {
-                SpeechManager.Output(text);
-            }
+            UIManager.QueueFocus(control, GetElement(control));
         };
     }
 
