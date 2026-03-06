@@ -75,6 +75,15 @@ public static class ScreenHooks
             Log.Info("[AccessibilityMod] Unlock screen Open hook patched.");
         }
 
+        // Hook EnableInput on timeline screen to fix focus neighbors
+        var enableInput = AccessTools.Method(typeof(NTimelineScreen), "EnableInput");
+        if (enableInput != null)
+        {
+            harmony.Patch(enableInput,
+                postfix: new HarmonyMethod(typeof(ScreenHooks), nameof(TimelineEnableInputPostfix)));
+            Log.Info("[AccessibilityMod] Timeline EnableInput hook patched.");
+        }
+
         // Hook AnimateScoreBar to announce total score
         var animateScore = AccessTools.Method(typeof(NGameOverScreen), "AnimateScoreBar");
         if (animateScore != null)
@@ -88,6 +97,96 @@ public static class ScreenHooks
     public static void UpdatePostfix()
     {
         ScreenManager.OnGameScreenChanged();
+    }
+
+    public static void TimelineEnableInputPostfix(NTimelineScreen __instance)
+    {
+        try
+        {
+            FixTimelineFocusNeighbors(__instance);
+        }
+        catch (System.Exception ex)
+        {
+            Log.Error($"[AccessibilityMod] Timeline focus fix error: {ex.Message}");
+        }
+    }
+
+    private static void FixTimelineFocusNeighbors(NTimelineScreen screen)
+    {
+        // Get the epoch slot container (HBoxContainer with NEraColumn children)
+        var containerField = typeof(NTimelineScreen).GetField("_epochSlotContainer",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        if (containerField == null) return;
+        var container = containerField.GetValue(screen) as HBoxContainer;
+        if (container == null) return;
+
+        // Build ordered list of columns, each with their sorted slots
+        var columns = new System.Collections.Generic.List<System.Collections.Generic.List<NEpochSlot>>();
+        foreach (var child in container.GetChildren())
+        {
+            if (child is not NEraColumn eraCol) continue;
+            var slots = new System.Collections.Generic.List<NEpochSlot>();
+            foreach (var slotChild in eraCol.GetChildren())
+            {
+                if (slotChild is NEpochSlot slot)
+                    slots.Add(slot);
+            }
+            if (slots.Count > 0)
+            {
+                // Sort by eraPosition so index 0 = top of column
+                slots.Sort((a, b) => a.eraPosition.CompareTo(b.eraPosition));
+                columns.Add(slots);
+            }
+        }
+
+        if (columns.Count == 0) return;
+
+        for (int col = 0; col < columns.Count; col++)
+        {
+            var slots = columns[col];
+            for (int row = 0; row < slots.Count; row++)
+            {
+                var slot = slots[row];
+
+                // Up: previous slot in same column, or empty (stay put)
+                if (row > 0)
+                    slot.FocusNeighborTop = slots[row - 1].GetPath();
+                else
+                    slot.FocusNeighborTop = slot.GetPath(); // prevent escaping column
+
+                // Down: next slot in same column, or empty (stay put)
+                if (row < slots.Count - 1)
+                    slot.FocusNeighborBottom = slots[row + 1].GetPath();
+                else
+                    slot.FocusNeighborBottom = slot.GetPath(); // prevent escaping column
+
+                // Left: same row in previous column (clamped to last row if shorter)
+                if (col > 0)
+                {
+                    var leftCol = columns[col - 1];
+                    var targetRow = System.Math.Min(row, leftCol.Count - 1);
+                    slot.FocusNeighborLeft = leftCol[targetRow].GetPath();
+                }
+                else
+                {
+                    slot.FocusNeighborLeft = slot.GetPath(); // leftmost column
+                }
+
+                // Right: same row in next column (clamped to last row if shorter)
+                if (col < columns.Count - 1)
+                {
+                    var rightCol = columns[col + 1];
+                    var targetRow = System.Math.Min(row, rightCol.Count - 1);
+                    slot.FocusNeighborRight = rightCol[targetRow].GetPath();
+                }
+                else
+                {
+                    slot.FocusNeighborRight = slot.GetPath(); // rightmost column
+                }
+            }
+        }
+
+        Log.Info($"[AccessibilityMod] Fixed timeline focus neighbors: {columns.Count} columns");
     }
 
     private static void AddEpochHeaderToParts(System.Collections.Generic.List<string> parts, EpochModel epoch)
