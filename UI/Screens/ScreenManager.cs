@@ -182,7 +182,13 @@ public static class ScreenManager
     {
         for (int i = _screenStack.Count - 1; i >= 0; i--)
         {
-            if (handler(_screenStack[i], action))
+            var screen = _screenStack[i];
+            if (!screen.HasClaimed(action.Key))
+                continue;
+
+            handler(screen, action);
+
+            if (!screen.ShouldPropagate(action.Key))
                 return true;
         }
         return false;
