@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Godot;
@@ -6,6 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using SayTheSpire2.UI.Elements;
+using ListContainer = SayTheSpire2.UI.Elements.ListContainer;
 
 namespace SayTheSpire2.UI.Screens;
 
@@ -15,6 +17,15 @@ public class SettingsGameScreen : GameScreen
 
     public override string ScreenName => "Settings";
 
+    // Tab node name -> panel node path, in order
+    private static readonly (string tabName, string panelPath)[] TabPanels =
+    {
+        ("General", "%GeneralSettings"),
+        ("Graphics", "%GraphicsSettings"),
+        ("Sound", "%SoundSettings"),
+        ("Input", "%InputSettings"),
+    };
+
     public SettingsGameScreen(NSettingsScreen screen)
     {
         _screen = screen;
@@ -22,45 +33,62 @@ public class SettingsGameScreen : GameScreen
 
     protected override void BuildRegistry()
     {
-        var panelNames = new[] { "%GeneralSettings", "%GraphicsSettings", "%SoundSettings", "%InputSettings" };
-        var positioners = new System.Collections.Generic.List<NDropdownPositioner>();
+        var root = new ListContainer { AnnounceName = false, AnnouncePosition = false };
+        var tabManager = _screen.GetNodeOrNull("SettingsTabManager");
+        var positioners = new List<(NDropdownPositioner positioner, ListContainer container)>();
 
-        // First pass: register all controls, collecting positioners for later
-        foreach (var panelName in panelNames)
+        foreach (var (tabName, panelPath) in TabPanels)
         {
-            var panel = _screen.GetNodeOrNull<NSettingsPanel>(panelName);
+            var panel = _screen.GetNodeOrNull<NSettingsPanel>(panelPath);
             if (panel == null) continue;
 
-            RegisterControlsRecursive(panel, positioners);
+            // Read the localized tab label from the tab node
+            var tabLabel = GetTabLabel(tabManager, tabName) ?? tabName;
+
+            var tabContainer = new ListContainer
+            {
+                ContainerLabel = tabLabel,
+                AnnounceName = true,
+                AnnouncePosition = false,
+            };
+
+            RegisterControlsRecursive(panel, tabContainer, positioners);
+            root.Add(tabContainer);
         }
 
         // Second pass: register positioner dropdowns last so their labels win
-        foreach (var positioner in positioners)
+        foreach (var (positioner, container) in positioners)
         {
-            RegisterDropdownPositioner(positioner);
+            RegisterDropdownPositioner(positioner, container);
         }
+
+        RootElement = root;
+        FocusContext?.Reset();
     }
 
-    private void RegisterControlsRecursive(Node parent, System.Collections.Generic.List<NDropdownPositioner> positioners)
+    private void RegisterControlsRecursive(
+        Node parent,
+        ListContainer container,
+        List<(NDropdownPositioner, ListContainer)> positioners)
     {
         foreach (var child in parent.GetChildren().OfType<Control>())
         {
             if (child is NDropdownPositioner positioner)
             {
-                positioners.Add(positioner);
+                positioners.Add((positioner, container));
             }
             else if (child.FocusMode != Control.FocusModeEnum.None)
             {
-                RegisterSettingsControl(child);
+                RegisterSettingsControl(child, container);
             }
             else
             {
-                RegisterControlsRecursive(child, positioners);
+                RegisterControlsRecursive(child, container, positioners);
             }
         }
     }
 
-    private void RegisterSettingsControl(Control control)
+    private void RegisterSettingsControl(Control control, ListContainer container)
     {
         var label = FindLabelInParent(control);
         ProxyElement proxy;
@@ -79,14 +107,13 @@ public class SettingsGameScreen : GameScreen
             proxy = new ProxyButton(control);
         else
         {
-            // Unknown focusable control — register as button fallback and
-            // connect to FocusEntered signal since we have no hook for it
             proxy = new ProxyButton(control);
             Log.Info($"[AccessibilityMod] Unknown settings control: {control.GetType().Name} ({control.Name})");
             ConnectFocusSignal(control);
         }
 
         if (label != null) proxy.OverrideLabel = label;
+        container.Add(proxy);
         Register(control, proxy);
     }
 
@@ -98,21 +125,27 @@ public class SettingsGameScreen : GameScreen
         };
     }
 
-    private void RegisterDropdownPositioner(NDropdownPositioner positioner)
+    private void RegisterDropdownPositioner(NDropdownPositioner positioner, ListContainer container)
     {
         var label = FindLabelInParent(positioner);
 
-        // Extract the child dropdown to read its value from
         var field = typeof(NDropdownPositioner).GetField("_dropdownNode", BindingFlags.Instance | BindingFlags.NonPublic);
         var dropdownNode = field?.GetValue(positioner) as Control;
 
-        // Register the positioner itself — that's what gets focus
         var proxy = new ProxyDropdown(dropdownNode ?? (Control)positioner);
         if (label != null) proxy.OverrideLabel = label;
+        container.Add(proxy);
         Register(positioner, proxy);
 
-        // Connect FocusEntered since positioner isn't an NClickableControl
         ConnectFocusSignal(positioner);
+    }
+
+    private static string? GetTabLabel(Node? tabManager, string tabNodeName)
+    {
+        if (tabManager == null) return null;
+        var tab = tabManager.GetNodeOrNull(tabNodeName);
+        if (tab == null) return null;
+        return ProxyElement.FindChildTextPublic(tab);
     }
 
     private static string? FindLabelInParent(Control control)
