@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -11,7 +12,7 @@ namespace Sts2AccessibilityMod.Events;
 
 public static class CombatEventManager
 {
-    private static readonly HashSet<Creature> _subscribedCreatures = new();
+    private static readonly Dictionary<Creature, CreatureHandlers> _subscribedCreatures = new();
 
     public static void Initialize()
     {
@@ -47,30 +48,33 @@ public static class CombatEventManager
     {
         foreach (var creature in state.Creatures)
         {
-            if (_subscribedCreatures.Contains(creature)) continue;
+            if (_subscribedCreatures.ContainsKey(creature)) continue;
             SubscribeToCreature(creature);
         }
     }
 
     private static void SubscribeToCreature(Creature creature)
     {
-        _subscribedCreatures.Add(creature);
-        creature.BlockChanged += (oldBlock, newBlock) => Dispatch(new BlockEvent(creature, oldBlock, newBlock));
-        creature.PowerIncreased += (power, change, silent) =>
-        {
-            if (!silent) Dispatch(new PowerEvent(creature, power, PowerEventType.Increased, change));
-        };
-        creature.PowerDecreased += (power, silent) =>
-        {
-            if (!silent) Dispatch(new PowerEvent(creature, power, PowerEventType.Decreased));
-        };
-        creature.PowerRemoved += power => Dispatch(new PowerEvent(creature, power, PowerEventType.Removed));
-        creature.Died += c => Dispatch(new DeathEvent(c));
+        var handlers = new CreatureHandlers(creature);
+        _subscribedCreatures[creature] = handlers;
+
+        creature.BlockChanged += handlers.OnBlockChanged;
+        creature.PowerIncreased += handlers.OnPowerIncreased;
+        creature.PowerDecreased += handlers.OnPowerDecreased;
+        creature.PowerRemoved += handlers.OnPowerRemoved;
+        creature.Died += handlers.OnDied;
     }
 
     private static void UnsubscribeAll()
     {
-        // Events are garbage collected with the creatures; just clear our tracking set
+        foreach (var (creature, handlers) in _subscribedCreatures)
+        {
+            creature.BlockChanged -= handlers.OnBlockChanged;
+            creature.PowerIncreased -= handlers.OnPowerIncreased;
+            creature.PowerDecreased -= handlers.OnPowerDecreased;
+            creature.PowerRemoved -= handlers.OnPowerRemoved;
+            creature.Died -= handlers.OnDied;
+        }
         _subscribedCreatures.Clear();
     }
 
@@ -89,6 +93,41 @@ public static class CombatEventManager
             var buffer = BufferManager.Instance.GetBuffer("events");
             buffer?.Add(message);
             BufferManager.Instance.EnableBuffer("events", true);
+        }
+    }
+
+    private class CreatureHandlers
+    {
+        private readonly Creature _creature;
+
+        public CreatureHandlers(Creature creature)
+        {
+            _creature = creature;
+        }
+
+        public void OnBlockChanged(int oldBlock, int newBlock)
+        {
+            Dispatch(new BlockEvent(_creature, oldBlock, newBlock));
+        }
+
+        public void OnPowerIncreased(PowerModel power, int change, bool silent)
+        {
+            if (!silent) Dispatch(new PowerEvent(_creature, power, PowerEventType.Increased, change));
+        }
+
+        public void OnPowerDecreased(PowerModel power, bool silent)
+        {
+            if (!silent) Dispatch(new PowerEvent(_creature, power, PowerEventType.Decreased));
+        }
+
+        public void OnPowerRemoved(PowerModel power)
+        {
+            Dispatch(new PowerEvent(_creature, power, PowerEventType.Removed));
+        }
+
+        public void OnDied(Creature c)
+        {
+            Dispatch(new DeathEvent(c));
         }
     }
 }

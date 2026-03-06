@@ -57,9 +57,7 @@ public static class PlayerBufferHelper
             {
                 foreach (var power in creature.Powers)
                 {
-                    var title = power.Title.GetFormattedText();
-                    var amount = power.Amount;
-                    playerBuffer.Add(amount != 0 ? $"{title} {amount}" : title);
+                    playerBuffer.Add(FormatPower(power));
                 }
             }
         }
@@ -69,5 +67,20 @@ public static class PlayerBufferHelper
         }
 
         buffers.EnableBuffer("player", true);
+    }
+
+    public static string FormatPower(MegaCrit.Sts2.Core.Models.PowerModel power)
+    {
+        var title = power.Title.GetFormattedText();
+        var amount = power.Amount;
+        var line = amount != 0 ? $"{title} {amount}" : title;
+        try
+        {
+            var desc = power.Description.GetFormattedText();
+            if (!string.IsNullOrEmpty(desc))
+                line += ": " + ProxyElement.StripBbcode(desc);
+        }
+        catch { }
+        return line;
     }
 }

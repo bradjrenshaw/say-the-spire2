@@ -119,10 +119,7 @@ public class ProxyCreature : ProxyElement
             {
                 foreach (var power in entity.Powers)
                 {
-                    var title = power.Title.GetFormattedText();
-                    var amount = power.Amount;
-                    var powerText = amount != 0 ? $"{title} {amount}" : title;
-                    creatureBuffer.Add(powerText);
+                    creatureBuffer.Add(PlayerBufferHelper.FormatPower(power));
                 }
             }
 

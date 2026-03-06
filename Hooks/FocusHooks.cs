@@ -17,9 +17,6 @@ public static class FocusHooks
 
     public static void Initialize(Harmony harmony)
     {
-        // Connect to Viewport focus changes to catch ALL focus events (including non-NClickableControl)
-        ConnectViewportFocusWatcher();
-
         // Patch NClickableControl.RefreshFocus for buttons, tickboxes, dropdowns, etc.
         var refreshFocus = AccessTools.Method(typeof(NClickableControl), "RefreshFocus");
         if (refreshFocus == null)
@@ -96,37 +93,5 @@ public static class FocusHooks
         {
             Log.Error($"[AccessibilityMod] Could not find {typeof(T).Name}.OnFocus()!");
         }
-    }
-
-    private static void ConnectViewportFocusWatcher()
-    {
-        // Deferred connection since viewport may not be ready during Initialize
-        Callable.From(() =>
-        {
-            try
-            {
-                var viewport = ((SceneTree)Engine.GetMainLoop()).Root;
-                viewport.Connect("gui_focus_changed", Callable.From<Control>(OnViewportFocusChanged));
-                Log.Info("[AccessibilityMod] Viewport focus watcher connected.");
-            }
-            catch (System.Exception e)
-            {
-                Log.Error($"[AccessibilityMod] Failed to connect viewport focus watcher: {e.Message}");
-            }
-        }).CallDeferred();
-    }
-
-    private static void OnViewportFocusChanged(Control control)
-    {
-        // Skip NClickableControl - those are already handled by RefreshFocus hook
-        if (control is NClickableControl) return;
-        // Skip card holders and creatures - handled by their own hooks
-        if (control is NCardHolder) return;
-        if (control is NCreature) return;
-        // CardHolderContainer is a transient focus target - focus shifts away immediately
-        if (control.Name == "CardHolderContainer") return;
-
-        Log.Info($"[AccessibilityMod] Viewport focus (non-NClickable): {control.GetType().FullName} ({control.Name})");
-        UIManager.QueueFocus(control);
     }
 }
