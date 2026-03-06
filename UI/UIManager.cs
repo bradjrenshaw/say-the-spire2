@@ -12,6 +12,7 @@ public static class UIManager
     private static Control? _pendingControl;
     private static UIElement? _pendingElement;
     private static Control? _lastAnnouncedControl;
+    private static UIElement? _lastAnnouncedElement;
     private static bool _processingScheduled;
 
     /// <summary>
@@ -54,7 +55,11 @@ public static class UIManager
 
         if (!GodotObject.IsInstanceValid(control)) return;
 
+        _lastAnnouncedElement?.OnUnfocus();
+
         element ??= ResolveElement(control);
+        _lastAnnouncedElement = element;
+
         var text = element.GetFocusString();
         Log.Info($"[AccessibilityMod] Focus: {control.GetType().Name} ({control.Name}) -> \"{text}\"");
         if (!string.IsNullOrEmpty(text))
@@ -67,6 +72,8 @@ public static class UIManager
         var currentBufferKey = element.HandleBuffers(buffers);
         if (currentBufferKey != null)
             buffers.SetCurrentBuffer(currentBufferKey);
+
+        element.OnFocus();
     }
 
     private static UIElement ResolveElement(Control control)

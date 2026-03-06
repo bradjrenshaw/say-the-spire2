@@ -35,6 +35,9 @@ public abstract class UIElement
         return "ui";
     }
 
+    public virtual void OnFocus() { }
+    public virtual void OnUnfocus() { }
+
     public string GetFocusString()
     {
         var sb = new StringBuilder();
