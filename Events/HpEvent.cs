@@ -1,7 +1,9 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
+[EventSettings("hp", "HP Changes")]
 public class HpEvent : GameEvent
 {
     private readonly string _creatureName;

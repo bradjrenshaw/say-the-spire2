@@ -1,7 +1,9 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
+[EventSettings("block", "Block")]
 public class BlockEvent : GameEvent
 {
     private readonly string _creatureName;

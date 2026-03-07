@@ -1,5 +1,8 @@
+using SayTheSpire2.Settings;
+
 namespace SayTheSpire2.Events;
 
+[EventSettings("card_stolen", "Card Stolen")]
 public class CardStolenEvent : GameEvent
 {
     private readonly string _cardName;

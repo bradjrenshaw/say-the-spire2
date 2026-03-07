@@ -1,3 +1,5 @@
+using SayTheSpire2.Settings;
+
 namespace SayTheSpire2.Events;
 
 public enum CardPileEventType
@@ -10,6 +12,7 @@ public enum CardPileEventType
     DeckShuffled,
 }
 
+[EventSettings("card_pile", "Card Pile")]
 public class CardPileEvent : GameEvent
 {
     private readonly CardPileEventType _type;

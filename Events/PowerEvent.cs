@@ -1,10 +1,12 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
 public enum PowerEventType { Applied, Increased, Decreased, Removed }
 
+[EventSettings("power", "Powers")]
 public class PowerEvent : GameEvent
 {
     private readonly string _creatureName;

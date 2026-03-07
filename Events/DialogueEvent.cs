@@ -1,5 +1,8 @@
+using SayTheSpire2.Settings;
+
 namespace SayTheSpire2.Events;
 
+[EventSettings("dialogue", "Dialogue", defaultBuffer: false)]
 public class DialogueEvent : GameEvent
 {
     private readonly string? _speaker;
@@ -17,6 +20,4 @@ public class DialogueEvent : GameEvent
         if (string.IsNullOrEmpty(_speaker)) return _text;
         return $"{_speaker}: {_text}";
     }
-
-    public override bool ShouldAddToBuffer() => false;
 }

@@ -44,6 +44,10 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Tests\**" />
+  </ItemGroup>
+
   <!-- Collect files for the PCK -->
   <ItemGroup>
     <PckFile Include="mod_manifest.json" ResPath="res://mod_manifest.json" />

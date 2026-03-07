@@ -1,7 +1,9 @@
 using MegaCrit.Sts2.Core.Combat;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
+[EventSettings("turn", "Turns")]
 public class TurnEvent : GameEvent
 {
     private readonly CombatSide _side;
@@ -25,6 +27,4 @@ public class TurnEvent : GameEvent
         }
         return null;
     }
-
-    public override bool ShouldAddToBuffer() => _isStart;
 }

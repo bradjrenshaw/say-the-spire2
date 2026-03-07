@@ -42,6 +42,7 @@ public static class ModEntry
         _harmony = new Harmony("bradj.sts2-accessibility-mod");
         _harmony.PatchAll(typeof(ModEntry).Assembly);
 
+        InitializeSettings();
         InitializeSpeech();
         InitializeLocalization();
         InitializeBuffers();
@@ -59,6 +60,31 @@ public static class ModEntry
         CombatEventManager.Initialize();
 
         Log.Info("[AccessibilityMod] Initialized. Custom TTS active.");
+    }
+
+    private static void InitializeSettings()
+    {
+        var settingsDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "SlayTheSpire2", "mods", "SayTheSpire2");
+
+        // Build events category and register all event types
+        var eventsCategory = new Settings.CategorySetting("events", "Events");
+        Settings.ModSettings.Root.Add(eventsCategory);
+        Settings.EventRegistry.Initialize(eventsCategory);
+
+        Settings.EventRegistry.Register(typeof(BlockEvent));
+        Settings.EventRegistry.Register(typeof(CardPileEvent));
+        Settings.EventRegistry.Register(typeof(CardStolenEvent));
+        Settings.EventRegistry.Register(typeof(DeathEvent));
+        Settings.EventRegistry.Register(typeof(DialogueEvent));
+        Settings.EventRegistry.Register(typeof(EnemyMoveEvent));
+        Settings.EventRegistry.Register(typeof(HpEvent));
+        Settings.EventRegistry.Register(typeof(PowerEvent));
+        Settings.EventRegistry.Register(typeof(TurnEvent));
+
+        // Load saved values (overrides defaults) and write file if first run
+        Settings.ModSettings.Initialize(settingsDir);
     }
 
     private static void InitializeSpeech()
