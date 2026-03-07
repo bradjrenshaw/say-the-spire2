@@ -46,6 +46,8 @@ public static class ScreenHooks
             nameof(EpochInspectOpenPostfix), "Epoch inspect Open");
         PatchIfFound(harmony, typeof(NEpochInspectScreen), "OpenViaPaginator",
             nameof(EpochPaginatePostfix), "Epoch paginate");
+        PatchIfFound(harmony, typeof(NEpochInspectScreen), "Close",
+            nameof(EpochInspectClosedPostfix), "Epoch inspect Close");
 
         // Settings screen hooks (OnSubmenuOpened/Closed work for both main menu and pause)
         PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuOpened",
@@ -102,10 +104,20 @@ public static class ScreenHooks
 
     // Epoch inspect delegates
     public static void EpochInspectOpenPostfix(EpochModel epoch, bool wasRevealed)
-        => EpochInspectScreen.Current?.OnOpen(epoch, wasRevealed);
+    {
+        if (EpochInspectScreen.Current == null)
+            ScreenManager.PushScreen(new EpochInspectScreen());
+        EpochInspectScreen.Current?.OnOpen(epoch, wasRevealed);
+    }
 
     public static void EpochPaginatePostfix(EpochModel epoch)
         => EpochInspectScreen.Current?.OnPaginate(epoch);
+
+    public static void EpochInspectClosedPostfix()
+    {
+        if (EpochInspectScreen.Current != null)
+            ScreenManager.RemoveScreen(EpochInspectScreen.Current);
+    }
 
     // Settings delegates
     public static void SettingsOpenedPostfix(NSettingsScreen __instance)

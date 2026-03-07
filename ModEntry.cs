@@ -96,7 +96,6 @@ public static class ModEntry
         ScreenManager.RegisterGameScreen<NTimelineScreen>(
             () => new TimelineGameScreen((NTimelineScreen)getContext()!));
 
-        ScreenManager.RegisterGameScreen<NEpochInspectScreen>(
-            () => new EpochInspectScreen());
+        // EpochInspectScreen is managed directly by ScreenHooks (Open/Close patches)
     }
 }
