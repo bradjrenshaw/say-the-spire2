@@ -282,6 +282,7 @@ public class CombatScreen : Screen
         _subscribedCreatures[creature] = handlers;
 
         creature.BlockChanged += handlers.OnBlockChanged;
+        creature.CurrentHpChanged += handlers.OnCurrentHpChanged;
         creature.PowerIncreased += handlers.OnPowerIncreased;
         creature.PowerDecreased += handlers.OnPowerDecreased;
         creature.PowerRemoved += handlers.OnPowerRemoved;
@@ -293,6 +294,7 @@ public class CombatScreen : Screen
         foreach (var (creature, handlers) in _subscribedCreatures)
         {
             creature.BlockChanged -= handlers.OnBlockChanged;
+            creature.CurrentHpChanged -= handlers.OnCurrentHpChanged;
             creature.PowerIncreased -= handlers.OnPowerIncreased;
             creature.PowerDecreased -= handlers.OnPowerDecreased;
             creature.PowerRemoved -= handlers.OnPowerRemoved;
@@ -313,6 +315,11 @@ public class CombatScreen : Screen
         public void OnBlockChanged(int oldBlock, int newBlock)
         {
             EventDispatcher.Enqueue(new BlockEvent(_creature, oldBlock, newBlock));
+        }
+
+        public void OnCurrentHpChanged(int oldHp, int newHp)
+        {
+            EventDispatcher.Enqueue(new HpEvent(_creature, oldHp, newHp));
         }
 
         public void OnPowerIncreased(PowerModel power, int change, bool silent)

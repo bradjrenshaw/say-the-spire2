@@ -1,9 +1,11 @@
 using System.Linq;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using SayTheSpire2.Events;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
@@ -46,6 +48,15 @@ public static class CombatNavigationHooks
             Log.Info("[AccessibilityMod] FinishTargeting hook patched.");
         }
 
+        var takeTurn = AccessTools.Method(typeof(Creature), "TakeTurn");
+        if (takeTurn != null)
+        {
+            harmony.Patch(takeTurn,
+                prefix: new HarmonyMethod(typeof(CombatNavigationHooks),
+                    nameof(TakeTurnPrefix)));
+            Log.Info("[AccessibilityMod] Creature.TakeTurn hook patched.");
+        }
+
         var refreshLayout = AccessTools.Method(typeof(NPlayerHand), "RefreshLayout");
         if (refreshLayout != null)
         {
@@ -78,4 +89,17 @@ public static class CombatNavigationHooks
 
     public static void RefreshLayoutPostfix(NPlayerHand __instance)
         => CombatScreen.Current?.OnHandLayoutRefreshed(__instance);
+
+    public static void TakeTurnPrefix(Creature __instance)
+    {
+        try
+        {
+            if (__instance.IsMonster && __instance.Monster != null && !__instance.Monster.SpawnedThisTurn)
+                EventDispatcher.Enqueue(new EnemyMoveEvent(__instance));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] TakeTurn prefix error: {e.Message}");
+        }
+    }
 }
