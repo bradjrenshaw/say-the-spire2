@@ -1,0 +1,86 @@
+using SayTheSpire2.Input;
+
+namespace SayTheSpire2.UI.Elements;
+
+public class NavigableContainer : ListContainer
+{
+    private int _focusIndex = -1;
+
+    public UIElement? FocusedChild =>
+        _focusIndex >= 0 && _focusIndex < Children.Count ? Children[_focusIndex] : null;
+
+    public bool HandleAction(InputAction action)
+    {
+        switch (action.Key)
+        {
+            case "ui_down":
+                return MoveFocus(1);
+            case "ui_up":
+                return MoveFocus(-1);
+            case "ui_accept":
+            case "ui_select":
+                return ActivateFocused();
+            default:
+                return false;
+        }
+    }
+
+    public void FocusFirst()
+    {
+        for (int i = 0; i < Children.Count; i++)
+        {
+            if (Children[i].IsVisible)
+            {
+                SetFocus(i);
+                return;
+            }
+        }
+    }
+
+    private bool MoveFocus(int direction)
+    {
+        if (Children.Count == 0) return false;
+
+        int index = _focusIndex;
+
+        while (true)
+        {
+            index += direction;
+            if (index < 0 || index >= Children.Count)
+                return true; // at boundary, consume but do nothing
+
+            if (Children[index].IsVisible)
+            {
+                SetFocus(index);
+                return true;
+            }
+        }
+    }
+
+    private void SetFocus(int index)
+    {
+        if (_focusIndex >= 0 && _focusIndex < Children.Count)
+            Children[_focusIndex].Unfocus();
+
+        _focusIndex = index;
+        UIManager.QueueFocus(Children[index]);
+    }
+
+    private bool ActivateFocused()
+    {
+        var child = FocusedChild;
+        if (child == null) return false;
+
+        switch (child)
+        {
+            case ButtonElement button:
+                button.Activate();
+                return true;
+            case CheckboxElement checkbox:
+                checkbox.Activate();
+                return true;
+            default:
+                return false;
+        }
+    }
+}

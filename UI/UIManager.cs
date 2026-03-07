@@ -31,6 +31,29 @@ public static class UIManager
     }
 
     /// <summary>
+    /// Announce focus for a UIElement that owns its own control (no game Control needed).
+    /// </summary>
+    public static void QueueFocus(UIElement element)
+    {
+        _lastAnnouncedElement?.Unfocus();
+        _lastAnnouncedElement = element;
+        _lastAnnouncedControl = null;
+
+        var text = BuildFocusAnnouncement(element);
+        Log.Info($"[AccessibilityMod] Focus (element): {element.GetType().Name} -> \"{text}\"");
+        if (!string.IsNullOrEmpty(text))
+            SpeechManager.Output(text);
+
+        var buffers = BufferManager.Instance;
+        buffers.DisableAll();
+        var currentBufferKey = element.HandleBuffers(buffers);
+        if (currentBufferKey != null)
+            buffers.SetCurrentBuffer(currentBufferKey);
+
+        element.Focus();
+    }
+
+    /// <summary>
     /// Clear the last announced tracking so the same control can be re-announced.
     /// </summary>
     public static void ClearLastAnnounced()

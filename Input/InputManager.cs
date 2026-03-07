@@ -101,6 +101,7 @@ public static class InputManager
         _actions.Add(new InputAction("announce_energy").AddBinding(Key.Y, ctrl: true));
         _actions.Add(new InputAction("announce_powers").AddBinding(Key.P, ctrl: true));
         _actions.Add(new InputAction("announce_intents").AddBinding(Key.I, ctrl: true));
+        _actions.Add(new InputAction("mod_settings").AddBinding(Key.M, ctrl: true));
     }
 
     /// <summary>
@@ -140,6 +141,7 @@ public static class InputManager
             return;
 
         // Find matching actions based on keycode + current modifiers
+        bool anyConsumed = false;
         foreach (var action in _actions)
         {
             if (_activeActions.Contains(action))
@@ -149,9 +151,17 @@ public static class InputManager
             {
                 _activeActions.Add(action);
                 EnsureFocusMode(action);
-                bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustPressed);
-                if (!consumed && action.GameAction != null)
-                    InjectGameAction(action.GameAction, pressed: true);
+
+                // If any action for this key was consumed by the screen stack,
+                // don't inject game actions for remaining matches either
+                if (!anyConsumed)
+                {
+                    bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustPressed);
+                    if (consumed)
+                        anyConsumed = true;
+                    else if (action.GameAction != null)
+                        InjectGameAction(action.GameAction, pressed: true);
+                }
             }
         }
     }
