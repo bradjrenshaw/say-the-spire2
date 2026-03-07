@@ -1,14 +1,20 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using SayTheSpire2.Events;
+using SayTheSpire2.Input;
+using SayTheSpire2.Speech;
 
 namespace SayTheSpire2.UI.Screens;
 
@@ -22,6 +28,10 @@ public class CombatScreen : Screen
     public CombatScreen(CombatState state)
     {
         _initialState = state;
+        ClaimAction("announce_block");
+        ClaimAction("announce_energy");
+        ClaimAction("announce_powers");
+        ClaimAction("announce_intents");
     }
 
     public override void OnPush()
@@ -40,6 +50,112 @@ public class CombatScreen : Screen
         UnsubscribeAll();
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] CombatScreen popped.");
+    }
+
+    // -- Shortcut announcements --
+
+    public override bool OnActionJustPressed(InputAction action)
+    {
+        switch (action.Key)
+        {
+            case "announce_block":
+                AnnounceBlock();
+                return true;
+            case "announce_energy":
+                AnnounceEnergy();
+                return true;
+            case "announce_powers":
+                AnnouncePowers();
+                return true;
+            case "announce_intents":
+                AnnounceIntents();
+                return true;
+        }
+
+        return false;
+    }
+
+    private void AnnounceBlock()
+    {
+        var player = GetLocalPlayer();
+        if (player == null) return;
+        SpeechManager.Output($"{player.Creature.Block} block");
+    }
+
+    private void AnnounceEnergy()
+    {
+        var player = GetLocalPlayer();
+        var combatState = player?.PlayerCombatState;
+        if (combatState == null) return;
+        SpeechManager.Output($"{combatState.Energy} of {combatState.MaxEnergy} energy");
+    }
+
+    private void AnnouncePowers()
+    {
+        var player = GetLocalPlayer();
+        if (player == null) return;
+
+        var powers = player.Creature.Powers;
+        if (powers.Count == 0)
+        {
+            SpeechManager.Output("No powers");
+            return;
+        }
+
+        var sb = new StringBuilder();
+        foreach (var power in powers)
+        {
+            if (sb.Length > 0) sb.Append(", ");
+            var title = power.Title.GetFormattedText();
+            if (power.DisplayAmount != 0)
+                sb.Append($"{title} {power.DisplayAmount}");
+            else
+                sb.Append(title);
+        }
+        SpeechManager.Output(sb.ToString());
+    }
+
+    private void AnnounceIntents()
+    {
+        var playerCreatures = new List<Creature>();
+        var player = GetLocalPlayer();
+        if (player != null)
+            playerCreatures.Add(player.Creature);
+
+        var sb = new StringBuilder();
+        foreach (var enemy in _initialState.Enemies)
+        {
+            if (!enemy.IsAlive || !enemy.IsMonster) continue;
+
+            if (sb.Length > 0) sb.Append(". ");
+            sb.Append(enemy.Name);
+            sb.Append(": ");
+
+            var move = enemy.Monster!.NextMove;
+            var intentParts = new List<string>();
+            foreach (var intent in move.Intents)
+            {
+                var label = intent.GetIntentLabel(playerCreatures, enemy).GetFormattedText();
+                if (!string.IsNullOrEmpty(label))
+                    intentParts.Add(label);
+                else
+                    intentParts.Add(intent.IntentType.ToString());
+            }
+            sb.Append(intentParts.Count > 0 ? string.Join(", ", intentParts) : "Unknown");
+        }
+
+        if (sb.Length == 0)
+        {
+            SpeechManager.Output("No enemies");
+            return;
+        }
+
+        SpeechManager.Output(sb.ToString());
+    }
+
+    private Player? GetLocalPlayer()
+    {
+        return LocalContext.GetMe(_initialState);
     }
 
     // -- Navigation fixes --

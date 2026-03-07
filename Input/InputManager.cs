@@ -18,6 +18,10 @@ public static class InputManager
         _actions.Add(new InputAction("reset_bindings").AddBinding(Key.R, ctrl: true, shift: true));
         _actions.Add(new InputAction("announce_gold").AddBinding(Key.G, ctrl: true));
         _actions.Add(new InputAction("announce_hp").AddBinding(Key.H, ctrl: true));
+        _actions.Add(new InputAction("announce_block").AddBinding(Key.B, ctrl: true));
+        _actions.Add(new InputAction("announce_energy").AddBinding(Key.Y, ctrl: true));
+        _actions.Add(new InputAction("announce_powers").AddBinding(Key.P, ctrl: true));
+        _actions.Add(new InputAction("announce_intents").AddBinding(Key.I, ctrl: true));
 
         Log.Info("[AccessibilityMod] InputManager initialized.");
     }
