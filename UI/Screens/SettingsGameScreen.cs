@@ -91,15 +91,23 @@ public class SettingsGameScreen : GameScreen
             {
                 positioners.Add((positioner, container));
             }
-            else if (child.FocusMode != Control.FocusModeEnum.None)
+            else if (IsSettingsOption(child))
             {
-                RegisterSettingsControl(child, container);
+                if (child.FocusMode == Control.FocusModeEnum.All)
+                    RegisterSettingsControl(child, container);
             }
             else
             {
                 RegisterControlsRecursive(child, container, positioners);
             }
         }
+    }
+
+    private static bool IsSettingsOption(Control c)
+    {
+        if (c is NOpenModdingScreenButton) return false;
+        return c is NTickbox or NPaginator or NSettingsSlider or NDropdownPositioner
+            || (c is NButton btn && btn.IsEnabled);
     }
 
     private void RegisterSettingsControl(Control control, ListContainer container)
