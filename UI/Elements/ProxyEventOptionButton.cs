@@ -71,27 +71,29 @@ public class ProxyEventOptionButton : ProxyElement
             if (option.Relic != null)
                 uiBuffer.Add($"Relic: {option.Relic.Title.GetFormattedText()}");
 
-            // Hover tips (enchantments, keywords, cards, etc.)
+            // Hover tips (enchantments, keywords, cards, relics, etc.)
             try
             {
                 var cardTips = new List<CardHoverTip>();
+                var hoverTips = new List<HoverTip>();
                 foreach (var tip in option.HoverTips)
                 {
                     if (tip is CardHoverTip cardTip)
-                    {
                         cardTips.Add(cardTip);
-                    }
                     else if (tip is HoverTip hoverTip)
-                    {
-                        var tipTitle = hoverTip.Title;
-                        var tipDesc = hoverTip.Description;
-                        if (!string.IsNullOrEmpty(tipTitle) && !string.IsNullOrEmpty(tipDesc))
-                            uiBuffer.Add($"{tipTitle}: {StripBbcode(tipDesc)}");
-                        else if (!string.IsNullOrEmpty(tipTitle))
-                            uiBuffer.Add(tipTitle);
-                        else if (!string.IsNullOrEmpty(tipDesc))
-                            uiBuffer.Add(StripBbcode(tipDesc));
-                    }
+                        hoverTips.Add(hoverTip);
+                }
+
+                foreach (var hoverTip in hoverTips)
+                {
+                    var tipTitle = hoverTip.Title;
+                    var tipDesc = hoverTip.Description;
+                    if (!string.IsNullOrEmpty(tipTitle) && !string.IsNullOrEmpty(tipDesc))
+                        uiBuffer.Add($"{tipTitle}: {StripBbcode(tipDesc)}");
+                    else if (!string.IsNullOrEmpty(tipTitle))
+                        uiBuffer.Add(tipTitle);
+                    else if (!string.IsNullOrEmpty(tipDesc))
+                        uiBuffer.Add(StripBbcode(tipDesc));
                 }
 
                 if (cardTips.Count > 0)
@@ -107,6 +109,28 @@ public class ProxyEventOptionButton : ProxyElement
                             ProxyCard.PopulateCardBuffer(cardBuffer, cardTip.Card);
                         }
                         buffers.EnableBuffer("card", true);
+                    }
+                }
+
+                // Relic buffer (only when option explicitly has a relic)
+                if (option.Relic != null)
+                {
+                    var relicBuffer = buffers.GetBuffer("relic");
+                    if (relicBuffer != null)
+                    {
+                        relicBuffer.Clear();
+                        var relicTitle = option.Relic.Title.GetFormattedText();
+                        if (!string.IsNullOrEmpty(relicTitle))
+                            relicBuffer.Add(relicTitle);
+                        try
+                        {
+                            var relicDesc = option.Relic.DynamicDescription.GetFormattedText();
+                            if (!string.IsNullOrEmpty(relicDesc))
+                                relicBuffer.Add(StripBbcode(relicDesc));
+                        }
+                        catch { }
+                        if (relicBuffer.Count > 0)
+                            buffers.EnableBuffer("relic", true);
                     }
                 }
             }
