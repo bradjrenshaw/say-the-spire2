@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline.UnlockScreens;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Timeline;
+using SayTheSpire2.Events;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
@@ -146,6 +147,7 @@ public static class ScreenHooks
 
     public static void RunEndedPostfix()
     {
+        CombatEventManager.CleanUp();
         if (RunScreen.Current != null)
             ScreenManager.RemoveScreen(RunScreen.Current);
     }

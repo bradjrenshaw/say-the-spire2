@@ -18,6 +18,9 @@ public class GameOverScreen : GameScreen
     private static readonly FieldInfo? ScoreField =
         typeof(NGameOverScreen).GetField("_score", BindingFlags.Instance | BindingFlags.NonPublic);
 
+    private static readonly FieldInfo? EncounterQuoteField =
+        typeof(NGameOverScreen).GetField("_encounterQuote", BindingFlags.Instance | BindingFlags.NonPublic);
+
     protected override void BuildRegistry()
     {
     }
@@ -45,8 +48,10 @@ public class GameOverScreen : GameScreen
             if (banner != null)
                 title = ProxyElement.FindChildTextPublic(banner);
 
-            string? quote = null;
-            if (quoteLabel is RichTextLabel rtl)
+            // Read the encounter-specific quote (e.g., "The Ironclad had simply given up.")
+            // This is set during InitializeBannerAndQuote but only displayed later via animation.
+            string? quote = EncounterQuoteField?.GetValue(instance) as string;
+            if (string.IsNullOrEmpty(quote) && quoteLabel is RichTextLabel rtl)
                 quote = ProxyElement.StripBbcode(rtl.Text);
 
             var message = "";

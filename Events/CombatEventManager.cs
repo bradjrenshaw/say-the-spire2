@@ -25,6 +25,15 @@ public static class CombatEventManager
 
     private static void OnCombatEnded(CombatRoom _)
     {
+        CleanUp();
+    }
+
+    /// <summary>
+    /// Remove the active combat screen if one exists. Called both when combat
+    /// ends normally and when the run ends (combat may not end cleanly on death/abandon).
+    /// </summary>
+    public static void CleanUp()
+    {
         if (_activeCombatScreen != null)
         {
             ScreenManager.RemoveScreen(_activeCombatScreen);
