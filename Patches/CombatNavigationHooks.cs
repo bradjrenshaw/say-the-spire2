@@ -1,6 +1,8 @@
 using System.Linq;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -57,6 +59,17 @@ public static class CombatNavigationHooks
             Log.Info("[AccessibilityMod] Creature.TakeTurn hook patched.");
         }
 
+        var shuffle = AccessTools.Method(typeof(CardPileCmd), "Shuffle");
+        if (shuffle != null)
+        {
+            harmony.Patch(shuffle,
+                prefix: new HarmonyMethod(typeof(CombatNavigationHooks),
+                    nameof(ShufflePrefix)),
+                postfix: new HarmonyMethod(typeof(CombatNavigationHooks),
+                    nameof(ShufflePostfix)));
+            Log.Info("[AccessibilityMod] CardPileCmd.Shuffle hook patched.");
+        }
+
         var refreshLayout = AccessTools.Method(typeof(NPlayerHand), "RefreshLayout");
         if (refreshLayout != null)
         {
@@ -89,6 +102,12 @@ public static class CombatNavigationHooks
 
     public static void RefreshLayoutPostfix(NPlayerHand __instance)
         => CombatScreen.Current?.OnHandLayoutRefreshed(__instance);
+
+    public static void ShufflePrefix(Player player)
+        => CombatScreen.Current?.OnShuffleStarted();
+
+    public static void ShufflePostfix(Player player)
+        => CombatScreen.Current?.OnShuffleFinished();
 
     public static void TakeTurnPrefix(Creature __instance)
     {

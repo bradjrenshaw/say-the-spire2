@@ -4,14 +4,17 @@ using System.Text;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
 using SayTheSpire2.Input;
 using SayTheSpire2.Speech;
@@ -24,6 +27,7 @@ public class CombatScreen : Screen
 
     private readonly CombatState _initialState;
     private readonly Dictionary<Creature, CreatureHandlers> _subscribedCreatures = new();
+    private CardPileHandlers? _cardPileHandlers;
 
     public CombatScreen(CombatState state)
     {
@@ -40,6 +44,14 @@ public class CombatScreen : Screen
         SubscribeToAllCreatures(_initialState);
         CombatManager.Instance.CreaturesChanged += OnCreaturesChanged;
         CombatManager.Instance.TurnStarted += OnTurnStarted;
+
+        var player = GetLocalPlayer();
+        if (player?.PlayerCombatState != null)
+        {
+            _cardPileHandlers = new CardPileHandlers(player.PlayerCombatState);
+            _cardPileHandlers.Subscribe();
+        }
+
         Log.Info("[AccessibilityMod] CombatScreen pushed.");
     }
 
@@ -47,6 +59,8 @@ public class CombatScreen : Screen
     {
         CombatManager.Instance.CreaturesChanged -= OnCreaturesChanged;
         CombatManager.Instance.TurnStarted -= OnTurnStarted;
+        _cardPileHandlers?.Unsubscribe();
+        _cardPileHandlers = null;
         UnsubscribeAll();
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] CombatScreen popped.");
@@ -264,8 +278,12 @@ public class CombatScreen : Screen
 
     private void OnTurnStarted(CombatState state)
     {
+        _cardPileHandlers?.OnTurnStarted();
         EventDispatcher.Enqueue(new TurnEvent(state.CurrentSide, state.RoundNumber, isStart: true));
     }
+
+    public void OnShuffleStarted() => _cardPileHandlers?.OnShuffleStarted();
+    public void OnShuffleFinished() => _cardPileHandlers?.OnShuffleFinished();
 
     private void SubscribeToAllCreatures(CombatState state)
     {
@@ -301,6 +319,86 @@ public class CombatScreen : Screen
             creature.Died -= handlers.OnDied;
         }
         _subscribedCreatures.Clear();
+    }
+
+    private class CardPileHandlers
+    {
+        private readonly PlayerCombatState _combatState;
+        private bool _isShuffling;
+        private bool _endOfTurnDiscardAnnounced;
+
+        public CardPileHandlers(PlayerCombatState combatState)
+        {
+            _combatState = combatState;
+        }
+
+        public void Subscribe()
+        {
+            _combatState.Hand.CardAdded += OnHandCardAdded;
+            _combatState.DiscardPile.CardAdded += OnDiscardCardAdded;
+            _combatState.ExhaustPile.CardAdded += OnExhaustCardAdded;
+            _combatState.DrawPile.CardAdded += OnDrawCardAdded;
+        }
+
+        public void Unsubscribe()
+        {
+            _combatState.Hand.CardAdded -= OnHandCardAdded;
+            _combatState.DiscardPile.CardAdded -= OnDiscardCardAdded;
+            _combatState.ExhaustPile.CardAdded -= OnExhaustCardAdded;
+            _combatState.DrawPile.CardAdded -= OnDrawCardAdded;
+        }
+
+        public void OnTurnStarted()
+        {
+            _endOfTurnDiscardAnnounced = false;
+        }
+
+        public void OnShuffleStarted()
+        {
+            _isShuffling = true;
+        }
+
+        public void OnShuffleFinished()
+        {
+            _isShuffling = false;
+            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.DeckShuffled));
+        }
+
+        private void OnHandCardAdded(CardModel card)
+        {
+            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.Drew, card.Title));
+        }
+
+        private void OnDiscardCardAdded(CardModel card)
+        {
+            if (CombatManager.Instance.EndingPlayerTurnPhaseTwo
+                && !CombatManager.Instance.IsEnemyTurnStarted)
+            {
+                if (!_endOfTurnDiscardAnnounced)
+                {
+                    _endOfTurnDiscardAnnounced = true;
+                    EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.HandDiscarded));
+                }
+                return;
+            }
+
+            if (RunManager.Instance.ActionExecutor.CurrentlyRunningAction is PlayCardAction pca
+                && pca.NetCombatCard.ToCardModelOrNull() == card)
+                return;
+
+            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.Discarded, card.Title));
+        }
+
+        private void OnExhaustCardAdded(CardModel card)
+        {
+            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.Exhausted, card.Title));
+        }
+
+        private void OnDrawCardAdded(CardModel card)
+        {
+            if (_isShuffling) return;
+            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.AddedToDraw, card.Title));
+        }
     }
 
     private class CreatureHandlers
