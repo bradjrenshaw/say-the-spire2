@@ -207,7 +207,7 @@ public class ProxyCard : ProxyElement
                         if (clone.EnergyCost.CostsX)
                             upgradeBuffer.Add("Cost: X energy");
                         else
-                            upgradeBuffer.Add($"Cost: {clone.EnergyCost.Canonical} energy");
+                            upgradeBuffer.Add($"Cost: {clone.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
                     }
 
                     if (clone.CurrentStarCost > 0)

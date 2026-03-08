@@ -20,6 +20,6 @@ public class GridContainer : Container
     public override string? GetPositionString(UIElement child)
     {
         if (!_positions.TryGetValue(child, out var pos)) return null;
-        return $"row {pos.row + 1}, column {pos.col + 1}";
+        return $"{pos.row + 1}, {pos.col + 1}";
     }
 }
