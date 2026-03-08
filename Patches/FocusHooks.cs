@@ -161,7 +161,10 @@ public static class FocusHooks
 
     public static void CardHolderFocusPostfix(NCardHolder __instance)
     {
-        UIManager.QueueFocus(__instance, new ProxyCard(__instance));
+        // If a screen has this control registered (e.g., CardPileGameScreen),
+        // let ResolveElement find it so it gets container context for position.
+        var screenElement = ScreenManager.ResolveElement(__instance);
+        UIManager.QueueFocus(__instance, screenElement ?? new ProxyCard(__instance));
     }
 
     public static void SpeechBubblePostfix(string text)

@@ -1,6 +1,7 @@
 using System.Reflection;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
@@ -55,6 +56,16 @@ public static class ScreenHooks
             nameof(SettingsOpenedPostfix), "Settings OnSubmenuOpened");
         PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuClosed",
             nameof(SettingsClosedPostfix), "Settings OnSubmenuClosed");
+
+        // Card pile screen hooks
+        PatchIfFound(harmony, typeof(NCardPileScreen), "ShowScreen",
+            nameof(CardPileShowPostfix), "CardPile ShowScreen");
+        PatchIfFound(harmony, typeof(NCardPileScreen), "AfterCapstoneClosed",
+            nameof(CardPileClosedPostfix), "CardPile AfterCapstoneClosed");
+        PatchIfFound(harmony, typeof(NDeckViewScreen), "ShowScreen",
+            nameof(DeckViewShowPostfix), "DeckView ShowScreen");
+        PatchIfFound(harmony, typeof(NDeckViewScreen), "AfterCapstoneClosed",
+            nameof(DeckViewClosedPostfix), "DeckView AfterCapstoneClosed");
 
         // Run lifecycle hooks
         PatchIfFound(harmony, typeof(RunManager), "Launch",
@@ -136,6 +147,31 @@ public static class ScreenHooks
     {
         if (SettingsGameScreen.Current != null)
             ScreenManager.RemoveScreen(SettingsGameScreen.Current);
+    }
+
+    // Card pile delegates
+    public static void CardPileShowPostfix(NCardPileScreen __result)
+    {
+        if (CardPileGameScreen.Current == null)
+            ScreenManager.PushScreen(new CardPileGameScreen(__result));
+    }
+
+    public static void CardPileClosedPostfix(NCardPileScreen __instance)
+    {
+        if (CardPileGameScreen.Current != null)
+            ScreenManager.RemoveScreen(CardPileGameScreen.Current);
+    }
+
+    public static void DeckViewShowPostfix(NDeckViewScreen __result)
+    {
+        if (__result != null && CardPileGameScreen.Current == null)
+            ScreenManager.PushScreen(new CardPileGameScreen(__result));
+    }
+
+    public static void DeckViewClosedPostfix(NDeckViewScreen __instance)
+    {
+        if (CardPileGameScreen.Current != null)
+            ScreenManager.RemoveScreen(CardPileGameScreen.Current);
     }
 
     // Run lifecycle delegates
