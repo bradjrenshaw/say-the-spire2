@@ -1,8 +1,6 @@
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class UpgradeBuffer : Buffer
@@ -67,7 +65,7 @@ public class UpgradeBuffer : Buffer
             {
                 var desc = clone.GetDescriptionForUpgradePreview();
                 if (!string.IsNullOrEmpty(desc))
-                    Add(ProxyElement.StripBbcode(desc));
+                    Add(desc);
             }
             catch { }
         }

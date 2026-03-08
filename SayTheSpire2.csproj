@@ -51,7 +51,7 @@
   <!-- Collect files for the PCK -->
   <ItemGroup>
     <PckFile Include="mod_manifest.json" ResPath="res://mod_manifest.json" />
-    <PckFile Include="localization\**\*.json" ResPath="res://localization/%(RecursiveDir)%(Filename)%(Extension)" />
+    <PckFile Include="localization\**\*.json" ResPath="res://SayTheSpire2/localization/%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Create PCK file after build -->

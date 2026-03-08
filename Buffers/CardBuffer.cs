@@ -2,8 +2,6 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class CardBuffer : Buffer
@@ -61,7 +59,7 @@ public class CardBuffer : Buffer
         {
             var desc = model.GetDescriptionForPile(PileType.Hand);
             if (!string.IsNullOrEmpty(desc))
-                Add(ProxyElement.StripBbcode(desc));
+                Add(desc);
         }
         catch
         {
@@ -70,7 +68,7 @@ public class CardBuffer : Buffer
             {
                 var desc = model.GetDescriptionForPile(PileType.None);
                 if (!string.IsNullOrEmpty(desc))
-                    Add(ProxyElement.StripBbcode(desc));
+                    Add(desc);
             }
             catch { }
         }
@@ -84,7 +82,7 @@ public class CardBuffer : Buffer
                 var enchTitle = enchant.Title.GetFormattedText();
                 var enchDesc = enchant.DynamicDescription.GetFormattedText();
                 if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
-                    Add($"Enchantment: {enchTitle} - {ProxyElement.StripBbcode(enchDesc)}");
+                    Add($"Enchantment: {enchTitle} - {enchDesc}");
                 else if (!string.IsNullOrEmpty(enchTitle))
                     Add($"Enchantment: {enchTitle}");
 
@@ -107,11 +105,11 @@ public class CardBuffer : Buffer
                     var title = hoverTip.Title;
                     var desc = hoverTip.Description;
                     if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(desc))
-                        Add($"{title}: {ProxyElement.StripBbcode(desc)}");
+                        Add($"{title}: {desc}");
                     else if (!string.IsNullOrEmpty(title))
                         Add(title);
                     else if (!string.IsNullOrEmpty(desc))
-                        Add(ProxyElement.StripBbcode(desc));
+                        Add(desc);
                 }
             }
         }

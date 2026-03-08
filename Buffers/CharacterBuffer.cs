@@ -1,7 +1,5 @@
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class CharacterBuffer : Buffer
@@ -41,7 +39,7 @@ public class CharacterBuffer : Buffer
 
             var unlockText = character.GetUnlockText().GetFormattedText();
             if (!string.IsNullOrEmpty(unlockText))
-                Add(ProxyElement.StripBbcode(unlockText));
+                Add(unlockText);
         }
         else
         {
@@ -49,7 +47,7 @@ public class CharacterBuffer : Buffer
 
             var desc = new LocString("characters", character.CharacterSelectDesc).GetFormattedText();
             if (!string.IsNullOrEmpty(desc))
-                Add(ProxyElement.StripBbcode(desc));
+                Add(desc);
 
             Add($"HP: {character.StartingHp}");
             Add($"Gold: {character.StartingGold}");

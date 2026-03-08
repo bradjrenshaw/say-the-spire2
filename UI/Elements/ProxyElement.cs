@@ -1,24 +1,12 @@
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Godot;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
 public abstract class ProxyElement : UIElement
 {
-    private static readonly Regex ImgPattern = new(@"\[img\](.*?)\[/img\]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private static readonly Regex BbcodePattern = new(@"\[.*?\]", RegexOptions.Compiled);
     private static readonly Regex CamelCasePattern = new(@"([a-z])([A-Z])", RegexOptions.Compiled);
-    private static readonly Regex ResPathPattern = new(@"res://\S+", RegexOptions.Compiled);
-
-    private static readonly Dictionary<string, string> IconNames = new()
-    {
-        { "energy_icon", "Energy" },
-        { "star_icon", "Star" },
-        { "gold_icon", "Gold" },
-        { "card_icon", "Card" },
-        { "chest_icon", "Chest" },
-    };
 
     protected Control Control { get; private set; }
 
@@ -87,36 +75,7 @@ public abstract class ProxyElement : UIElement
         return null;
     }
 
-    public static string StripBbcode(string text)
-    {
-        // Replace [img]res://path/icon_name.png[/img] with readable names
-        text = ImgPattern.Replace(text, m => ResolveIconPath(m.Groups[1].Value));
-        // Strip remaining BBCode tags
-        text = BbcodePattern.Replace(text, "");
-        // Catch any stray res:// paths not wrapped in [img] tags
-        text = ResPathPattern.Replace(text, m => ResolveIconPath(m.Value));
-        return text.Trim();
-    }
-
-    private static string ResolveIconPath(string path)
-    {
-        // Extract filename without extension: "res://images/.../ironclad_energy_icon.png" -> "ironclad_energy_icon"
-        var lastSlash = path.LastIndexOf('/');
-        var name = lastSlash >= 0 ? path.Substring(lastSlash + 1) : path;
-        var dot = name.LastIndexOf('.');
-        if (dot > 0) name = name.Substring(0, dot);
-
-        // Check known icon suffixes (e.g. "ironclad_energy_icon" matches "energy_icon")
-        foreach (var (suffix, label) in IconNames)
-        {
-            if (name.EndsWith(suffix) || name == suffix)
-                return label;
-        }
-
-        // Fallback: clean up the filename ("some_icon_name" -> "Some Icon Name")
-        name = name.Replace("_", " ").Trim();
-        return name;
-    }
+    public static string StripBbcode(string text) => Message.StripBbcode(text);
 
     protected static string CleanNodeName(string name)
     {

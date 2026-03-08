@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class RelicBuffer : Buffer
@@ -38,7 +36,7 @@ public class RelicBuffer : Buffer
 
         var desc = model.DynamicDescription.GetFormattedText();
         if (!string.IsNullOrEmpty(desc))
-            Add(ProxyElement.StripBbcode(desc));
+            Add(desc);
 
         if (model.ShowCounter && model.DisplayAmount != 0)
             Add($"Counter: {model.DisplayAmount}");
@@ -58,7 +56,7 @@ public class RelicBuffer : Buffer
                     var title = hoverTip.Title;
                     var tipDesc = hoverTip.Description;
                     if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(tipDesc))
-                        Add($"{title}: {ProxyElement.StripBbcode(tipDesc)}");
+                        Add($"{title}: {tipDesc}");
                     else if (!string.IsNullOrEmpty(title))
                         Add(title);
                 }
@@ -100,7 +98,7 @@ public class RelicBuffer : Buffer
 
         var desc = model.DynamicDescription.GetFormattedText();
         if (!string.IsNullOrEmpty(desc))
-            buffer.Add(ProxyElement.StripBbcode(desc));
+            buffer.Add(desc);
 
         if (model.ShowCounter && model.DisplayAmount != 0)
             buffer.Add($"Counter: {model.DisplayAmount}");
@@ -124,7 +122,7 @@ public class RelicBuffer : Buffer
                     var title = hoverTip.Title;
                     var tipDesc = hoverTip.Description;
                     if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(tipDesc))
-                        buffer.Add($"{title}: {ProxyElement.StripBbcode(tipDesc)}");
+                        buffer.Add($"{title}: {tipDesc}");
                     else if (!string.IsNullOrEmpty(title))
                         buffer.Add(title);
                 }

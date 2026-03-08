@@ -2,8 +2,6 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class PlayerBuffer : Buffer
@@ -76,7 +74,7 @@ public class PlayerBuffer : Buffer
                     if (first)
                     {
                         if (!string.IsNullOrEmpty(desc))
-                            line += ": " + ProxyElement.StripBbcode(desc);
+                            line += ": " + desc;
                         buffer.Add(line);
                         first = false;
                     }
@@ -84,9 +82,9 @@ public class PlayerBuffer : Buffer
                     {
                         var extraTitle = ht.Title;
                         var extraLine = !string.IsNullOrEmpty(extraTitle) && !string.IsNullOrEmpty(desc)
-                            ? $"{extraTitle}: {ProxyElement.StripBbcode(desc)}"
+                            ? $"{extraTitle}: {desc}"
                             : !string.IsNullOrEmpty(extraTitle) ? extraTitle
-                            : ProxyElement.StripBbcode(desc);
+                            : desc;
                         buffer.Add(extraLine);
                     }
                 }

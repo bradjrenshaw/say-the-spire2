@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
-using SayTheSpire2.UI.Elements;
-
 namespace SayTheSpire2.Buffers;
 
 public class CreatureBuffer : Buffer
@@ -58,7 +56,7 @@ public class CreatureBuffer : Buffer
                         var tip = intent.GetHoverTip(allies ?? Enumerable.Empty<Creature>(), entity);
                         var intentText = tip.Title ?? intent.IntentType.ToString();
                         if (!string.IsNullOrEmpty(tip.Description))
-                            intentText += ": " + ProxyElement.StripBbcode(tip.Description);
+                            intentText += ": " + tip.Description;
                         Add(intentText);
                     }
                 }

@@ -37,50 +37,32 @@ public static class BufferControls
         var buffer = BufferManager.Instance.CurrentBuffer;
         if (buffer == null)
         {
-            var msg = LocalizationManager.Get("ui", "BUFFERS.NO_BUFFERS") ?? "No buffers available";
-            SpeechManager.Output(msg);
+            SpeechManager.Output(Message.Localized("ui", "BUFFERS.NO_BUFFERS"));
             return;
         }
 
         if (buffer.IsEmpty)
         {
-            var msg = LocalizationManager.Get("ui", "BUFFERS.EMPTY");
-            if (msg != null)
-                msg = msg.Replace("{buffer}", buffer.Label);
-            else
-                msg = $"{buffer.Label}: empty";
-            SpeechManager.Output(msg);
+            SpeechManager.Output(Message.Localized("ui", "BUFFERS.EMPTY", new { buffer = buffer.Label }));
             return;
         }
 
-        var item = buffer.CurrentItem;
-        var text = LocalizationManager.Get("ui", "BUFFERS.CURRENT");
-        if (text != null)
-            text = text.Replace("{buffer}", buffer.Label).Replace("{item}", item ?? "");
-        else
-            text = $"{buffer.Label}: {item}";
-
+        var item = buffer.CurrentItem ?? "";
         Log.Info($"[AccessibilityMod] Buffer: {buffer.Key} -> \"{item}\"");
-        SpeechManager.Output(text);
+        SpeechManager.Output(Message.Localized("ui", "BUFFERS.CURRENT", new { buffer = buffer.Label, item }));
     }
 
     private static void ReportCurrentItem(Buffer? buffer)
     {
         if (buffer == null)
         {
-            var msg = LocalizationManager.Get("ui", "BUFFERS.NO_BUFFER_SELECTED") ?? "No buffer selected";
-            SpeechManager.Output(msg);
+            SpeechManager.Output(Message.Localized("ui", "BUFFERS.NO_BUFFER_SELECTED"));
             return;
         }
 
         if (buffer.IsEmpty)
         {
-            var msg = LocalizationManager.Get("ui", "BUFFERS.EMPTY");
-            if (msg != null)
-                msg = msg.Replace("{buffer}", buffer.Label);
-            else
-                msg = $"{buffer.Label}: empty";
-            SpeechManager.Output(msg);
+            SpeechManager.Output(Message.Localized("ui", "BUFFERS.EMPTY", new { buffer = buffer.Label }));
             return;
         }
 
@@ -88,7 +70,7 @@ public static class BufferControls
         if (item != null)
         {
             Log.Info($"[AccessibilityMod] Buffer item: {buffer.Key}[{buffer.Position}] -> \"{item}\"");
-            SpeechManager.Output(item);
+            SpeechManager.Output(Message.Raw(item));
         }
     }
 }

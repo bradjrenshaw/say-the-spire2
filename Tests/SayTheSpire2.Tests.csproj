@@ -23,6 +23,7 @@
   <!-- Link settings source files from main project (pure C#, no Godot deps) -->
   <ItemGroup>
     <Compile Include="..\Settings\**\*.cs" Link="Settings\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\Localization\Message.cs" Link="Localization\Message.cs" />
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,7 @@ public static class LocalizationManager
     private static readonly Dictionary<string, Dictionary<string, string>> _tables = new();
     private static readonly Dictionary<string, Dictionary<string, string>> _fallbackTables = new();
     private static string _language = "eng";
-    private const string LocalizationRoot = "res://localization";
+    private const string LocalizationRoot = "res://SayTheSpire2/localization";
 
     public static string Language => _language;
 

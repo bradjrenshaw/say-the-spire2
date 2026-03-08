@@ -122,6 +122,7 @@ public static class ModEntry
     private static void InitializeLocalization()
     {
         Localization.LocalizationManager.Initialize();
+        Localization.Message.LocalizationResolver = Localization.LocalizationManager.Get;
     }
 
     private static void InitializeBuffers()

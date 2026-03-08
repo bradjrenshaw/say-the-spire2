@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MegaCrit.Sts2.Core.Logging;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Speech;
@@ -37,10 +38,20 @@ public static class SpeechManager
         _activeHandler.Speak(text, interrupt);
     }
 
+    public static void Speak(Message message, bool interrupt = false)
+    {
+        Speak(message.Resolve(), interrupt);
+    }
+
     public static void Output(string text, bool interrupt = false)
     {
         if (!_initialized || _activeHandler == null) return;
         _activeHandler.Output(text, interrupt);
+    }
+
+    public static void Output(Message message, bool interrupt = false)
+    {
+        Output(message.Resolve(), interrupt);
     }
 
     public static void Silence()
