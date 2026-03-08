@@ -134,10 +134,7 @@ public class CombatScreen : Screen
 
     private void AnnounceIntents()
     {
-        var playerCreatures = new List<Creature>();
-        var player = GetLocalPlayer();
-        if (player != null)
-            playerCreatures.Add(player.Creature);
+        var allies = _initialState.Allies;
 
         var sb = new StringBuilder();
         foreach (var enemy in _initialState.Enemies)
@@ -152,7 +149,7 @@ public class CombatScreen : Screen
             var intentParts = new List<string>();
             foreach (var intent in move.Intents)
             {
-                var label = intent.GetIntentLabel(playerCreatures, enemy).GetFormattedText();
+                var label = intent.GetIntentLabel(allies, enemy).GetFormattedText();
                 if (!string.IsNullOrEmpty(label))
                     intentParts.Add(label);
                 else
