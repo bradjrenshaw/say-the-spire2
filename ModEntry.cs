@@ -65,8 +65,7 @@ public static class ModEntry
     private static void InitializeSettings()
     {
         var settingsDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "SlayTheSpire2", "mods", "SayTheSpire2");
+            Godot.OS.GetUserDataDir(), "mods", "SayTheSpire2");
 
         // Build events category and register all event types
         var eventsCategory = new Settings.CategorySetting("events", "Events");
