@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using SayTheSpire2.Input;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Screens;
 
@@ -76,7 +77,7 @@ public class MapScreen : Screen
 
         if (result != null)
         {
-            SpeechManager.Output(result);
+            SpeechManager.Output(Message.Raw(result));
             return true;
         }
 

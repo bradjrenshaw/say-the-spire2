@@ -17,6 +17,7 @@ using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
 using SayTheSpire2.Input;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 
 namespace SayTheSpire2.UI.Screens;
@@ -96,7 +97,7 @@ public class CombatScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output($"{player.Creature.Block} block");
+        SpeechManager.Output(Message.Raw($"{player.Creature.Block} block"));
     }
 
     private void AnnounceEnergy()
@@ -104,7 +105,7 @@ public class CombatScreen : Screen
         var player = GetLocalPlayer();
         var combatState = player?.PlayerCombatState;
         if (combatState == null) return;
-        SpeechManager.Output($"{combatState.Energy} of {combatState.MaxEnergy} energy");
+        SpeechManager.Output(Message.Raw($"{combatState.Energy} of {combatState.MaxEnergy} energy"));
     }
 
     private void AnnouncePowers()
@@ -115,7 +116,7 @@ public class CombatScreen : Screen
         var powers = player.Creature.Powers;
         if (powers.Count == 0)
         {
-            SpeechManager.Output("No powers");
+            SpeechManager.Output(Message.Raw("No powers"));
             return;
         }
 
@@ -129,7 +130,7 @@ public class CombatScreen : Screen
             else
                 sb.Append(title);
         }
-        SpeechManager.Output(sb.ToString());
+        SpeechManager.Output(Message.Raw(sb.ToString()));
     }
 
     private void AnnounceIntents()
@@ -160,11 +161,11 @@ public class CombatScreen : Screen
 
         if (sb.Length == 0)
         {
-            SpeechManager.Output("No enemies");
+            SpeechManager.Output(Message.Raw("No enemies"));
             return;
         }
 
-        SpeechManager.Output(sb.ToString());
+        SpeechManager.Output(Message.Raw(sb.ToString()));
     }
 
     private Player? GetLocalPlayer()

@@ -2,6 +2,7 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Input;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 
 namespace SayTheSpire2.UI.Screens;
@@ -51,14 +52,14 @@ public class RunScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output($"{player.Gold} gold");
+        SpeechManager.Output(Message.Raw($"{player.Gold} gold"));
     }
 
     private void AnnounceHp()
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output($"{player.Creature.CurrentHp} of {player.Creature.MaxHp} HP");
+        SpeechManager.Output(Message.Raw($"{player.Creature.CurrentHp} of {player.Creature.MaxHp} HP"));
     }
 
     private Player? GetLocalPlayer()

@@ -181,7 +181,7 @@ public static class ScreenManager
             var screen = matchedFactory();
             PushScreen(screen);
             if (screen.ScreenName != null)
-                Speech.SpeechManager.Output(screen.ScreenName);
+                Speech.SpeechManager.Output(Localization.Message.Raw(screen.ScreenName));
         }
         // If no factory found, leave the current screen stack alone —
         // the screen may be manually managed (e.g., settings via ScreenHooks).

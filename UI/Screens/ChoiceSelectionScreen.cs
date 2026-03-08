@@ -1,5 +1,6 @@
 using Godot;
 using SayTheSpire2.Input;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
@@ -118,7 +119,7 @@ public class ChoiceSelectionScreen : Screen
         if (action.Key == "ui_cancel")
         {
             ScreenManager.RemoveScreen(this);
-            SpeechManager.Output("Closed");
+            SpeechManager.Output(Message.Raw("Closed"));
             return true;
         }
 
@@ -134,7 +135,7 @@ public class ChoiceSelectionScreen : Screen
             {
                 _setting.Set(choice.Key);
                 ScreenManager.RemoveScreen(this);
-                SpeechManager.Output($"{choice.Label} selected");
+                SpeechManager.Output(Message.Raw($"{choice.Label} selected"));
             };
             _navContainer.Add(button);
 

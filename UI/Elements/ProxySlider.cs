@@ -51,7 +51,7 @@ public class ProxySlider : ProxyElement
     {
         var status = GetStatusString();
         if (!string.IsNullOrEmpty(status))
-            SpeechManager.Output(status);
+            SpeechManager.Output(Localization.Message.Raw(status));
     }
 
     private Range? GetInnerSlider()

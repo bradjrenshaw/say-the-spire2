@@ -223,17 +223,10 @@ public class TreeMapViewer : MapViewer
         var state = node.GetStateString();
         if (state != null)
         {
-            return new LocalizationString("map_nav", "NAV.NODE_WITH_STATE")
-                .Add("type", node.GetDisplayName())
-                .Add("coordinates", node.GetCoordinatesString())
-                .Add("state", state)
-                .ToString();
+            return Message.Localized("map_nav", "NAV.NODE_WITH_STATE", new { type = node.GetDisplayName(), coordinates = node.GetCoordinatesString(), state }).Resolve();
         }
 
-        return new LocalizationString("map_nav", "NAV.NODE")
-            .Add("type", node.GetDisplayName())
-            .Add("coordinates", node.GetCoordinatesString())
-            .ToString();
+        return Message.Localized("map_nav", "NAV.NODE", new { type = node.GetDisplayName(), coordinates = node.GetCoordinatesString() }).Resolve();
     }
 
     private static string GetChoiceText()

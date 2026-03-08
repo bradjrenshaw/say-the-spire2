@@ -1,6 +1,7 @@
 using Godot;
 using MegaCrit.Sts2.Core.Logging;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 using SayTheSpire2.UI.Screens;
@@ -42,7 +43,7 @@ public static class UIManager
         var text = BuildFocusAnnouncement(element);
         Log.Info($"[AccessibilityMod] Focus (element): {element.GetType().Name} -> \"{text}\"");
         if (!string.IsNullOrEmpty(text))
-            SpeechManager.Output(text);
+            SpeechManager.Output(Message.Raw(text));
 
         var buffers = BufferManager.Instance;
         buffers.ResetToAlwaysEnabled(ScreenManager.GetAlwaysEnabledBuffers());
@@ -88,7 +89,7 @@ public static class UIManager
         Log.Info($"[AccessibilityMod] Focus: {control.GetType().Name} ({control.Name}) -> \"{text}\"");
         if (!string.IsNullOrEmpty(text))
         {
-            SpeechManager.Output(text);
+            SpeechManager.Output(Message.Raw(text));
         }
 
         var buffers = BufferManager.Instance;

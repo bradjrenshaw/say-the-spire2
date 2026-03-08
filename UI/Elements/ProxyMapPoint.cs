@@ -41,10 +41,7 @@ public class ProxyMapPoint : ProxyElement
     {
         var mp = MapPointNode;
         if (mp?.Point == null) return null;
-        return new LocalizationString("map_nav", "NAV.COORDINATES")
-            .Add("col", mp.Point.coord.col.ToString())
-            .Add("row", mp.Point.coord.row.ToString())
-            .ToString();
+        return Message.Localized("map_nav", "NAV.COORDINATES", new { col = mp.Point.coord.col, row = mp.Point.coord.row }).Resolve();
     }
 
     protected override void OnFocus()

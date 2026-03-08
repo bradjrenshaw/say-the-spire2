@@ -14,6 +14,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Timeline.UnlockScreens;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Timeline;
 using SayTheSpire2.Events;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Screens;
 
@@ -206,7 +207,7 @@ public static class ScreenHooks
         catch { }
 
         ScreenManager.PushScreen(new HandSelectGameScreen(__instance, label));
-        SpeechManager.Output(label);
+        SpeechManager.Output(Message.Raw(label));
     }
 
     public static void HandSelectClosedPostfix()

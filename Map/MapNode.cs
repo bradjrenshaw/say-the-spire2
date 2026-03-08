@@ -70,9 +70,6 @@ public class MapNode
 
     public string GetCoordinatesString()
     {
-        return new LocalizationString("map_nav", "NAV.COORDINATES")
-            .Add("col", Col.ToString())
-            .Add("row", Row.ToString())
-            .ToString();
+        return Message.Localized("map_nav", "NAV.COORDINATES", new { col = Col, row = Row }).Resolve();
     }
 }

@@ -1,4 +1,5 @@
 using Godot;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
 
@@ -38,7 +39,7 @@ public class SliderElement : UIElement
         _suppressSync = true;
         _control.Value = newValue;
         _suppressSync = false;
-        SpeechManager.Output(newValue.ToString());
+        SpeechManager.Output(Message.Raw(newValue.ToString()));
     }
 
     public void Decrement()
@@ -49,7 +50,7 @@ public class SliderElement : UIElement
         _suppressSync = true;
         _control.Value = newValue;
         _suppressSync = false;
-        SpeechManager.Output(newValue.ToString());
+        SpeechManager.Output(Message.Raw(newValue.ToString()));
     }
 
     public void SyncFromControl()
@@ -57,6 +58,6 @@ public class SliderElement : UIElement
         if (_suppressSync) return;
         var value = (int)_control.Value;
         _setting.Set(value);
-        SpeechManager.Output(value.ToString());
+        SpeechManager.Output(Message.Raw(value.ToString()));
     }
 }

@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.Nodes.Vfx.Utilities;
 using SayTheSpire2.Events;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
@@ -155,7 +156,7 @@ public static class FocusHooks
         {
             var status = element.GetStatusString();
             if (!string.IsNullOrEmpty(status))
-                SpeechManager.Output(status);
+                SpeechManager.Output(Message.Raw(status));
         }
     }
 

@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 
@@ -52,7 +53,7 @@ public class GameOverScreen : GameScreen
             // This is set during InitializeBannerAndQuote but only displayed later via animation.
             string? quote = EncounterQuoteField?.GetValue(instance) as string;
             if (string.IsNullOrEmpty(quote) && quoteLabel is RichTextLabel rtl)
-                quote = ProxyElement.StripBbcode(rtl.Text);
+                quote = Message.StripBbcode(rtl.Text);
 
             var message = "";
             if (!string.IsNullOrEmpty(title))
@@ -63,7 +64,7 @@ public class GameOverScreen : GameScreen
             if (!string.IsNullOrEmpty(message))
             {
                 Log.Info($"[AccessibilityMod] Game over: {message}");
-                SpeechManager.Output(message);
+                SpeechManager.Output(Message.Raw(message));
 
                 var uiBuffer = BufferManager.Instance.GetBuffer("ui");
                 if (uiBuffer != null)
@@ -90,9 +91,9 @@ public class GameOverScreen : GameScreen
             var text = locString.GetFormattedText();
             if (string.IsNullOrEmpty(text)) return;
 
-            var stripped = ProxyElement.StripBbcode(text);
+            var stripped = Message.StripBbcode(text);
             Log.Info($"[AccessibilityMod] Badge: {stripped}");
-            SpeechManager.Output(stripped);
+            SpeechManager.Output(Message.Raw(stripped));
 
             var uiBuffer = BufferManager.Instance.GetBuffer("ui");
             if (uiBuffer != null)
@@ -116,7 +117,7 @@ public class GameOverScreen : GameScreen
             {
                 var message = $"Score: {scoreVal}";
                 Log.Info($"[AccessibilityMod] {message}");
-                SpeechManager.Output(message);
+                SpeechManager.Output(Message.Raw(message));
 
                 var uiBuffer = BufferManager.Instance.GetBuffer("ui");
                 if (uiBuffer != null)

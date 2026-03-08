@@ -14,7 +14,6 @@ public abstract class UIElement
     public virtual string? GetExtrasString() => null;
     public virtual string? GetTypeKey() => null;
     public virtual string? GetStatusString() => null;
-    public virtual LocalizationString? GetPosition() => null;
 
     /// <summary>
     /// Called when this element receives focus. Configure which buffers are enabled
@@ -80,7 +79,7 @@ public abstract class UIElement
         var typeKey = GetTypeKey();
         if (!string.IsNullOrEmpty(typeKey))
         {
-            var typeName = LocalizationManager.Get("ui", $"TYPES.{typeKey.ToUpperInvariant()}");
+            var typeName = Message.Localized("ui", $"TYPES.{typeKey.ToUpperInvariant()}").Resolve();
             if (!string.IsNullOrEmpty(typeName))
             {
                 if (sb.Length > 0) sb.Append(", ");
@@ -93,17 +92,6 @@ public abstract class UIElement
         {
             if (sb.Length > 0) sb.Append(", ");
             sb.Append(status);
-        }
-
-        var position = GetPosition();
-        if (position != null)
-        {
-            var posStr = position.ToString();
-            if (!string.IsNullOrEmpty(posStr))
-            {
-                if (sb.Length > 0) sb.Append(", ");
-                sb.Append(posStr);
-            }
         }
 
         return sb.Length > 0 ? sb.ToString() : "";

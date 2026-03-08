@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Timeline;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 
@@ -41,13 +42,13 @@ public class EpochInspectScreen : GameScreen
 
             var desc = epoch.Description;
             if (!string.IsNullOrEmpty(desc))
-                parts.Add(ProxyElement.StripBbcode(desc));
+                parts.Add(Message.StripBbcode(desc));
 
             try
             {
                 var unlockText = epoch.UnlockText;
                 if (!string.IsNullOrEmpty(unlockText))
-                    parts.Add(ProxyElement.StripBbcode(unlockText));
+                    parts.Add(Message.StripBbcode(unlockText));
             }
             catch { }
 
@@ -55,7 +56,7 @@ public class EpochInspectScreen : GameScreen
             {
                 var message = string.Join(". ", parts);
                 Log.Info($"[AccessibilityMod] Epoch inspect: {message}");
-                SpeechManager.Output(message);
+                SpeechManager.Output(Message.Raw(message));
             }
         }
         catch (System.Exception ex)
@@ -74,13 +75,13 @@ public class EpochInspectScreen : GameScreen
 
             var desc = epoch.Description;
             if (!string.IsNullOrEmpty(desc))
-                parts.Add(ProxyElement.StripBbcode(desc));
+                parts.Add(Message.StripBbcode(desc));
 
             try
             {
                 var unlockText = epoch.UnlockText;
                 if (!string.IsNullOrEmpty(unlockText))
-                    parts.Add(ProxyElement.StripBbcode(unlockText));
+                    parts.Add(Message.StripBbcode(unlockText));
             }
             catch { }
 
@@ -88,7 +89,7 @@ public class EpochInspectScreen : GameScreen
             {
                 var message = string.Join(". ", parts);
                 Log.Info($"[AccessibilityMod] Epoch paginate: {message}");
-                SpeechManager.Output(message);
+                SpeechManager.Output(Message.Raw(message));
             }
         }
         catch (System.Exception ex)

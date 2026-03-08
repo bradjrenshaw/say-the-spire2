@@ -1,4 +1,5 @@
 using Godot;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
 
@@ -31,7 +32,7 @@ public class CheckboxElement : UIElement
         var newValue = !_setting.Get();
         _setting.Set(newValue);
         _control.SetPressedNoSignal(newValue);
-        SpeechManager.Output(newValue ? "checked" : "unchecked");
+        SpeechManager.Output(Message.Raw(newValue ? "checked" : "unchecked"));
     }
 
     /// <summary>
@@ -41,6 +42,6 @@ public class CheckboxElement : UIElement
     public void SyncFromControl()
     {
         _setting.Set(_control.ButtonPressed);
-        SpeechManager.Output(_control.ButtonPressed ? "checked" : "unchecked");
+        SpeechManager.Output(Message.Raw(_control.ButtonPressed ? "checked" : "unchecked"));
     }
 }

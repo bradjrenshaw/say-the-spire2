@@ -1,5 +1,6 @@
 using System;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
 
@@ -20,7 +21,7 @@ public static class EventDispatcher
 
         if (announce)
         {
-            SpeechManager.Output(message, interrupt: false);
+            SpeechManager.Output(Message.Raw(message), interrupt: false);
         }
 
         if (buffer)

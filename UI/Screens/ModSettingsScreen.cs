@@ -1,5 +1,6 @@
 using Godot;
 using SayTheSpire2.Input;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
@@ -127,7 +128,7 @@ public class ModSettingsScreen : Screen
         if (action.Key == "ui_cancel" || action.Key == "mod_settings")
         {
             ScreenManager.RemoveScreen(this);
-            SpeechManager.Output("Closed");
+            SpeechManager.Output(Message.Raw("Closed"));
             return true;
         }
 

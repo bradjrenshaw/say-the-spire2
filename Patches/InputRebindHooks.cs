@@ -78,14 +78,8 @@ public static class InputRebindHooks
         if (entry == null) return;
 
         var label = GetEntryLabel(entry);
-        var text = LocalizationManager.Get("ui", "KEYBIND.LISTENING");
-        if (text != null)
-            text = text.Replace("{action}", label);
-        else
-            text = $"Press a key to rebind {label}";
-
         Log.Info($"[AccessibilityMod] Rebind listening: {label}");
-        SpeechManager.Output(text);
+        SpeechManager.Output(Message.Localized("ui", "KEYBIND.LISTENING", new { action = label }));
     }
 
     public static void KeyInputPrefix(NInputSettingsPanel __instance)
@@ -123,28 +117,20 @@ public static class InputRebindHooks
                         {
                             var swappedLabel = GetEntryLabelByInputName(kvp.Key);
                             var swappedKey = kvp.Value.ToString();
-                            swapMessage = LocalizationManager.Get("ui", "KEYBIND.SWAPPED");
-                            if (swapMessage != null)
-                                swapMessage = swapMessage.Replace("{action}", swappedLabel).Replace("{key}", swappedKey);
-                            else
-                                swapMessage = $"{swappedLabel} swapped to {swappedKey}";
+                            swapMessage = Message.Localized("ui", "KEYBIND.SWAPPED", new { action = swappedLabel, key = swappedKey }).Resolve();
                             break;
                         }
                     }
                 }
             }
 
-            var boundText = LocalizationManager.Get("ui", "KEYBIND.BOUND");
-            if (boundText != null)
-                boundText = boundText.Replace("{action}", label).Replace("{key}", newKey);
-            else
-                boundText = $"{label} bound to {newKey}";
+            var boundText = Message.Localized("ui", "KEYBIND.BOUND", new { action = label, key = newKey }).Resolve();
 
             if (swapMessage != null)
                 boundText = $"{boundText}. {swapMessage}";
 
             Log.Info($"[AccessibilityMod] Rebind: {boundText}");
-            SpeechManager.Output(boundText);
+            SpeechManager.Output(Message.Raw(boundText));
         }
 
         _previousListeningEntry = null;
@@ -186,27 +172,19 @@ public static class InputRebindHooks
                     {
                         var swappedLabel = GetEntryLabelByInputName(kvp.Key);
                         var swappedButton = ProxyInputBinding.GetControllerButtonName(kvp.Value.ToString());
-                        swapMessage = LocalizationManager.Get("ui", "KEYBIND.SWAPPED");
-                        if (swapMessage != null)
-                            swapMessage = swapMessage.Replace("{action}", swappedLabel).Replace("{key}", swappedButton);
-                        else
-                            swapMessage = $"{swappedLabel} swapped to {swappedButton}";
+                        swapMessage = Message.Localized("ui", "KEYBIND.SWAPPED", new { action = swappedLabel, key = swappedButton }).Resolve();
                         break;
                     }
                 }
             }
 
-            var boundText = LocalizationManager.Get("ui", "KEYBIND.BOUND");
-            if (boundText != null)
-                boundText = boundText.Replace("{action}", label).Replace("{key}", buttonName);
-            else
-                boundText = $"{label} bound to {buttonName}";
+            var boundText = Message.Localized("ui", "KEYBIND.BOUND", new { action = label, key = buttonName }).Resolve();
 
             if (swapMessage != null)
                 boundText = $"{boundText}. {swapMessage}";
 
             Log.Info($"[AccessibilityMod] Controller rebind: {boundText}");
-            SpeechManager.Output(boundText);
+            SpeechManager.Output(Message.Raw(boundText));
         }
 
         _previousListeningEntry = null;
@@ -215,9 +193,8 @@ public static class InputRebindHooks
 
     public static void ResetToDefaultsPostfix()
     {
-        var text = LocalizationManager.Get("ui", "KEYBIND.RESET") ?? "Bindings reset to defaults";
-        Log.Info($"[AccessibilityMod] {text}");
-        SpeechManager.Output(text);
+        Log.Info("[AccessibilityMod] Bindings reset to defaults");
+        SpeechManager.Output(Message.Localized("ui", "KEYBIND.RESET"));
     }
 
     private static string GetEntryLabel(NInputSettingsEntry entry)

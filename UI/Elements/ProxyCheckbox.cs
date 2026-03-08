@@ -42,6 +42,6 @@ public class ProxyCheckbox : ProxyElement
     {
         var status = GetStatusString();
         if (!string.IsNullOrEmpty(status))
-            SpeechManager.Output(status);
+            SpeechManager.Output(Message.Raw(status));
     }
 }

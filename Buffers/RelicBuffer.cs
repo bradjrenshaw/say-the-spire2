@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
+using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
 
 public class RelicBuffer : Buffer

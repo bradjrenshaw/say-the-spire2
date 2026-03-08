@@ -5,8 +5,8 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Events;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
-using SayTheSpire2.UI.Elements;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
@@ -105,7 +105,7 @@ public static class EventHooks
             if (!string.IsNullOrEmpty(text))
             {
                 Log.Info($"[AccessibilityMod] Ancient event: \"{text}\"");
-                SpeechManager.Output(text);
+                SpeechManager.Output(Message.Raw(text));
             }
         }
         catch (System.Exception e)
@@ -131,12 +131,8 @@ public static class EventHooks
             var text = textNode.Text;
             if (!string.IsNullOrEmpty(text))
             {
-                var clean = ProxyElement.StripBbcode(text);
-                if (!string.IsNullOrEmpty(clean))
-                {
-                    Log.Info($"[AccessibilityMod] Ancient dialogue: \"{clean}\"");
-                    SpeechManager.Output(clean);
-                }
+                Log.Info($"[AccessibilityMod] Ancient dialogue: \"{text}\"");
+                SpeechManager.Output(Message.Raw(text));
             }
         }
         catch (System.Exception e)
@@ -158,12 +154,11 @@ public static class EventHooks
                     title = textProp.GetValue(titleLabel) as string ?? "";
             }
 
-            var cleanDesc = ProxyElement.StripBbcode(description);
-            if (string.IsNullOrEmpty(cleanDesc)) return;
+            if (string.IsNullOrEmpty(description)) return;
 
-            var text = string.IsNullOrEmpty(title) ? cleanDesc : $"{title}. {cleanDesc}";
+            var text = string.IsNullOrEmpty(title) ? description : $"{title}. {description}";
             Log.Info($"[AccessibilityMod] Event description: \"{text}\"");
-            SpeechManager.Output(text);
+            SpeechManager.Output(Message.Raw(text));
         }
         catch (System.Exception e)
         {

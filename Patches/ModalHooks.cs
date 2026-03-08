@@ -5,6 +5,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Ftue;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 
@@ -82,7 +83,7 @@ public static class ModalHooks
         {
             var text = sb.ToString();
             Log.Info($"[AccessibilityMod] Modal opened: \"{text}\"");
-            SpeechManager.Output(text);
+            SpeechManager.Output(Message.Raw(text));
         }
         else
         {
@@ -138,7 +139,7 @@ public static class ModalHooks
     private static string? ExtractText(Node node)
     {
         if (node is RichTextLabel rtl && !string.IsNullOrWhiteSpace(rtl.Text))
-            return ProxyElement.StripBbcode(rtl.Text);
+            return Message.StripBbcode(rtl.Text);
         if (node is Label label && !string.IsNullOrWhiteSpace(label.Text))
             return label.Text;
         return null;
