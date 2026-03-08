@@ -6,31 +6,28 @@ using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
 
-public class ModSettingsScreen : Screen
+public class ChoiceSelectionScreen : Screen
 {
-    private readonly CategorySetting _category;
+    private readonly ChoiceSetting _setting;
     private readonly PanelContainer _root;
     private readonly VBoxContainer _itemList;
     private readonly NavigableContainer _navContainer;
 
-    public override string? ScreenName => _category.Label;
+    public override string? ScreenName => _setting.Label;
 
-    public ModSettingsScreen(CategorySetting category)
+    public ChoiceSelectionScreen(ChoiceSetting setting)
     {
-        _category = category;
+        _setting = setting;
 
-        // Build visual layout
-        _root = new PanelContainer { Name = "ModSettings_" + category.Key };
+        _root = new PanelContainer { Name = "ChoiceSelection_" + setting.Key };
         _root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
 
-        // Semi-transparent dark background
         var bg = new StyleBoxFlat
         {
             BgColor = new Color(0.1f, 0.1f, 0.1f, 0.9f),
         };
         _root.AddThemeStyleboxOverride("panel", bg);
 
-        // Centered content area
         var centerContainer = new CenterContainer();
         _root.AddChild(centerContainer);
 
@@ -55,27 +52,22 @@ public class ModSettingsScreen : Screen
         outerVBox.AddThemeConstantOverride("separation", 16);
         contentPanel.AddChild(outerVBox);
 
-        // Title
         var title = new Label
         {
-            Text = category.IsRoot ? "Mod Settings" : category.Label,
+            Text = setting.Label,
             HorizontalAlignment = HorizontalAlignment.Center,
         };
         title.AddThemeFontSizeOverride("font_size", 24);
         outerVBox.AddChild(title);
-
-        // Separator
         outerVBox.AddChild(new HSeparator());
 
-        // Item list
         _itemList = new VBoxContainer();
         _itemList.AddThemeConstantOverride("separation", 8);
         outerVBox.AddChild(_itemList);
 
-        // Navigation container
         _navContainer = new NavigableContainer
         {
-            ContainerLabel = category.Label,
+            ContainerLabel = setting.Label,
             AnnounceName = true,
             AnnouncePosition = true,
         };
@@ -88,9 +80,8 @@ public class ModSettingsScreen : Screen
         ClaimAction("ui_accept");
         ClaimAction("ui_select");
         ClaimAction("ui_cancel");
-        ClaimAction("mod_settings");
 
-        BuildControls();
+        BuildOptions();
     }
 
     public override void OnPush()
@@ -124,7 +115,7 @@ public class ModSettingsScreen : Screen
 
     public override bool OnActionJustPressed(InputAction action)
     {
-        if (action.Key == "ui_cancel" || action.Key == "mod_settings")
+        if (action.Key == "ui_cancel")
         {
             ScreenManager.RemoveScreen(this);
             SpeechManager.Output("Closed");
@@ -134,76 +125,25 @@ public class ModSettingsScreen : Screen
         return _navContainer.HandleAction(action);
     }
 
-    private void BuildControls()
+    private void BuildOptions()
     {
-        foreach (var setting in _category.Children)
+        foreach (var choice in _setting.Options)
         {
-            switch (setting)
+            var button = new ButtonElement(choice.Label);
+            button.OnActivated = () =>
             {
-                case CategorySetting cat:
-                    var button = new ButtonElement(cat.Label);
-                    button.OnActivated = () =>
-                    {
-                        var subScreen = new ModSettingsScreen(cat);
-                        ScreenManager.PushScreen(subScreen);
-                    };
-                    _navContainer.Add(button);
-                    AddControl(button.Node, button);
-                    break;
-
-                case BoolSetting boolSetting:
-                    var checkbox = new CheckboxElement(boolSetting);
-                    _navContainer.Add(checkbox);
-                    AddControl(checkbox.Node, checkbox);
-                    break;
-
-                case IntSetting intSetting:
-                    var slider = new SliderElement(intSetting);
-                    _navContainer.Add(slider);
-                    AddControl(slider.Node, slider);
-                    break;
-
-                case ChoiceSetting choiceSetting:
-                    var dropdown = new DropdownElement(choiceSetting);
-                    _navContainer.Add(dropdown);
-                    AddControl(dropdown.Node, dropdown);
-                    break;
-            }
-        }
-    }
-
-    private void AddControl(Node node, UIElement element)
-    {
-        var control = (Control)node;
-        control.FocusMode = Control.FocusModeEnum.All;
-        _itemList.AddChild(control);
-
-        // Sync keyboard navigation when mouse clicks a control
-        control.FocusEntered += () =>
-        {
-            _navContainer.SetFocusTo(element);
-        };
-
-        // Handle mouse activation
-        if (element is ButtonElement btn)
-        {
-            ((BaseButton)control).Pressed += () => btn.Activate();
-        }
-        else if (element is CheckboxElement cb)
-        {
-            ((CheckBox)control).Toggled += (_) => cb.SyncFromControl();
-        }
-        else if (element is SliderElement sl)
-        {
-            ((HSlider)control).ValueChanged += (_) => sl.SyncFromControl();
-        }
-        else if (element is DropdownElement dd)
-        {
-            ((BaseButton)control).Pressed += () =>
-            {
-                var screen = new ChoiceSelectionScreen(dd.Setting);
-                ScreenManager.PushScreen(screen);
+                _setting.Set(choice.Key);
+                ScreenManager.RemoveScreen(this);
+                SpeechManager.Output($"{choice.Label} selected");
             };
+            _navContainer.Add(button);
+
+            var control = (Control)button.Node;
+            control.FocusMode = Control.FocusModeEnum.All;
+            _itemList.AddChild(control);
+
+            control.FocusEntered += () => _navContainer.SetFocusTo(button);
+            ((BaseButton)control).Pressed += () => button.Activate();
         }
     }
 }

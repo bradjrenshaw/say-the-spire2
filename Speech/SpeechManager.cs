@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MegaCrit.Sts2.Core.Logging;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Speech;
 
@@ -8,37 +10,25 @@ public static class SpeechManager
 {
     private static ISpeechHandler? _activeHandler;
     private static bool _initialized;
+    private static ChoiceSetting? _handlerSetting;
 
-    private static readonly List<ISpeechHandler> Handlers = new()
+    public static readonly IReadOnlyList<ISpeechHandler> Handlers = new List<ISpeechHandler>
     {
         new TolkHandler(),
         new SapiHandler(),
         new ClipboardHandler(),
     };
 
+    public static void SetHandlerSetting(ChoiceSetting setting)
+    {
+        _handlerSetting = setting;
+        _handlerSetting.Changed += OnHandlerChanged;
+    }
+
     public static void Initialize()
     {
-        foreach (var handler in Handlers)
-        {
-            try
-            {
-                Log.Info($"[AccessibilityMod] Trying speech handler: {handler.Key}");
-                if (handler.Detect() && handler.Load())
-                {
-                    _activeHandler = handler;
-                    _initialized = true;
-                    Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
-                    Output("Accessibility mod loaded.");
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[AccessibilityMod] Handler {handler.Key} failed: {ex}");
-            }
-        }
-
-        Log.Error("[AccessibilityMod] No speech handler could be loaded!");
+        var preferred = _handlerSetting?.Get() ?? "auto";
+        ActivateHandler(preferred);
     }
 
     public static void Speak(string text, bool interrupt = false)
@@ -57,5 +47,75 @@ public static class SpeechManager
     {
         if (!_initialized || _activeHandler == null) return;
         _activeHandler.Silence();
+    }
+
+    private static void OnHandlerChanged(string key)
+    {
+        if (!_initialized) return;
+        ActivateHandler(key);
+        if (_activeHandler != null)
+            Output($"Speech handler: {_activeHandler.Label}");
+    }
+
+    private static void ActivateHandler(string key)
+    {
+        // Unload current handler
+        _activeHandler?.Unload();
+        _activeHandler = null;
+        _initialized = false;
+
+        if (key == "auto")
+        {
+            // Try each in order
+            foreach (var handler in Handlers)
+            {
+                try
+                {
+                    Log.Info($"[AccessibilityMod] Trying speech handler: {handler.Key}");
+                    if (handler.Detect() && handler.Load())
+                    {
+                        _activeHandler = handler;
+                        _initialized = true;
+                        Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"[AccessibilityMod] Handler {handler.Key} failed: {ex}");
+                }
+            }
+            Log.Error("[AccessibilityMod] No speech handler could be loaded!");
+        }
+        else
+        {
+            // Try specific handler
+            var handler = Handlers.FirstOrDefault(h => h.Key == key);
+            if (handler == null)
+            {
+                Log.Error($"[AccessibilityMod] Unknown speech handler: {key}");
+                return;
+            }
+
+            try
+            {
+                if (handler.Load())
+                {
+                    _activeHandler = handler;
+                    _initialized = true;
+                    Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
+                }
+                else
+                {
+                    Log.Error($"[AccessibilityMod] Speech handler {key} failed to load, falling back to auto");
+                    ActivateHandler("auto");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[AccessibilityMod] Speech handler {key} failed: {ex}, falling back to auto");
+                ActivateHandler("auto");
+            }
+        }
     }
 }

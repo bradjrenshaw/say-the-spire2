@@ -1,11 +1,27 @@
 using System;
 using MegaCrit.Sts2.Core.Logging;
+using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Speech;
 
 public class TolkHandler : ISpeechHandler
 {
+    private CategorySetting? _settings;
+    private BoolSetting? _trySapi;
+
     public string Key => "tolk";
+    public string Label => "Tolk (Screen Reader)";
+
+    public CategorySetting? GetSettings()
+    {
+        if (_settings != null) return _settings;
+
+        _settings = new CategorySetting(Key, Label);
+        _trySapi = new BoolSetting("try_sapi", "Fall back to SAPI", true);
+        _settings.Add(_trySapi);
+
+        return _settings;
+    }
 
     public bool Detect()
     {
@@ -62,7 +78,7 @@ public class TolkHandler : ISpeechHandler
 
     private bool TryLoad()
     {
-        DavyKager.Tolk.TrySAPI(true);
+        DavyKager.Tolk.TrySAPI(_trySapi?.Get() ?? true);
         DavyKager.Tolk.Load();
 
         if (!DavyKager.Tolk.IsLoaded())

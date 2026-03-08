@@ -5,6 +5,8 @@ namespace SayTheSpire2.Speech;
 public class ClipboardHandler : ISpeechHandler
 {
     public string Key => "clipboard";
+    public string Label => "Clipboard";
+    public Settings.CategorySetting? GetSettings() => null;
 
     public bool Detect() => true;
 

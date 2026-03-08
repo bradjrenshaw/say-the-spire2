@@ -83,6 +83,29 @@ public static class ModEntry
         Settings.EventRegistry.Register(typeof(PowerEvent));
         Settings.EventRegistry.Register(typeof(TurnEvent));
 
+        // Collect speech handler settings
+        var speechCategory = new Settings.CategorySetting("speech", "Speech");
+        Settings.ModSettings.Root.Add(speechCategory);
+
+        // Handler selection dropdown at the top (auto = try each in order)
+        var handlerChoices = new System.Collections.Generic.List<Settings.Choice>
+        {
+            new Settings.Choice("auto", "Auto"),
+        };
+        foreach (var handler in Speech.SpeechManager.Handlers)
+            handlerChoices.Add(new Settings.Choice(handler.Key, handler.Label));
+        var handlerSetting = new Settings.ChoiceSetting("handler", "Speech Handler", "auto", handlerChoices);
+        speechCategory.Add(handlerSetting);
+        Speech.SpeechManager.SetHandlerSetting(handlerSetting);
+
+        // Per-handler settings
+        foreach (var handler in Speech.SpeechManager.Handlers)
+        {
+            var handlerSettings = handler.GetSettings();
+            if (handlerSettings != null)
+                speechCategory.Add(handlerSettings);
+        }
+
         // Load saved values (overrides defaults) and write file if first run
         Settings.ModSettings.Initialize(settingsDir);
     }

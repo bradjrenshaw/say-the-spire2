@@ -1,4 +1,5 @@
 using SayTheSpire2.Input;
+using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -17,6 +18,12 @@ public class NavigableContainer : ListContainer
                 return MoveFocus(1);
             case "ui_up":
                 return MoveFocus(-1);
+            case "ui_left":
+                if (FocusedChild is SliderElement slLeft) { slLeft.Decrement(); return true; }
+                return false;
+            case "ui_right":
+                if (FocusedChild is SliderElement slRight) { slRight.Increment(); return true; }
+                return false;
             case "ui_accept":
             case "ui_select":
                 return ActivateFocused();
@@ -85,6 +92,10 @@ public class NavigableContainer : ListContainer
                 return true;
             case CheckboxElement checkbox:
                 checkbox.Activate();
+                return true;
+            case DropdownElement dropdown:
+                var screen = new ChoiceSelectionScreen(dropdown.Setting);
+                ScreenManager.PushScreen(screen);
                 return true;
             default:
                 return false;
