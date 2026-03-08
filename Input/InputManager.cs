@@ -135,6 +135,9 @@ public static class InputManager
 
     private static void OnKeyPressed(InputEventKey keyEvent)
     {
+        // Any keypress interrupts current speech
+        Speech.SpeechManager.Silence();
+
         // If it's a modifier key, don't trigger actions — just wait for the
         // non-modifier key that completes the combo
         if (_modifierKeys.Contains(keyEvent.Keycode))
