@@ -95,21 +95,24 @@ public class ProxyCard : ProxyElement
             // Name
             cardBuffer.Add(model.Title);
 
-            // Type
-            cardBuffer.Add(model.Type.ToString());
+            // Type and rarity
+            var typeRarity = model.Type.ToString();
+            if (model.Rarity != CardRarity.Common)
+                typeRarity += $", {model.Rarity}";
+            cardBuffer.Add(typeRarity);
 
             // Energy cost
             if (model.EnergyCost != null)
             {
                 if (model.EnergyCost.CostsX)
-                    cardBuffer.Add("Cost: X energy");
+                    cardBuffer.Add("X energy");
                 else
-                    cardBuffer.Add($"Cost: {model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
+                    cardBuffer.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
             }
 
             // Star cost
             if (model.CurrentStarCost > 0)
-                cardBuffer.Add($"Star cost: {model.CurrentStarCost}");
+                cardBuffer.Add($"{model.CurrentStarCost}");
 
             // Description
             try
@@ -129,10 +132,6 @@ public class ProxyCard : ProxyElement
                 }
                 catch { }
             }
-
-            // Rarity
-            if (model.Rarity != CardRarity.Common)
-                cardBuffer.Add(model.Rarity.ToString());
 
             // Enchantment
             if (model.Enchantment != null)
@@ -200,18 +199,21 @@ public class ProxyCard : ProxyElement
                     clone.UpgradeInternal();
 
                     upgradeBuffer.Add(clone.Title);
-                    upgradeBuffer.Add(clone.Type.ToString());
+                    var upgradeTypeRarity = clone.Type.ToString();
+                    if (clone.Rarity != CardRarity.Common)
+                        upgradeTypeRarity += $", {clone.Rarity}";
+                    upgradeBuffer.Add(upgradeTypeRarity);
 
                     if (clone.EnergyCost != null)
                     {
                         if (clone.EnergyCost.CostsX)
-                            upgradeBuffer.Add("Cost: X energy");
+                            upgradeBuffer.Add("X energy");
                         else
-                            upgradeBuffer.Add($"Cost: {clone.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
+                            upgradeBuffer.Add($"{clone.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
                     }
 
                     if (clone.CurrentStarCost > 0)
-                        upgradeBuffer.Add($"Star cost: {clone.CurrentStarCost}");
+                        upgradeBuffer.Add($"{clone.CurrentStarCost}");
 
                     try
                     {
@@ -244,21 +246,24 @@ public class ProxyCard : ProxyElement
     public static void PopulateCardBuffer(Buffer buffer, CardModel model)
     {
         buffer.Add(model.Title);
-        buffer.Add(model.Type.ToString());
+        var typeRarity = model.Type.ToString();
+        if (model.Rarity != CardRarity.Common)
+            typeRarity += $", {model.Rarity}";
+        buffer.Add(typeRarity);
 
         if (model.EnergyCost != null)
         {
             if (model.EnergyCost.CostsX)
-                buffer.Add("Cost: X energy");
+                buffer.Add("X energy");
             else
             {
-                try { buffer.Add($"Cost: {model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
-                catch { buffer.Add($"Cost: {model.EnergyCost.Canonical} energy"); }
+                try { buffer.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
+                catch { buffer.Add($"{model.EnergyCost.Canonical} energy"); }
             }
         }
 
         if (model.CurrentStarCost > 0)
-            buffer.Add($"Star cost: {model.CurrentStarCost}");
+            buffer.Add($"{model.CurrentStarCost}");
 
         try
         {
@@ -267,9 +272,6 @@ public class ProxyCard : ProxyElement
                 buffer.Add(StripBbcode(desc));
         }
         catch { }
-
-        if (model.Rarity != CardRarity.Common)
-            buffer.Add(model.Rarity.ToString());
 
         if (model.Enchantment != null)
         {
