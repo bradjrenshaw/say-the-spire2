@@ -1,11 +1,14 @@
 using System.Linq;
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using SayTheSpire2.Events;
 using SayTheSpire2.UI.Screens;
@@ -70,6 +73,16 @@ public static class CombatNavigationHooks
             Log.Info("[AccessibilityMod] CardPileCmd.Shuffle hook patched.");
         }
 
+        // Patch NCreature.UpdateNavigation to fix player's upward nav after orb setup
+        var updateCreatureNav = AccessTools.Method(typeof(NCreature), "UpdateNavigation");
+        if (updateCreatureNav != null)
+        {
+            harmony.Patch(updateCreatureNav,
+                postfix: new HarmonyMethod(typeof(CombatNavigationHooks),
+                    nameof(CreatureUpdateNavigationPostfix)));
+            Log.Info("[AccessibilityMod] NCreature.UpdateNavigation hook patched.");
+        }
+
         var refreshLayout = AccessTools.Method(typeof(NPlayerHand), "RefreshLayout");
         if (refreshLayout != null)
         {
@@ -92,13 +105,60 @@ public static class CombatNavigationHooks
     }
 
     public static void UpdateCreatureNavigationPostfix(NCombatRoom __instance)
-        => CombatScreen.Current?.OnCreatureNavigationUpdated(__instance);
+    {
+        // Run directly without depending on CombatScreen.Current, since
+        // UpdateCreatureNavigation fires during AddCreature before CombatSetUp.
+        try
+        {
+            SetCreatureFocusToRelics(__instance);
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Creature navigation postfix failed: {e.Message}");
+        }
+    }
 
     public static void StartTargetingPostfix()
         => CombatScreen.Current?.OnTargetingStarted();
 
     public static void FinishTargetingPostfix()
-        => CombatScreen.Current?.OnTargetingFinished();
+    {
+        CombatScreen.Current?.OnTargetingFinished();
+        // Also fix navigation directly in case CombatScreen.Current is null
+        try
+        {
+            var combatRoom = NCombatRoom.Instance;
+            if (combatRoom != null)
+                SetCreatureFocusToRelics(combatRoom);
+        }
+        catch { }
+    }
+
+    public static void CreatureUpdateNavigationPostfix(NCreature __instance)
+    {
+        try
+        {
+            if (!__instance.Entity.IsPlayer) return;
+
+            var firstRelic = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.FirstOrDefault();
+            if (firstRelic == null || !GodotObject.IsInstanceValid(firstRelic)) return;
+
+            var relicPath = firstRelic.GetPath();
+
+            // After UpdateNavigation, hitbox points to OrbManager.DefaultFocusOwner.
+            // Set that control's FocusNeighborTop to relics.
+            if (__instance.OrbManager != null)
+            {
+                var orbFocus = __instance.OrbManager.DefaultFocusOwner;
+                if (orbFocus != null)
+                    orbFocus.FocusNeighborTop = relicPath;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] CreatureUpdateNavigation postfix failed: {e.Message}");
+        }
+    }
 
     public static void RefreshLayoutPostfix(NPlayerHand __instance)
         => CombatScreen.Current?.OnHandLayoutRefreshed(__instance);
@@ -108,6 +168,34 @@ public static class CombatNavigationHooks
 
     public static void ShufflePostfix(Player player)
         => CombatScreen.Current?.OnShuffleFinished();
+
+    private static void SetCreatureFocusToRelics(NCombatRoom combatRoom)
+    {
+        var firstRelic = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.FirstOrDefault();
+        if (firstRelic == null || !GodotObject.IsInstanceValid(firstRelic)) return;
+
+        var relicPath = firstRelic.GetPath();
+
+        foreach (var creature in combatRoom.CreatureNodes)
+        {
+            if (creature == null) continue;
+            var hitbox = creature.Hitbox;
+            if (hitbox == null) continue;
+
+            if (creature.Entity.IsPlayer && creature.OrbManager != null)
+            {
+                // Player hitbox points up to orbs (set by NCreature.UpdateNavigation).
+                // Set the orb manager's top focus to relics so up from orbs reaches relics.
+                var orbFocus = creature.OrbManager.DefaultFocusOwner;
+                if (orbFocus != null)
+                    orbFocus.FocusNeighborTop = relicPath;
+            }
+            else
+            {
+                hitbox.FocusNeighborTop = relicPath;
+            }
+        }
+    }
 
     public static void TakeTurnPrefix(Creature __instance)
     {
