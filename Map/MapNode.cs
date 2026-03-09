@@ -64,14 +64,9 @@ public class MapNode
 
     public string? GetStateString()
     {
-        var stateKey = State switch
-        {
-            MapPointState.Travelable => "STATE.TRAVELABLE",
-            MapPointState.Traveled => "STATE.TRAVELED",
-            MapPointState.Untravelable => "STATE.UNTRAVELABLE",
-            _ => null,
-        };
-        return stateKey != null ? LocalizationManager.Get("map_nav", stateKey) : null;
+        if (State == MapPointState.Traveled)
+            return LocalizationManager.Get("map_nav", "STATE.TRAVELED");
+        return null;
     }
 
     public string GetCoordinatesString()
