@@ -10,3 +10,4 @@
 * Fixed an issue where the focus would glitch during the player's end of turn sequence resulting in readouts of random controls.
 * Reordered card label to read as "{name}, {cost}, {type}"; also added setting for verbose costs (when unchecked costs simply read as numbers with no label.)
 * Fixed an issue where various event announcements and hotkeys (such as player hp) were reading from stale data. This may also fix duplicate event announcements in combat.
+* Fixed an issue where the buffer controls would cause a crash if used during the early access explanation screen.

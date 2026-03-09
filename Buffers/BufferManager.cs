@@ -87,8 +87,8 @@ public class BufferManager
     {
         if (_buffers.Count == 0) return false;
 
-        int start = _position;
-        int i = _position;
+        int start = _position < 0 ? _buffers.Count - 1 : _position;
+        int i = start;
         do
         {
             i++;
@@ -108,8 +108,8 @@ public class BufferManager
     {
         if (_buffers.Count == 0) return false;
 
-        int start = _position;
-        int i = _position;
+        int start = _position < 0 ? 0 : _position;
+        int i = start;
         do
         {
             i--;
