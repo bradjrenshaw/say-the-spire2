@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Logging;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
@@ -79,6 +80,11 @@ public static class UIManager
         _lastAnnouncedControl = control;
 
         if (!GodotObject.IsInstanceValid(control)) return;
+
+        // Suppress focus announcements during end-of-turn transitions
+        // (cards being removed/discarded cause erratic focus jumps)
+        var cm = CombatManager.Instance;
+        if (cm != null && (cm.EndingPlayerTurnPhaseOne || cm.EndingPlayerTurnPhaseTwo)) return;
 
         _lastAnnouncedElement?.Unfocus();
 

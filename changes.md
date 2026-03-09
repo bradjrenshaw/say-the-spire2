@@ -7,3 +7,4 @@
 * Added events and announcements for card upgrades and when cards are added to your deck.
 * Mod settings menus are now sorted alphabetically.
 * The default keyboard binding for back is now backspace instead of escape to avoid input conflicts. You will have to adjust this keybinding yourself if you have already played the game though as your settings file doesn't reset to defaults on mod update.
+* Fixed an issue where the focus would glitch during the player's end of turn sequence, resulting in readouts of random controls.
