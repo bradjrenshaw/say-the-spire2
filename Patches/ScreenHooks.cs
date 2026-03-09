@@ -1,10 +1,13 @@
+using System.Linq;
 using System.Reflection;
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
@@ -84,6 +87,10 @@ public static class ScreenHooks
             nameof(OverlayPushPostfix), "Overlay Push");
         PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
             nameof(OverlayRemovePostfix), "Overlay Remove");
+
+        // Character select hooks
+        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuOpened",
+            nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
 
         // Run lifecycle hooks
         PatchIfFound(harmony, typeof(RunManager), "Launch",
@@ -232,6 +239,35 @@ public static class ScreenHooks
             && CardGridSelectionGameScreen.Current != null)
         {
             ScreenManager.RemoveScreen(CardGridSelectionGameScreen.Current);
+        }
+    }
+
+    // Character select delegates
+    public static void CharacterSelectOpenedPostfix(NCharacterSelectScreen __instance)
+    {
+        try
+        {
+            var container = __instance.GetNodeOrNull<Control>("CharSelectButtons/ButtonContainer");
+            if (container == null) return;
+
+            var buttons = container.GetChildren().OfType<NCharacterSelectButton>().Where(b => b.Visible).ToList();
+            if (buttons.Count == 0) return;
+
+            // Constrain focus so it can't escape the character buttons
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                var self = buttons[i].GetPath();
+                buttons[i].FocusNeighborTop = self;
+                buttons[i].FocusNeighborBottom = self;
+                buttons[i].FocusNeighborLeft = i > 0 ? buttons[i - 1].GetPath() : self;
+                buttons[i].FocusNeighborRight = i < buttons.Count - 1 ? buttons[i + 1].GetPath() : self;
+            }
+
+            Log.Info($"[AccessibilityMod] Character select: constrained focus on {buttons.Count} buttons.");
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Character select focus fix failed: {e.Message}");
         }
     }
 
