@@ -4,6 +4,9 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Cards;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
@@ -89,6 +92,12 @@ public static class ScreenHooks
             nameof(OverlayPushPostfix), "Overlay Push");
         PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
             nameof(OverlayRemovePostfix), "Overlay Remove");
+
+        // Bundle preview focus setup
+        PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "OnBundleClicked",
+            nameof(BundlePreviewPostfix), "Bundle preview focus");
+        PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "CancelSelection",
+            nameof(BundleCancelPostfix), "Bundle cancel focus");
 
         // Character select hooks
         PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuOpened",
@@ -324,5 +333,115 @@ public static class ScreenHooks
         CombatEventManager.CleanUp();
         if (RunScreen.Current != null)
             ScreenManager.RemoveScreen(RunScreen.Current);
+    }
+
+    public static void BundlePreviewPostfix(NChooseABundleSelectionScreen __instance, NCardBundle bundleNode)
+    {
+        try
+        {
+            // Get the preview cards container via reflection
+            var cardsField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundlePreviewCards");
+            var previewCards = cardsField?.GetValue(__instance) as Control;
+            if (previewCards == null || previewCards.GetChildCount() == 0) return;
+
+            // Disable focus on the hidden bundle row hitboxes so they can't steal focus
+            var bundleRowField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundleRow");
+            var bundleRow = bundleRowField?.GetValue(__instance) as Control;
+            if (bundleRow != null)
+            {
+                for (int i = 0; i < bundleRow.GetChildCount(); i++)
+                {
+                    var bundle = bundleRow.GetChild(i) as NCardBundle;
+                    if (bundle?.Hitbox is Control hitbox)
+                        hitbox.FocusMode = Control.FocusModeEnum.None;
+                }
+            }
+
+            // Build set of CardModels from the selected bundle
+            var bundleCards = new System.Collections.Generic.HashSet<CardModel>();
+            foreach (var card in bundleNode.Bundle)
+                bundleCards.Add(card);
+
+            // Only include holders whose card belongs to the selected bundle
+            var holders = new System.Collections.Generic.List<Control>();
+            for (int i = 0; i < previewCards.GetChildCount(); i++)
+            {
+                var holder = previewCards.GetChild(i) as NCardHolder;
+                if (holder?.CardModel != null && bundleCards.Contains(holder.CardModel))
+                {
+                    holder.FocusMode = Control.FocusModeEnum.All;
+                    holders.Add(holder);
+                }
+                else if (holder != null)
+                {
+                    holder.FocusMode = Control.FocusModeEnum.None;
+                    holder.FocusNeighborLeft = null;
+                    holder.FocusNeighborRight = null;
+                    holder.FocusNeighborTop = null;
+                    holder.FocusNeighborBottom = null;
+                }
+            }
+
+            if (holders.Count == 0) return;
+
+            // Set up focus neighbors on the holders (wrap around)
+            for (int i = 0; i < holders.Count; i++)
+            {
+                var left = i > 0 ? holders[i - 1] : holders[holders.Count - 1];
+                var right = i < holders.Count - 1 ? holders[i + 1] : holders[0];
+                holders[i].FocusNeighborLeft = left.GetPath();
+                holders[i].FocusNeighborRight = right.GetPath();
+                holders[i].FocusNeighborTop = holders[i].GetPath();
+                holders[i].FocusNeighborBottom = holders[i].GetPath();
+            }
+
+            // Focus the first holder
+            holders[0].GrabFocus();
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Bundle preview focus error: {e.Message}");
+        }
+    }
+
+    public static void BundleCancelPostfix(NChooseABundleSelectionScreen __instance)
+    {
+        try
+        {
+            // Clear focus neighbors and disable focus on preview card holders
+            var cardsField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundlePreviewCards");
+            var previewCards = cardsField?.GetValue(__instance) as Control;
+            if (previewCards != null)
+            {
+                for (int i = 0; i < previewCards.GetChildCount(); i++)
+                {
+                    var holder = previewCards.GetChild(i) as Control;
+                    if (holder != null)
+                    {
+                        holder.FocusMode = Control.FocusModeEnum.None;
+                        holder.FocusNeighborLeft = null;
+                        holder.FocusNeighborRight = null;
+                        holder.FocusNeighborTop = null;
+                        holder.FocusNeighborBottom = null;
+                    }
+                }
+            }
+
+            // Re-enable focus on bundle row hitboxes
+            var bundleRowField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundleRow");
+            var bundleRow = bundleRowField?.GetValue(__instance) as Control;
+            if (bundleRow == null) return;
+
+            for (int i = 0; i < bundleRow.GetChildCount(); i++)
+            {
+                var bundle = bundleRow.GetChild(i) as NCardBundle;
+                if (bundle?.Hitbox is Control hitbox)
+                    hitbox.FocusMode = Control.FocusModeEnum.All;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Bundle cancel focus error: {e.Message}");
+        }
     }
 }

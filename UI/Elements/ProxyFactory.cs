@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.sts2.Core.Nodes.TopBar;
+using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
@@ -86,6 +87,8 @@ public static class ProxyFactory
         Node? current = control.GetParent();
         while (current != null)
         {
+            if (current is NCardBundle)
+                return new ProxyCardBundle(control);
             if (current is NCardHolder)
                 return new ProxyCard(control);
             if (current is NCreature)

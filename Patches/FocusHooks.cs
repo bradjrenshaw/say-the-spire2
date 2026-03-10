@@ -62,6 +62,7 @@ public static class FocusHooks
         // Patch combat focus: card holders and creatures have their own focus systems
         PatchOnFocus<NHandCardHolder>(harmony, nameof(CardHolderFocusPostfix), "HandCardHolder");
         PatchOnFocus<NGridCardHolder>(harmony, nameof(CardHolderFocusPostfix), "GridCardHolder");
+        PatchOnFocus<NPreviewCardHolder>(harmony, nameof(CardHolderFocusPostfix), "PreviewCardHolder");
 
         // Merchant slots have their own focus system (FocusEntered signal, not NClickableControl)
         var merchantOnFocus = AccessTools.Method(typeof(NMerchantSlot), "OnFocus");
