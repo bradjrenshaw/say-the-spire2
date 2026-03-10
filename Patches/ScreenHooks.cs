@@ -107,6 +107,8 @@ public static class ScreenHooks
             nameof(RunLaunchPostfix), "Run Launch");
         PatchIfFound(harmony, typeof(RunManager), "OnEnded",
             nameof(RunEndedPostfix), "Run OnEnded");
+        PatchIfFound(harmony, typeof(RunManager), "CleanUp",
+            nameof(RunCleanUpPrefix), "Run CleanUp", isPrefix: true);
     }
 
     private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
@@ -286,6 +288,20 @@ public static class ScreenHooks
     }
 
     public static void RunEndedPostfix()
+    {
+        CombatEventManager.CleanUp();
+        if (CombatScreen.Current != null)
+            ScreenManager.RemoveScreen(CombatScreen.Current);
+        if (RunScreen.Current != null)
+            ScreenManager.RemoveScreen(RunScreen.Current);
+    }
+
+    /// <summary>
+    /// RunManager.CleanUp is called by save-and-quit (ReturnToMainMenu) and does
+    /// NOT call OnEnded, so we need a separate hook to pop our screens.
+    /// Using a prefix so CombatManager.Instance is still alive for unsubscription.
+    /// </summary>
+    public static void RunCleanUpPrefix()
     {
         CombatEventManager.CleanUp();
         if (CombatScreen.Current != null)
