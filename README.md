@@ -39,6 +39,7 @@ The installer downloads the latest release, copies files to the correct location
 * **Important:** You must run the game at least once before installing, so the game creates its settings file.
 * Download the installer from https://github.com/bradjrenshaw/say-the-spire2/releases/latest
 * Run the installer. It should detect your game directory automatically. If it doesn't, use the browse button to select it. Click Install.
+* If you use JAWS, click "Install JAWS config files" and select your JAWS settings directory.
 * Launch the game normally. You should hear the mod start speaking.
 
 To update the mod later, run the installer again and click Update.
@@ -50,9 +51,10 @@ If you prefer not to use the installer or it doesn't work, you can set things up
 * **Important:** You must launch the game at least once first so it creates the necessary settings file.
 * Download the latest zip release from https://github.com/bradjrenshaw/say-the-spire2/releases/latest
 * Extract the zip to your game's root directory. On Windows, the default is `C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2`. You should see screen reader files in the root directory and a `mods` subfolder.
+* If you use JAWS, copy the files from the `jaws` subfolder in the game directory to your JAWS settings directory.
 * Next, modify the game's settings file. On Windows, this is located in `%APPDATA%/SlayTheSpire2`.
 * Open the `steam` subfolder, then open the subfolder with a long number (your Steam account ID).
-* Open the `settings.save` file in a text editor (Notepad works well; avoid Word or similar). Search for `mods_enabled` (Ctrl+F is helpful as it's a large JSON file). Change `"mods_enabled": false` to `"mods_enabled": true`, taking care not to alter any surrounding formatting. Save and close the file.
+* Open the `settings.save` file in a text editor (Notepad works well; avoid Word or similar). Search for `mod_settings` (Ctrl+F is helpful as it's a large JSON file). You should find `"mod_settings": null`. Replace `null` with `{"mods_enabled": true}`, so the line reads `"mod_settings": {"mods_enabled": true}`. Take care not to alter any surrounding formatting. Save and close the file.
 * Launch the game normally. If everything is set up correctly, the mod should begin speaking.
 
 ### Disabling Steam Input
@@ -73,7 +75,7 @@ The mod supports both keyboard and controller. Here are the default bindings:
 | Navigate | Arrow keys | D-pad / Left stick |
 | Select | Enter | A |
 | Accept | E | Y |
-| Cancel / Back | Escape | B |
+| Cancel / Back | Backspace | B |
 | Peek | Space | LS Click |
 | View Draw Pile | A | LT+LB |
 | View Discard Pile | S | RT+RB |
