@@ -4,6 +4,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
@@ -78,6 +79,23 @@ public static class EventHooks
         else
         {
             Log.Error("[AccessibilityMod] Could not find CardCmd.Upgrade!");
+        }
+
+        // Orb events
+        var orbChanneled = AccessTools.Method(typeof(Hook), "AfterOrbChanneled");
+        if (orbChanneled != null)
+        {
+            harmony.Patch(orbChanneled,
+                postfix: new HarmonyMethod(typeof(EventHooks), nameof(OrbChanneledPostfix)));
+            Log.Info("[AccessibilityMod] Hook.AfterOrbChanneled hook patched.");
+        }
+
+        var orbEvoked = AccessTools.Method(typeof(Hook), "AfterOrbEvoked");
+        if (orbEvoked != null)
+        {
+            harmony.Patch(orbEvoked,
+                postfix: new HarmonyMethod(typeof(EventHooks), nameof(OrbEvokedPostfix)));
+            Log.Info("[AccessibilityMod] Hook.AfterOrbEvoked hook patched.");
         }
 
         var setDialogueLine = AccessTools.Method(typeof(NAncientEventLayout), "SetDialogueLineAndAnimate");
@@ -174,6 +192,34 @@ public static class EventHooks
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Ancient dialogue hook error: {e.Message}");
+        }
+    }
+
+    public static void OrbChanneledPostfix(OrbModel orb)
+    {
+        try
+        {
+            var name = orb?.Title.GetFormattedText();
+            if (!string.IsNullOrEmpty(name))
+                EventDispatcher.Enqueue(new OrbEvent(OrbEventType.Channeled, name));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Orb channeled hook error: {e.Message}");
+        }
+    }
+
+    public static void OrbEvokedPostfix(OrbModel orb)
+    {
+        try
+        {
+            var name = orb?.Title.GetFormattedText();
+            if (!string.IsNullOrEmpty(name))
+                EventDispatcher.Enqueue(new OrbEvent(OrbEventType.Evoked, name));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Orb evoked hook error: {e.Message}");
         }
     }
 

@@ -86,6 +86,7 @@ public static class ModEntry
         Settings.EventRegistry.Register(typeof(CardObtainedEvent));
         Settings.EventRegistry.Register(typeof(RelicObtainedEvent));
         Settings.EventRegistry.Register(typeof(PotionObtainedEvent));
+        Settings.EventRegistry.Register(typeof(OrbEvent));
 
         // Advanced settings
         var advancedCategory = new Settings.CategorySetting("advanced", "Advanced");

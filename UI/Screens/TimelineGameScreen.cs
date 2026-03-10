@@ -5,6 +5,7 @@ using Godot;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline.UnlockScreens;
+using SayTheSpire2.Input;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
 using ListContainer = SayTheSpire2.UI.Elements.ListContainer;
@@ -25,6 +26,7 @@ public class TimelineGameScreen : GameScreen
     public TimelineGameScreen(NTimelineScreen screen)
     {
         _screen = screen;
+        ClaimAction("mega_top_panel");
     }
 
     protected override void BuildRegistry()
@@ -41,6 +43,43 @@ public class TimelineGameScreen : GameScreen
     {
         base.OnPop();
         if (Current == this) Current = null;
+    }
+
+    public override bool OnActionJustPressed(InputAction action)
+    {
+        if (action.Key == "mega_top_panel")
+        {
+            FocusFirstRevealable();
+            return true;
+        }
+        return false;
+    }
+
+    private void FocusFirstRevealable()
+    {
+        try
+        {
+            var columns = GetSortedColumns();
+            if (columns == null) return;
+
+            foreach (var (_, slots) in columns)
+            {
+                foreach (var slot in slots)
+                {
+                    if (slot.State == EpochSlotState.Obtained)
+                    {
+                        slot.GrabFocus();
+                        return;
+                    }
+                }
+            }
+
+            SpeechManager.Output(Localization.Message.Raw("No epochs ready to reveal"));
+        }
+        catch (System.Exception ex)
+        {
+            Log.Error($"[AccessibilityMod] Timeline focus revealable error: {ex.Message}");
+        }
     }
 
     public void OnEnableInput()

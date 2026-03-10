@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.Core.Nodes.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
@@ -51,6 +52,9 @@ public static class ProxyFactory
             return new ProxyTopBar(control);
 
         // Combat-specific types
+        if (control is NOrb)
+            return new ProxyOrb(control);
+
         if (control is NPotionHolder)
             return new ProxyPotionHolder(control);
 
