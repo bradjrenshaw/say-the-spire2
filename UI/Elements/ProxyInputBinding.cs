@@ -65,14 +65,14 @@ public class ProxyInputBinding : ProxyElement
         {
             var keyLabel = Control.GetNodeOrNull("%KeyBindingInputLabel");
             var text = keyLabel != null ? FindChildText(keyLabel) : null;
-            parts.Add(!string.IsNullOrEmpty(text) ? $"keyboard: {text}" : "keyboard: unbound");
+            parts.Add(!string.IsNullOrEmpty(text) ? $"keyboard {text}" : "keyboard unbound");
         }
 
         // Controller binding
         if (isControllerRemappable)
         {
             var controllerName = GetControllerBindingName();
-            parts.Add(controllerName != null ? $"controller: {controllerName}" : "controller: unbound");
+            parts.Add(controllerName != null ? $"controller {controllerName}" : "controller unbound");
         }
 
         // Label as keyboard-only or controller-only if applicable

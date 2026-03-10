@@ -44,7 +44,7 @@ public class ProxyRelicHolder : ProxyElement
         var parts = new System.Collections.Generic.List<string>();
 
         if (model.ShowCounter && model.DisplayAmount != 0)
-            parts.Add($"Counter: {model.DisplayAmount}");
+            parts.Add($"Counter {model.DisplayAmount}");
 
         if (model.Status == RelicStatus.Disabled)
             parts.Add("Disabled");

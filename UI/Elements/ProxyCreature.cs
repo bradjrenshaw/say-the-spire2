@@ -104,7 +104,7 @@ public class ProxyCreature : ProxyElement
                     summaries.Add(intent.IntentType.ToString());
             }
 
-            return summaries.Count > 0 ? "Intent: " + string.Join(", ", summaries) : null;
+            return summaries.Count > 0 ? "Intent " + string.Join(", ", summaries) : null;
         }
         catch
         {

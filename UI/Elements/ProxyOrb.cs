@@ -35,7 +35,7 @@ public class ProxyOrb : ProxyElement
             return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
         }
 
-        return $"Passive: {model.PassiveVal:0}, Evoke: {model.EvokeVal:0}";
+        return $"Passive {model.PassiveVal:0}, Evoke {model.EvokeVal:0}";
     }
 
     public override string? HandleBuffers(BufferManager buffers)

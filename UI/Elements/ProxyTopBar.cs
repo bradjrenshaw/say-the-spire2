@@ -101,14 +101,14 @@ public class ProxyTopBar : ProxyElement
     {
         var player = HpPlayerField?.GetValue(Control) as MegaCrit.Sts2.Core.Entities.Players.Player;
         if (player == null) return "HP";
-        return $"HP: {player.Creature.CurrentHp}/{player.Creature.MaxHp}";
+        return $"HP {player.Creature.CurrentHp}/{player.Creature.MaxHp}";
     }
 
     private string? GetGoldLabel()
     {
         var player = GoldPlayerField?.GetValue(Control) as MegaCrit.Sts2.Core.Entities.Players.Player;
         if (player == null) return "Gold";
-        return $"Gold: {player.Gold}";
+        return $"Gold {player.Gold}";
     }
 
     private string? GetRoomLabel()
@@ -136,10 +136,10 @@ public class ProxyTopBar : ProxyElement
         var boss2 = runState.Act.SecondBossEncounter;
 
         if (boss2 != null && !ShouldOnlyShowSecondBoss(runState))
-            return $"Boss: {boss1.Title.GetFormattedText()} and {boss2.Title.GetFormattedText()}";
+            return $"Boss {boss1.Title.GetFormattedText()} and {boss2.Title.GetFormattedText()}";
 
         var activeBoss = (boss2 != null && ShouldOnlyShowSecondBoss(runState)) ? boss2 : boss1;
-        return $"Boss: {activeBoss.Title.GetFormattedText()}";
+        return $"Boss {activeBoss.Title.GetFormattedText()}";
     }
 
     private (string? title, string? desc) GetFormattedTooltip()
