@@ -50,7 +50,11 @@ public class RunScreen : Screen
     {
         _subscribedPlayer = GetLocalPlayer();
         if (_subscribedPlayer != null)
+        {
             _subscribedPlayer.Deck.CardAdded += OnCardObtained;
+            _subscribedPlayer.RelicObtained += OnRelicObtained;
+            _subscribedPlayer.PotionProcured += OnPotionObtained;
+        }
     }
 
     private void UnsubscribeFromPlayer()
@@ -58,6 +62,8 @@ public class RunScreen : Screen
         if (_subscribedPlayer != null)
         {
             _subscribedPlayer.Deck.CardAdded -= OnCardObtained;
+            _subscribedPlayer.RelicObtained -= OnRelicObtained;
+            _subscribedPlayer.PotionProcured -= OnPotionObtained;
             _subscribedPlayer = null;
         }
     }
@@ -67,6 +73,20 @@ public class RunScreen : Screen
         var name = card.Title;
         if (!string.IsNullOrEmpty(name))
             EventDispatcher.Enqueue(new CardObtainedEvent(name));
+    }
+
+    private void OnRelicObtained(RelicModel relic)
+    {
+        var name = relic.Title.GetFormattedText();
+        if (!string.IsNullOrEmpty(name))
+            EventDispatcher.Enqueue(new RelicObtainedEvent(name));
+    }
+
+    private void OnPotionObtained(PotionModel potion)
+    {
+        var name = potion.Title.GetFormattedText();
+        if (!string.IsNullOrEmpty(name))
+            EventDispatcher.Enqueue(new PotionObtainedEvent(name));
     }
 
     public override bool OnActionJustPressed(InputAction action)

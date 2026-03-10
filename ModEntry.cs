@@ -84,6 +84,8 @@ public static class ModEntry
         Settings.EventRegistry.Register(typeof(TurnEvent));
         Settings.EventRegistry.Register(typeof(CardUpgradeEvent));
         Settings.EventRegistry.Register(typeof(CardObtainedEvent));
+        Settings.EventRegistry.Register(typeof(RelicObtainedEvent));
+        Settings.EventRegistry.Register(typeof(PotionObtainedEvent));
 
         // Map settings
         var mapCategory = new Settings.CategorySetting("map", "Map");
