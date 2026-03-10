@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
@@ -79,6 +80,7 @@ public class CombatScreen : Screen
             UnsubscribeFromState();
             SubscribeToState(liveState);
         }
+
     }
 
     private void SubscribeToState(CombatState state)
@@ -322,8 +324,8 @@ public class CombatScreen : Screen
         EventDispatcher.Enqueue(new TurnEvent(state.CurrentSide, state.RoundNumber, isStart: true));
     }
 
-    public void OnShuffleStarted() => _cardPileHandlers?.OnShuffleStarted();
-    public void OnShuffleFinished() => _cardPileHandlers?.OnShuffleFinished();
+    public void OnShuffleStarting() => _cardPileHandlers?.OnShuffleStarting();
+    public void OnShuffleStarted(Task shuffleTask) => _cardPileHandlers?.OnShuffleStarted(shuffleTask);
 
     private void SubscribeToAllCreatures(CombatState state)
     {
@@ -367,6 +369,7 @@ public class CombatScreen : Screen
     {
         private readonly PlayerCombatState _combatState;
         private bool _isShuffling;
+        private Task? _shuffleTask;
         private bool _endOfTurnDiscardAnnounced;
 
         public CardPileHandlers(PlayerCombatState combatState)
@@ -395,15 +398,20 @@ public class CombatScreen : Screen
             _endOfTurnDiscardAnnounced = false;
         }
 
-        public void OnShuffleStarted()
+        public void OnShuffleStarting()
         {
             _isShuffling = true;
         }
 
-        public void OnShuffleFinished()
+        public void OnShuffleStarted(Task shuffleTask)
         {
-            _isShuffling = false;
-            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.DeckShuffled));
+            _shuffleTask = shuffleTask;
+            shuffleTask.ContinueWith(_ =>
+            {
+                _isShuffling = false;
+                _shuffleTask = null;
+                EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.DeckShuffled));
+            }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
         private void OnHandCardAdded(CardModel card)

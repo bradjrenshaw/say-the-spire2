@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
@@ -192,11 +193,11 @@ public static class CombatNavigationHooks
         }
     }
 
-    public static void ShufflePrefix(Player player)
-        => CombatScreen.Current?.OnShuffleStarted();
+    public static void ShufflePrefix()
+        => CombatScreen.Current?.OnShuffleStarting();
 
-    public static void ShufflePostfix(Player player)
-        => CombatScreen.Current?.OnShuffleFinished();
+    public static void ShufflePostfix(Task __result)
+        => CombatScreen.Current?.OnShuffleStarted(__result);
 
     private static void SetCreatureFocusToRelics(NCombatRoom combatRoom)
     {

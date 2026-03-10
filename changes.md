@@ -13,3 +13,4 @@
 * Fixed an issue where various event announcements and hotkeys (such as player hp) were reading from stale data. This may also fix duplicate event announcements in combat.
 * Fixed an issue where the buffer controls would cause a crash if used during the early access explanation screen.
 * Fixed an issue where the read all enemy intents hotkey was only reading the numbers and not the actual intent associated with them. Also cleaned up intent formatting to be more natural (e.g. "Attack 12" instead of "Attack: 12").
+* Fixed an issue where every single card was announce being added to the draw pile when the deck was reshuffled.
