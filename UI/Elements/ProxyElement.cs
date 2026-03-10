@@ -8,16 +8,25 @@ public abstract class ProxyElement : UIElement
 {
     private static readonly Regex CamelCasePattern = new(@"([a-z])([A-Z])", RegexOptions.Compiled);
 
-    protected Control Control { get; private set; }
+    protected Control? Control { get; private set; }
 
     public string? OverrideLabel { get; set; }
 
     public override bool IsVisible =>
-        GodotObject.IsInstanceValid(Control) && Control.IsVisibleInTree();
+        Control != null && GodotObject.IsInstanceValid(Control) && Control.IsVisibleInTree();
 
     protected ProxyElement(Control control)
     {
         Control = control;
+    }
+
+    /// <summary>
+    /// Model-based constructor for proxy elements that don't wrap a real control.
+    /// Used when wrapper proxies (merchant, reward) create inner proxies from models.
+    /// </summary>
+    protected ProxyElement()
+    {
+        Control = null;
     }
 
     public void SetControl(Control control)

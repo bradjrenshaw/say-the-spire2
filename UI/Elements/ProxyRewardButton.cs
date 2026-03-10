@@ -21,7 +21,7 @@ public class ProxyRewardButton : ProxyElement
     public override string? GetLabel()
     {
         var reward = GetReward();
-        if (reward == null) return FindChildText(Control) ?? CleanNodeName(Control.Name);
+        if (reward == null) return FindChildText(Control!) ?? CleanNodeName(Control!.Name);
         return reward.Description.GetFormattedText();
     }
 
@@ -32,43 +32,64 @@ public class ProxyRewardButton : ProxyElement
         var reward = GetReward();
         if (reward == null) return base.HandleBuffers(buffers);
 
-        var uiBuffer = buffers.GetBuffer("ui");
-        if (uiBuffer == null) return "ui";
-
-        uiBuffer.Clear();
-        buffers.EnableBuffer("ui", true);
-
         switch (reward)
         {
             case PotionReward potionReward when potionReward.Potion != null:
-                ProxyPotionHolder.PopulatePotionBuffer(uiBuffer, potionReward.Potion);
-                break;
+                {
+                    var inner = ProxyPotionHolder.FromModel(potionReward.Potion);
+                    return inner.HandleBuffers(buffers);
+                }
 
             case RelicReward relicReward:
-                var relic = RelicField?.GetValue(relicReward) as RelicModel;
-                if (relic != null)
-                    RelicBuffer.PopulateBuffer(uiBuffer, relic, buffers);
-                else
-                    uiBuffer.Add(reward.Description.GetFormattedText());
-                break;
+                {
+                    var relic = RelicField?.GetValue(relicReward) as RelicModel;
+                    if (relic != null)
+                    {
+                        var inner = ProxyRelicHolder.FromModel(relic);
+                        return inner.HandleBuffers(buffers);
+                    }
+
+                    // Fallback if reflection fails
+                    var uiBuffer = buffers.GetBuffer("ui");
+                    if (uiBuffer != null)
+                    {
+                        uiBuffer.Clear();
+                        uiBuffer.Add(reward.Description.GetFormattedText());
+                        buffers.EnableBuffer("ui", true);
+                    }
+                    return "ui";
+                }
 
             case LinkedRewardSet linked:
-                uiBuffer.Add(reward.Description.GetFormattedText());
-                foreach (var sub in linked.Rewards)
                 {
-                    uiBuffer.Add(sub.Description.GetFormattedText());
-                    AddKeywordTips(uiBuffer, sub.HoverTips, buffers);
+                    var uiBuffer = buffers.GetBuffer("ui");
+                    if (uiBuffer != null)
+                    {
+                        uiBuffer.Clear();
+                        uiBuffer.Add(reward.Description.GetFormattedText());
+                        foreach (var sub in linked.Rewards)
+                        {
+                            uiBuffer.Add(sub.Description.GetFormattedText());
+                            AddKeywordTips(uiBuffer, sub.HoverTips, buffers);
+                        }
+                        buffers.EnableBuffer("ui", true);
+                    }
+                    return "ui";
                 }
-                break;
 
             default:
-                // Gold, Card, CardRemoval, SpecialCard, etc.
-                uiBuffer.Add(reward.Description.GetFormattedText());
-                AddKeywordTips(uiBuffer, reward.HoverTips, buffers);
-                break;
+                {
+                    var uiBuffer = buffers.GetBuffer("ui");
+                    if (uiBuffer != null)
+                    {
+                        uiBuffer.Clear();
+                        uiBuffer.Add(reward.Description.GetFormattedText());
+                        AddKeywordTips(uiBuffer, reward.HoverTips, buffers);
+                        buffers.EnableBuffer("ui", true);
+                    }
+                    return "ui";
+                }
         }
-
-        return "ui";
     }
 
     /// <summary>
@@ -106,7 +127,7 @@ public class ProxyRewardButton : ProxyElement
                     {
                         if (cardBuffer.Count > 0)
                             cardBuffer.Add("---");
-                        ProxyCard.PopulateCardBuffer(cardBuffer, cardTip.Card);
+                        CardBuffer.Populate(cardBuffer, cardTip.Card);
                     }
                     buffers.EnableBuffer("card", true);
                 }

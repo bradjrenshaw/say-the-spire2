@@ -106,7 +106,7 @@ public class ProxyEventOptionButton : ProxyElement
                         {
                             if (cardBuffer.Count > 0)
                                 cardBuffer.Add("---");
-                            ProxyCard.PopulateCardBuffer(cardBuffer, cardTip.Card);
+                            CardBuffer.Populate(cardBuffer, cardTip.Card);
                         }
                         buffers.EnableBuffer("card", true);
                     }

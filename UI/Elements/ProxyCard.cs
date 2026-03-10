@@ -17,13 +17,23 @@ public class ProxyCard : ProxyElement
     {
         category.Add(new BoolSetting("verbose_costs", "Verbose Costs", true));
     }
+
+    private CardModel? _model;
+
     public ProxyCard(Control control) : base(control) { }
+
+    private ProxyCard(CardModel model) : base()
+    {
+        _model = model;
+    }
+
+    public static ProxyCard FromModel(CardModel model) => new(model);
 
     private NCardHolder? FindCardHolder()
     {
         if (Control is NCardHolder direct)
             return direct;
-        Node? current = Control.GetParent();
+        Node? current = Control?.GetParent();
         while (current != null)
         {
             if (current is NCardHolder holder)
@@ -33,12 +43,12 @@ public class ProxyCard : ProxyElement
         return null;
     }
 
-    private CardModel? GetCardModel() => FindCardHolder()?.CardModel;
+    private CardModel? GetCardModel() => _model ?? FindCardHolder()?.CardModel;
 
     public override string? GetLabel()
     {
         var model = GetCardModel();
-        if (model == null) return CleanNodeName(Control.Name);
+        if (model == null) return Control != null ? CleanNodeName(Control.Name) : null;
         var title = model.Title;
         var modifiers = new System.Collections.Generic.List<string>();
         var enchantTitle = model.Enchantment?.Title?.GetFormattedText();
@@ -124,75 +134,5 @@ public class ProxyCard : ProxyElement
         }
 
         return "card";
-    }
-
-    /// <summary>
-    /// Populates a card buffer from any CardModel. Used by other proxies
-    /// when their hover tips reference cards (e.g., relics that grant cards).
-    /// </summary>
-    public static void PopulateCardBuffer(Buffer buffer, CardModel model)
-    {
-        buffer.Add(model.Title);
-        var typeRarity = model.Type.ToString();
-        if (model.Rarity != CardRarity.Common)
-            typeRarity += $", {model.Rarity}";
-        buffer.Add(typeRarity);
-
-        var costs = new System.Collections.Generic.List<string>();
-        if (model.EnergyCost != null)
-        {
-            if (model.EnergyCost.CostsX)
-                costs.Add("X energy");
-            else
-            {
-                try { costs.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
-                catch { costs.Add($"{model.EnergyCost.Canonical} energy"); }
-            }
-        }
-        if (model.HasStarCostX)
-            costs.Add("X stars");
-        else if (model.CurrentStarCost > 0)
-            costs.Add($"{model.CurrentStarCost} stars");
-        if (costs.Count > 0)
-            buffer.Add(string.Join(", ", costs));
-
-        try
-        {
-            var desc = model.GetDescriptionForPile(PileType.None);
-            if (!string.IsNullOrEmpty(desc))
-                buffer.Add(StripBbcode(desc));
-        }
-        catch { }
-
-        if (model.Enchantment != null)
-        {
-            try
-            {
-                var enchTitle = model.Enchantment.Title.GetFormattedText();
-                var enchDesc = model.Enchantment.DynamicDescription.GetFormattedText();
-                if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
-                    buffer.Add($"Enchantment: {enchTitle} - {StripBbcode(enchDesc)}");
-                else if (!string.IsNullOrEmpty(enchTitle))
-                    buffer.Add($"Enchantment: {enchTitle}");
-            }
-            catch { }
-        }
-
-        try
-        {
-            foreach (var tip in model.HoverTips)
-            {
-                if (tip is HoverTip hoverTip)
-                {
-                    var title = hoverTip.Title;
-                    var desc = hoverTip.Description;
-                    if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(desc))
-                        buffer.Add($"{title}: {StripBbcode(desc)}");
-                    else if (!string.IsNullOrEmpty(title))
-                        buffer.Add(title);
-                }
-            }
-        }
-        catch { }
     }
 }

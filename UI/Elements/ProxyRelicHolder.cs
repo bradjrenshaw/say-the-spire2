@@ -11,10 +11,21 @@ namespace SayTheSpire2.UI.Elements;
 
 public class ProxyRelicHolder : ProxyElement
 {
+    private RelicModel? _model;
+
     public ProxyRelicHolder(Control control) : base(control) { }
+
+    private ProxyRelicHolder(RelicModel model) : base()
+    {
+        _model = model;
+    }
+
+    public static ProxyRelicHolder FromModel(RelicModel model) => new(model);
 
     private RelicModel? GetModel()
     {
+        if (_model != null) return _model;
+
         if (Control is NRelicInventoryHolder invHolder)
             return invHolder.Relic?.Model;
 
@@ -30,7 +41,7 @@ public class ProxyRelicHolder : ProxyElement
     public override string? GetLabel()
     {
         var model = GetModel();
-        if (model == null) return CleanNodeName(Control.Name);
+        if (model == null) return Control != null ? CleanNodeName(Control.Name) : null;
         return model.Title.GetFormattedText();
     }
 
@@ -66,14 +77,32 @@ public class ProxyRelicHolder : ProxyElement
         var model = GetModel();
         if (model == null) return base.HandleBuffers(buffers);
 
-        var uiBuffer = buffers.GetBuffer("ui");
-        if (uiBuffer != null)
+        var relicBuffer = buffers.GetBuffer("relic") as RelicBuffer;
+        if (relicBuffer != null)
         {
-            uiBuffer.Clear();
-            RelicBuffer.PopulateBuffer(uiBuffer, model, buffers);
-            buffers.EnableBuffer("ui", true);
+            relicBuffer.Bind(model);
+            relicBuffer.Update();
+            buffers.EnableBuffer("relic", true);
         }
 
-        return "ui";
+        // Populate card buffer if relic has card hover tips
+        var cardTips = RelicBuffer.GetCardTips(model);
+        if (cardTips.Count > 0)
+        {
+            var cardBuffer = buffers.GetBuffer("card");
+            if (cardBuffer != null)
+            {
+                cardBuffer.Clear();
+                foreach (var cardTip in cardTips)
+                {
+                    if (cardBuffer.Count > 0)
+                        cardBuffer.Add("---");
+                    CardBuffer.Populate(cardBuffer, cardTip.Card);
+                }
+                buffers.EnableBuffer("card", true);
+            }
+        }
+
+        return "relic";
     }
 }

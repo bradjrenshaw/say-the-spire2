@@ -1,5 +1,5 @@
 using Godot;
-using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using SayTheSpire2.Buffers;
 
@@ -7,87 +7,82 @@ namespace SayTheSpire2.UI.Elements;
 
 public class ProxyPotionHolder : ProxyElement
 {
+    private PotionModel? _model;
+
     public ProxyPotionHolder(Control control) : base(control) { }
+
+    private ProxyPotionHolder(PotionModel model) : base()
+    {
+        _model = model;
+    }
+
+    public static ProxyPotionHolder FromModel(PotionModel model) => new(model);
 
     private NPotionHolder? Holder => Control as NPotionHolder;
 
+    private PotionModel? GetModel()
+    {
+        if (_model != null) return _model;
+        var holder = Holder;
+        if (holder == null || !holder.HasPotion) return null;
+        return holder.Potion!.Model;
+    }
+
+    private bool IsEmpty()
+    {
+        if (_model != null) return false;
+        var holder = Holder;
+        return holder == null || !holder.HasPotion;
+    }
+
     public override string? GetLabel()
     {
-        var holder = Holder;
-        if (holder == null) return CleanNodeName(Control.Name);
-
-        if (!holder.HasPotion)
+        if (IsEmpty())
             return "Empty potion slot";
 
-        return holder.Potion!.Model.Title.GetFormattedText();
+        var model = GetModel();
+        return model?.Title.GetFormattedText();
     }
 
     public override string? GetTypeKey() => "potion";
 
     public override string? GetTooltip()
     {
-        var holder = Holder;
-        if (holder == null || !holder.HasPotion) return null;
+        var model = GetModel();
+        if (model == null) return null;
 
-        var desc = holder.Potion!.Model.DynamicDescription.GetFormattedText();
+        var desc = model.DynamicDescription.GetFormattedText();
         return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)
     {
-        var holder = Holder;
-        if (holder == null) return base.HandleBuffers(buffers);
-
-        var uiBuffer = buffers.GetBuffer("ui");
-        if (uiBuffer != null)
+        if (IsEmpty())
         {
-            uiBuffer.Clear();
-
-            if (!holder.HasPotion)
+            var uiBuffer = buffers.GetBuffer("ui");
+            if (uiBuffer != null)
             {
+                uiBuffer.Clear();
                 uiBuffer.Add("Empty potion slot");
-                // Include the empty slot tooltip
                 var slotDesc = new MegaCrit.Sts2.Core.Localization.LocString("static_hover_tips", "POTION_SLOT.description").GetFormattedText();
                 if (!string.IsNullOrEmpty(slotDesc))
                     uiBuffer.Add(StripBbcode(slotDesc));
+                buffers.EnableBuffer("ui", true);
             }
-            else
-            {
-                PopulatePotionBuffer(uiBuffer, holder.Potion!.Model);
-            }
-
-            buffers.EnableBuffer("ui", true);
+            return "ui";
         }
 
-        return "ui";
-    }
+        var model = GetModel();
+        if (model == null) return base.HandleBuffers(buffers);
 
-    public static void PopulatePotionBuffer(Buffer buffer, MegaCrit.Sts2.Core.Models.PotionModel model)
-    {
-        buffer.Add(model.Title.GetFormattedText());
-
-        var desc = model.DynamicDescription.GetFormattedText();
-        if (!string.IsNullOrEmpty(desc))
-            buffer.Add(StripBbcode(desc));
-
-        // Hover tips: skip first (it's the potion itself), rest are keywords
-        try
+        var potionBuffer = buffers.GetBuffer("potion") as PotionBuffer;
+        if (potionBuffer != null)
         {
-            bool first = true;
-            foreach (var tip in model.HoverTips)
-            {
-                if (first) { first = false; continue; }
-                if (tip is HoverTip hoverTip)
-                {
-                    var title = hoverTip.Title;
-                    var tipDesc = hoverTip.Description;
-                    if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(tipDesc))
-                        buffer.Add($"{title}: {StripBbcode(tipDesc)}");
-                    else if (!string.IsNullOrEmpty(title))
-                        buffer.Add(title);
-                }
-            }
+            potionBuffer.Bind(model);
+            potionBuffer.Update();
+            buffers.EnableBuffer("potion", true);
         }
-        catch { }
+
+        return "potion";
     }
 }

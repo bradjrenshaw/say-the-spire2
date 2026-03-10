@@ -177,6 +177,7 @@ public static class ModEntry
         BufferManager.Instance.Add(new Buffers.Buffer("ui"));
         BufferManager.Instance.Add(new Buffers.CharacterBuffer());
         BufferManager.Instance.Add(new Buffers.RelicBuffer());
+        BufferManager.Instance.Add(new Buffers.PotionBuffer());
         BufferManager.Instance.Add(new Buffers.CardBuffer());
         BufferManager.Instance.Add(new Buffers.UpgradeBuffer());
         BufferManager.Instance.Add(new Buffers.CreatureBuffer());
