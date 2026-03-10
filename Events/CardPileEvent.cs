@@ -24,6 +24,12 @@ public class CardPileEvent : GameEvent
         _cardName = cardName;
     }
 
+    public static void RegisterSettings(Settings.CategorySetting category)
+    {
+        category.Add(new Settings.BoolSetting("announce_hand_discarded", "Announce Hand Discarded", true));
+        category.Add(new Settings.BoolSetting("announce_deck_shuffled", "Announce Deck Shuffled", true));
+    }
+
     public override string? GetMessage() => _type switch
     {
         CardPileEventType.Drew => $"Drew {_cardName}",
@@ -34,4 +40,13 @@ public class CardPileEvent : GameEvent
         CardPileEventType.DeckShuffled => "Deck shuffled",
         _ => null,
     };
+
+    public override bool ShouldAnnounce()
+    {
+        if (_type == CardPileEventType.HandDiscarded)
+            return Settings.ModSettings.GetValue<bool>("events.card_pile.announce_hand_discarded");
+        if (_type == CardPileEventType.DeckShuffled)
+            return Settings.ModSettings.GetValue<bool>("events.card_pile.announce_deck_shuffled");
+        return true;
+    }
 }

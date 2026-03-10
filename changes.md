@@ -6,6 +6,7 @@
 * Fixed an issue where the controller focus could get stuck on the character select screen if the user moved the cursor to panels that aren't yet available (such as the ascension panel.)
 * Fixed an issue for rest sites where the focus would move in extremely unpredictable ways. The buttons are now properly a navigable row.
 * Added events and announcements for card upgraded, obtained card, obtained potion, and obtained relic.
+* End of turn Hand Discarded and start of turn Deck Shuffled announcements can now be toggled under the card piles event.
 * Mod settings menus are now sorted alphabetically.
 * The default keyboard binding for back is now backspace instead of escape to avoid input conflicts. You will have to adjust this keybinding yourself if you have already played the game though as your settings file doesn't reset to defaults on mod update.
 * Fixed an issue where the focus would glitch during the player's end of turn sequence resulting in readouts of random controls.

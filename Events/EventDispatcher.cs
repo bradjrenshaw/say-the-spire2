@@ -54,8 +54,8 @@ public static class EventDispatcher
             var attr = (EventSettingsAttribute?)Attribute.GetCustomAttribute(
                 evt.GetType(), typeof(EventSettingsAttribute));
 
-            bool announce = attr != null ? EventRegistry.ShouldAnnounce(attr.Key) : evt.ShouldAnnounce();
-            bool buffer = attr != null ? EventRegistry.ShouldBuffer(attr.Key) : evt.ShouldAddToBuffer();
+            bool announce = attr != null ? EventRegistry.ShouldAnnounce(attr.Key) && evt.ShouldAnnounce() : evt.ShouldAnnounce();
+            bool buffer = attr != null ? EventRegistry.ShouldBuffer(attr.Key) && evt.ShouldAddToBuffer() : evt.ShouldAddToBuffer();
 
             if (VerboseLogging)
             {
