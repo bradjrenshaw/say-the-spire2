@@ -1,4 +1,5 @@
 ## V0.1.1
+* Added jaws config files to improve the overall experience using jaws (silencing of annoying sentinel initialized announcement, propper handling for arrow keys/escape, etc.) These can be installed via the installer or as part of the manual process.
 * Added better logging for combat events to hopefully track down a duplicate announcement bug.
 * Fixed incorrect localization lookups for map nodes and merchant slots.
 * Map nodes now only announce traveled state (IE you have been there before); the reachable and unreachable state announcements were irrelevant and causing confusion.
@@ -11,3 +12,4 @@
 * Reordered card label to read as "{name}, {cost}, {type}"; also added setting for verbose costs (when unchecked costs simply read as numbers with no label.)
 * Fixed an issue where various event announcements and hotkeys (such as player hp) were reading from stale data. This may also fix duplicate event announcements in combat.
 * Fixed an issue where the buffer controls would cause a crash if used during the early access explanation screen.
+* Fixed an issue where the read all enemy intents hotkey was only reading the numbers and not the actual intent associated with them. Also cleaned up intent formatting to be more natural (e.g. "Attack 12" instead of "Attack: 12").

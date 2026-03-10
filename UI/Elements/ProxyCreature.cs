@@ -97,7 +97,7 @@ public class ProxyCreature : ProxyElement
                 var label = intent.GetIntentLabel(allies ?? Enumerable.Empty<Creature>(), entity);
                 var text = label.GetFormattedText();
                 if (!string.IsNullOrEmpty(text) && text != "")
-                    summaries.Add($"{intent.IntentType}: {StripBbcode(text)}");
+                    summaries.Add($"{intent.IntentType} {StripBbcode(text)}");
                 else
                     summaries.Add(intent.IntentType.ToString());
             }

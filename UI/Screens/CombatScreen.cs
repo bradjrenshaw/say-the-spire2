@@ -187,8 +187,8 @@ public class CombatScreen : Screen
             foreach (var intent in move.Intents)
             {
                 var label = intent.GetIntentLabel(allies, enemy).GetFormattedText();
-                if (!string.IsNullOrEmpty(label))
-                    intentParts.Add(label);
+                if (!string.IsNullOrEmpty(label) && label != "")
+                    intentParts.Add($"{intent.IntentType} {label}");
                 else
                     intentParts.Add(intent.IntentType.ToString());
             }
