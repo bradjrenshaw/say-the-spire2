@@ -87,6 +87,14 @@ public static class ModEntry
         Settings.EventRegistry.Register(typeof(RelicObtainedEvent));
         Settings.EventRegistry.Register(typeof(PotionObtainedEvent));
 
+        // Advanced settings
+        var advancedCategory = new Settings.CategorySetting("advanced", "Advanced");
+        Settings.ModSettings.Root.Add(advancedCategory);
+        var verboseLogging = new Settings.BoolSetting("verbose_logging", "Verbose Logging", false);
+        advancedCategory.Add(verboseLogging);
+        Events.EventDispatcher.VerboseLogging = verboseLogging.Value;
+        verboseLogging.Changed += v => Events.EventDispatcher.VerboseLogging = v;
+
         // Map settings
         var mapCategory = new Settings.CategorySetting("map", "Map");
         Settings.ModSettings.Root.Add(mapCategory);
