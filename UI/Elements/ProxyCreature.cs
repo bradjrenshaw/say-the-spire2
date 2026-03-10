@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
@@ -84,6 +85,26 @@ public class ProxyCreature : ProxyElement
         return "creature";
     }
 
+    private static readonly PropertyInfo? IntentTitleProp =
+        typeof(AbstractIntent).GetProperty("IntentTitle", BindingFlags.Instance | BindingFlags.NonPublic);
+
+    /// <summary>
+    /// Gets the game's localized intent title (e.g. from "intents" table).
+    /// Falls back to IntentType enum name if reflection fails.
+    /// </summary>
+    public static string GetIntentName(AbstractIntent intent)
+    {
+        try
+        {
+            var locString = IntentTitleProp?.GetValue(intent) as MegaCrit.Sts2.Core.Localization.LocString;
+            var title = locString?.GetFormattedText();
+            if (!string.IsNullOrEmpty(title))
+                return title;
+        }
+        catch { }
+        return intent.IntentType.ToString();
+    }
+
     private static string? GetIntentSummary(Creature entity)
     {
         try
@@ -96,12 +117,13 @@ public class ProxyCreature : ProxyElement
 
             foreach (var intent in intents)
             {
+                var name = GetIntentName(intent);
                 var label = intent.GetIntentLabel(allies ?? Enumerable.Empty<Creature>(), entity);
                 var text = label.GetFormattedText();
                 if (!string.IsNullOrEmpty(text) && text != "")
-                    summaries.Add($"{intent.IntentType} {StripBbcode(text)}");
+                    summaries.Add($"{name} {StripBbcode(text)}");
                 else
-                    summaries.Add(intent.IntentType.ToString());
+                    summaries.Add(name);
             }
 
             return summaries.Count > 0 ? "Intent " + string.Join(", ", summaries) : null;

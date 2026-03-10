@@ -20,6 +20,7 @@ using SayTheSpire2.Events;
 using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
+using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
 
@@ -192,11 +193,12 @@ public class CombatScreen : Screen
             var intentParts = new List<string>();
             foreach (var intent in move.Intents)
             {
+                var name = ProxyCreature.GetIntentName(intent);
                 var label = intent.GetIntentLabel(allies, enemy).GetFormattedText();
                 if (!string.IsNullOrEmpty(label) && label != "")
-                    intentParts.Add($"{intent.IntentType} {label}");
+                    intentParts.Add($"{name} {label}");
                 else
-                    intentParts.Add(intent.IntentType.ToString());
+                    intentParts.Add(name);
             }
             sb.Append(intentParts.Count > 0 ? string.Join(", ", intentParts) : "Unknown");
         }
