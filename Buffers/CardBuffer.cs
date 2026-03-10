@@ -41,18 +41,21 @@ public class CardBuffer : Buffer
             typeRarity += $", {model.Rarity}";
         Add(typeRarity);
 
-        // Energy cost
+        // Costs (energy + stars on one line)
+        var costs = new System.Collections.Generic.List<string>();
         if (model.EnergyCost != null)
         {
             if (model.EnergyCost.CostsX)
-                Add("X energy");
+                costs.Add("X energy");
             else
-                Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
+                costs.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy");
         }
-
-        // Star cost
-        if (model.CurrentStarCost > 0)
-            Add($"{model.CurrentStarCost}");
+        if (model.HasStarCostX)
+            costs.Add("X stars");
+        else if (model.CurrentStarCost > 0)
+            costs.Add($"{model.CurrentStarCost} stars");
+        if (costs.Count > 0)
+            Add(string.Join(", ", costs));
 
         // Description
         try

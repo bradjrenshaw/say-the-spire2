@@ -144,7 +144,7 @@ public class CombatScreen : Screen
         var player = GetLocalPlayer();
         var combatState = player?.PlayerCombatState;
         if (combatState == null) return;
-        SpeechManager.Output(Message.Raw($"{combatState.Energy} of {combatState.MaxEnergy} energy"));
+        SpeechManager.Output(Message.Raw(ResourceHelper.GetResourceString(combatState)));
     }
 
     private void AnnouncePowers()

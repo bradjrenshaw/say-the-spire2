@@ -2,6 +2,8 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
+using SayTheSpire2.UI;
+
 namespace SayTheSpire2.Buffers;
 
 public class PlayerBuffer : Buffer
@@ -34,7 +36,7 @@ public class PlayerBuffer : Buffer
                 Add($"Block: {creature.Block}");
 
             if (pcs != null)
-                Add($"Energy: {pcs.Energy}/{pcs.MaxEnergy}");
+                Add(ResourceHelper.GetResourceString(pcs));
 
             Add($"Gold: {player.Gold}");
 

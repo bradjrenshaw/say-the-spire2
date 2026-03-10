@@ -76,7 +76,9 @@ public class ProxyCard : ProxyElement
             }
         }
 
-        if (model.CurrentStarCost > 0)
+        if (model.HasStarCostX)
+            parts.Add(verbose ? "X stars" : "X");
+        else if (model.CurrentStarCost > 0)
             parts.Add(verbose ? $"{model.CurrentStarCost} stars" : $"{model.CurrentStarCost}");
 
         return parts.Count > 0 ? string.Join(", ", parts) : null;
@@ -132,19 +134,23 @@ public class ProxyCard : ProxyElement
             typeRarity += $", {model.Rarity}";
         buffer.Add(typeRarity);
 
+        var costs = new System.Collections.Generic.List<string>();
         if (model.EnergyCost != null)
         {
             if (model.EnergyCost.CostsX)
-                buffer.Add("X energy");
+                costs.Add("X energy");
             else
             {
-                try { buffer.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
-                catch { buffer.Add($"{model.EnergyCost.Canonical} energy"); }
+                try { costs.Add($"{model.EnergyCost.GetWithModifiers(CostModifiers.All)} energy"); }
+                catch { costs.Add($"{model.EnergyCost.Canonical} energy"); }
             }
         }
-
-        if (model.CurrentStarCost > 0)
-            buffer.Add($"{model.CurrentStarCost}");
+        if (model.HasStarCostX)
+            costs.Add("X stars");
+        else if (model.CurrentStarCost > 0)
+            costs.Add($"{model.CurrentStarCost} stars");
+        if (costs.Count > 0)
+            buffer.Add(string.Join(", ", costs));
 
         try
         {
