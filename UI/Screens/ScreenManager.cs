@@ -230,13 +230,11 @@ public static class ScreenManager
 
     private static void RemoveActiveGameScreen()
     {
-        for (int i = _screenStack.Count - 1; i >= 0; i--)
+        // Remove all screens above DefaultScreen — CombatScreen, RunScreen,
+        // GameScreen subclasses, etc.
+        while (_screenStack.Count > 0 && _screenStack[^1] is not DefaultScreen)
         {
-            if (_screenStack[i] is GameScreen gs)
-            {
-                RemoveScreen(gs);
-                return;
-            }
+            RemoveScreen(_screenStack[^1]);
         }
     }
 

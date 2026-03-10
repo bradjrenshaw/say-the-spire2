@@ -64,8 +64,12 @@ public class CombatScreen : Screen
     public override void OnPop()
     {
         Log.Info($"[EventDebug] CombatScreen.OnPop: this={GetHashCode()}");
-        CombatManager.Instance.CreaturesChanged -= OnCreaturesChanged;
-        CombatManager.Instance.TurnStarted -= OnTurnStarted;
+        var cm = CombatManager.Instance;
+        if (cm != null)
+        {
+            cm.CreaturesChanged -= OnCreaturesChanged;
+            cm.TurnStarted -= OnTurnStarted;
+        }
         UnsubscribeFromState();
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] CombatScreen popped.");

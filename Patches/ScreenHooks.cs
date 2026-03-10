@@ -288,6 +288,8 @@ public static class ScreenHooks
     public static void RunEndedPostfix()
     {
         CombatEventManager.CleanUp();
+        if (CombatScreen.Current != null)
+            ScreenManager.RemoveScreen(CombatScreen.Current);
         if (RunScreen.Current != null)
             ScreenManager.RemoveScreen(RunScreen.Current);
     }
