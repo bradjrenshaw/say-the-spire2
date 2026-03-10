@@ -17,6 +17,12 @@ public class HpEvent : GameEvent
         _newHp = newHp;
     }
 
+    public static void RegisterSettings(CategorySetting category)
+    {
+        category.Add(new BoolSetting("announce_damage", "Announce Damage", true));
+        category.Add(new BoolSetting("announce_heals", "Announce Heals", true));
+    }
+
     public override string? GetMessage()
     {
         int delta = _newHp - _oldHp;
@@ -25,5 +31,15 @@ public class HpEvent : GameEvent
         if (delta > 0)
             return $"{_creatureName} healed {delta}";
         return null;
+    }
+
+    public override bool ShouldAnnounce()
+    {
+        int delta = _newHp - _oldHp;
+        if (delta < 0)
+            return ModSettings.GetValue<bool>("events.hp.announce_damage");
+        if (delta > 0)
+            return ModSettings.GetValue<bool>("events.hp.announce_heals");
+        return true;
     }
 }

@@ -20,10 +20,23 @@ public class OrbEvent : GameEvent
         _orbName = orbName;
     }
 
+    public static void RegisterSettings(Settings.CategorySetting category)
+    {
+        category.Add(new Settings.BoolSetting("announce_channeled", "Announce Channeled", true));
+        category.Add(new Settings.BoolSetting("announce_evoked", "Announce Evoked", true));
+    }
+
     public override string? GetMessage() => _type switch
     {
         OrbEventType.Channeled => $"Channeled {_orbName}",
         OrbEventType.Evoked => $"Evoked {_orbName}",
         _ => null,
+    };
+
+    public override bool ShouldAnnounce() => _type switch
+    {
+        OrbEventType.Channeled => Settings.ModSettings.GetValue<bool>("events.orb.announce_channeled"),
+        OrbEventType.Evoked => Settings.ModSettings.GetValue<bool>("events.orb.announce_evoked"),
+        _ => true,
     };
 }
