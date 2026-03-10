@@ -41,6 +41,7 @@ public class CombatScreen : Screen
         ClaimAction("announce_energy");
         ClaimAction("announce_powers");
         ClaimAction("announce_intents");
+        ClaimAction("announce_summarized_intents");
     }
 
     private CombatState? GetLiveState()
@@ -128,6 +129,9 @@ public class CombatScreen : Screen
             case "announce_intents":
                 AnnounceIntents();
                 return true;
+            case "announce_summarized_intents":
+                AnnounceSummarizedIntents();
+                return true;
         }
 
         return false;
@@ -210,6 +214,31 @@ public class CombatScreen : Screen
         }
 
         SpeechManager.Output(Message.Raw(sb.ToString()));
+    }
+
+    private void AnnounceSummarizedIntents()
+    {
+        var state = GetLiveState();
+        if (state == null) return;
+
+        var allies = state.Allies;
+        int totalDamage = 0;
+
+        foreach (var enemy in state.Enemies)
+        {
+            if (!enemy.IsAlive || !enemy.IsMonster) continue;
+
+            var move = enemy.Monster!.NextMove;
+            foreach (var intent in move.Intents)
+            {
+                if (intent is AttackIntent attackIntent)
+                    totalDamage += attackIntent.GetTotalDamage(allies, enemy);
+            }
+        }
+
+        SpeechManager.Output(Message.Raw(totalDamage > 0
+            ? $"{totalDamage} incoming damage"
+            : "No incoming damage"));
     }
 
     private Player? GetLocalPlayer()
