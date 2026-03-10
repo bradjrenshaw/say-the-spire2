@@ -4,6 +4,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
@@ -96,6 +97,20 @@ public static class EventHooks
             harmony.Patch(orbEvoked,
                 postfix: new HarmonyMethod(typeof(EventHooks), nameof(OrbEvokedPostfix)));
             Log.Info("[AccessibilityMod] Hook.AfterOrbEvoked hook patched.");
+        }
+
+        // Gold changes
+        var goldSetter = AccessTools.PropertySetter(typeof(Player), "Gold");
+        if (goldSetter != null)
+        {
+            harmony.Patch(goldSetter,
+                prefix: new HarmonyMethod(typeof(EventHooks), nameof(GoldSetterPrefix)),
+                postfix: new HarmonyMethod(typeof(EventHooks), nameof(GoldSetterPostfix)));
+            Log.Info("[AccessibilityMod] Player.Gold setter hook patched.");
+        }
+        else
+        {
+            Log.Error("[AccessibilityMod] Could not find Player.Gold setter!");
         }
 
         var setDialogueLine = AccessTools.Method(typeof(NAncientEventLayout), "SetDialogueLineAndAnimate");
@@ -220,6 +235,26 @@ public static class EventHooks
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Orb evoked hook error: {e.Message}");
+        }
+    }
+
+    public static void GoldSetterPrefix(Player __instance, out int __state)
+    {
+        __state = __instance.Gold;
+    }
+
+    public static void GoldSetterPostfix(Player __instance, int __state)
+    {
+        try
+        {
+            int oldGold = __state;
+            int newGold = __instance.Gold;
+            if (oldGold != newGold)
+                EventDispatcher.Enqueue(new GoldEvent(oldGold, newGold));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Gold change hook error: {e.Message}");
         }
     }
 

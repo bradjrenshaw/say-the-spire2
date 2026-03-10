@@ -90,6 +90,7 @@ public static class ModEntry
         Settings.EventRegistry.Register(typeof(BlockEvent));
         Settings.EventRegistry.Register(typeof(CardPileEvent));
         Settings.EventRegistry.Register(typeof(CardStolenEvent));
+        Settings.EventRegistry.Register(typeof(GoldEvent));
         Settings.EventRegistry.Register(typeof(DeathEvent));
         Settings.EventRegistry.Register(typeof(DialogueEvent));
         Settings.EventRegistry.Register(typeof(EnemyMoveEvent));
