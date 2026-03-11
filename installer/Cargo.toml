@@ -13,6 +13,9 @@ regex = "1"
 dirs = "6"
 rfd = "0.15"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = ["Win32_System_Console"] }
+
 [build-dependencies]
 embed-resource = "3"
 
