@@ -122,6 +122,16 @@ public static class CombatNavigationHooks
         // UpdateCreatureNavigation fires during AddCreature before CombatSetUp.
         try
         {
+            // Ensure all interactable creature hitboxes have FocusMode=All.
+            // New creatures spawned mid-combat may not have it set since
+            // EnableControllerNavigation only runs once at combat start.
+            foreach (var creature in __instance.CreatureNodes)
+            {
+                if (creature == null) continue;
+                if (creature.IsInteractable && creature.Hitbox != null)
+                    creature.Hitbox.FocusMode = Control.FocusModeEnum.All;
+            }
+
             SetCreatureFocusToRelics(__instance);
         }
         catch (System.Exception e)
