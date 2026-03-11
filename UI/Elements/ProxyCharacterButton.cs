@@ -32,7 +32,7 @@ public class ProxyCharacterButton : ProxyElement
     public override string? GetStatusString()
     {
         var button = Button;
-        if (button == null || button.IsRandom) return null;
+        if (button == null) return null;
 
         var character = button.Character;
         if (character == null) return null;
@@ -40,13 +40,15 @@ public class ProxyCharacterButton : ProxyElement
         if (button.IsLocked)
             return "Locked";
 
+        if (button.IsRandom) return null;
+
         return $"{character.StartingHp} HP, {character.StartingGold} gold";
     }
 
     public override string? GetTooltip()
     {
         var button = Button;
-        if (button == null || button.IsRandom) return null;
+        if (button == null) return null;
 
         var character = button.Character;
         if (character == null) return null;
@@ -55,6 +57,12 @@ public class ProxyCharacterButton : ProxyElement
         {
             var unlockText = character.GetUnlockText().GetFormattedText();
             return !string.IsNullOrEmpty(unlockText) ? unlockText : null;
+        }
+
+        if (button.IsRandom)
+        {
+            var desc = new LocString("characters", character.CharacterSelectDesc).GetFormattedText();
+            return !string.IsNullOrEmpty(desc) ? desc : null;
         }
 
         return null;
