@@ -3,6 +3,7 @@ using System.Reflection;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
+using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
@@ -92,6 +93,16 @@ public static class ScreenHooks
             nameof(OverlayPushPostfix), "Overlay Push");
         PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
             nameof(OverlayRemovePostfix), "Overlay Remove");
+
+        // Targeting focus (foul potion in shop)
+        var startTargeting = AccessTools.Method(typeof(NTargetManager), "StartTargeting",
+            new[] { typeof(TargetType), typeof(Vector2), typeof(TargetMode), typeof(System.Func<bool>), typeof(System.Func<Node, bool>) });
+        if (startTargeting != null)
+        {
+            harmony.Patch(startTargeting,
+                postfix: new HarmonyMethod(typeof(ScreenHooks), nameof(StartTargetingPostfix)));
+            Log.Info("[AccessibilityMod] StartTargeting hook patched.");
+        }
 
         // Bundle preview focus setup
         PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "OnBundleClicked",
@@ -333,6 +344,36 @@ public static class ScreenHooks
         CombatEventManager.CleanUp();
         if (RunScreen.Current != null)
             ScreenManager.RemoveScreen(RunScreen.Current);
+    }
+
+    public static void StartTargetingPostfix(TargetType validTargetsType)
+    {
+        try
+        {
+            if (validTargetsType != TargetType.TargetedNoCreature) return;
+            if (!RunManager.Instance.IsInProgress) return;
+
+            var runState = RunManager.Instance.DebugOnlyGetState();
+            if (runState == null) return;
+            var room = runState.CurrentRoom;
+            if (room?.RoomType != MegaCrit.Sts2.Core.Rooms.RoomType.Shop) return;
+
+            var merchantRoom = NMerchantRoom.Instance;
+            if (merchantRoom == null) return;
+
+            var merchantButton = merchantRoom.MerchantButton;
+            if (merchantButton == null) return;
+
+            var control = (Control)merchantButton;
+            control.FocusMode = Control.FocusModeEnum.All;
+            control.GrabFocus();
+            NTargetManager.Instance.OnNodeHovered(merchantButton);
+            SpeechManager.Output(Message.Raw("Merchant"));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] StartTargeting focus error: {e.Message}");
+        }
     }
 
     public static void BundlePreviewPostfix(NChooseABundleSelectionScreen __instance, NCardBundle bundleNode)
