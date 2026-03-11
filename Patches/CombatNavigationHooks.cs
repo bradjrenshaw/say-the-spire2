@@ -84,6 +84,18 @@ public static class CombatNavigationHooks
             Log.Info("[AccessibilityMod] NCreature.UpdateNavigation hook patched.");
         }
 
+        // When a creature becomes interactable, ensure its hitbox is focusable.
+        // New creatures spawned mid-combat (e.g. boss resummon) may not have
+        // FocusMode=All since EnableControllerNavigation only runs at combat start.
+        var toggleInteractable = AccessTools.Method(typeof(NCreature), "ToggleIsInteractable");
+        if (toggleInteractable != null)
+        {
+            harmony.Patch(toggleInteractable,
+                postfix: new HarmonyMethod(typeof(CombatNavigationHooks),
+                    nameof(ToggleIsInteractablePostfix)));
+            Log.Info("[AccessibilityMod] NCreature.ToggleIsInteractable hook patched.");
+        }
+
         var refreshLayout = AccessTools.Method(typeof(NPlayerHand), "RefreshLayout");
         if (refreshLayout != null)
         {
@@ -122,16 +134,6 @@ public static class CombatNavigationHooks
         // UpdateCreatureNavigation fires during AddCreature before CombatSetUp.
         try
         {
-            // Ensure all interactable creature hitboxes have FocusMode=All.
-            // New creatures spawned mid-combat may not have it set since
-            // EnableControllerNavigation only runs once at combat start.
-            foreach (var creature in __instance.CreatureNodes)
-            {
-                if (creature == null) continue;
-                if (creature.IsInteractable && creature.Hitbox != null)
-                    creature.Hitbox.FocusMode = Control.FocusModeEnum.All;
-            }
-
             SetCreatureFocusToRelics(__instance);
         }
         catch (System.Exception e)
@@ -180,6 +182,16 @@ public static class CombatNavigationHooks
         {
             Log.Error($"[AccessibilityMod] CreatureUpdateNavigation postfix failed: {e.Message}");
         }
+    }
+
+    public static void ToggleIsInteractablePostfix(NCreature __instance, bool on)
+    {
+        try
+        {
+            if (on && __instance.Hitbox != null)
+                __instance.Hitbox.FocusMode = Control.FocusModeEnum.All;
+        }
+        catch { }
     }
 
     public static void RefreshLayoutPostfix(NPlayerHand __instance)

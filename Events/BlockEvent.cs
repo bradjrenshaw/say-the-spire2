@@ -33,12 +33,12 @@ public class BlockEvent : GameEvent
             return verbose
                 ? $"{_creatureName} gained {delta} Block ({_newBlock} total)"
                 : $"{_creatureName} gained {delta} Block";
-        if (delta < 0 && _newBlock > 0)
+        if (delta < 0 && _newBlock == 0 && ModSettings.GetValue<bool>("events.block.announce_all_lost"))
+            return $"{_creatureName} lost all Block";
+        if (delta < 0)
             return verbose
                 ? $"{_creatureName} lost {-delta} Block ({_newBlock} remaining)"
                 : $"{_creatureName} lost {-delta} Block";
-        if (delta < 0 && _newBlock == 0)
-            return $"{_creatureName} lost all Block";
         return null;
     }
 
@@ -47,10 +47,11 @@ public class BlockEvent : GameEvent
         int delta = _newBlock - _oldBlock;
         if (delta > 0)
             return ModSettings.GetValue<bool>("events.block.announce_gained");
-        if (delta < 0 && _newBlock > 0)
-            return ModSettings.GetValue<bool>("events.block.announce_lost");
         if (delta < 0 && _newBlock == 0)
-            return ModSettings.GetValue<bool>("events.block.announce_all_lost");
+            return ModSettings.GetValue<bool>("events.block.announce_all_lost")
+                || ModSettings.GetValue<bool>("events.block.announce_lost");
+        if (delta < 0)
+            return ModSettings.GetValue<bool>("events.block.announce_lost");
         return true;
     }
 }

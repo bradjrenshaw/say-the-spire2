@@ -184,6 +184,8 @@ public static class InputManager
             .AddBinding(ControllerInput.Y, modifier: ControllerInput.RightTrigger));
         _actions.Add(new InputAction("announce_summarized_intents", "Announce Summarized Intents").AddBinding(Key.I, alt: true)
             .AddBinding(ControllerInput.X, modifier: ControllerInput.RightTrigger));
+        _actions.Add(new InputAction("announce_boss", "Announce Boss").AddBinding(Key.N, ctrl: true)
+            .AddBinding(ControllerInput.B, modifier: ControllerInput.RightTrigger));
         _actions.Add(new InputAction("mod_settings", "Mod Settings").AddBinding(Key.M, ctrl: true)
             .AddBinding(ControllerInput.Start, modifier: ControllerInput.LeftTrigger));
     }

@@ -22,6 +22,7 @@ public class RunScreen : Screen
     {
         ClaimAction("announce_gold");
         ClaimAction("announce_hp");
+        ClaimAction("announce_boss");
     }
 
     public override void OnPush()
@@ -99,6 +100,9 @@ public class RunScreen : Screen
             case "announce_hp":
                 AnnounceHp();
                 return true;
+            case "announce_boss":
+                AnnounceBoss();
+                return true;
         }
 
         return false;
@@ -116,6 +120,26 @@ public class RunScreen : Screen
         var player = GetLocalPlayer();
         if (player == null) return;
         SpeechManager.Output(Message.Raw($"{player.Creature.CurrentHp} of {player.Creature.MaxHp} HP"));
+    }
+
+    private void AnnounceBoss()
+    {
+        if (!RunManager.Instance.IsInProgress) return;
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState == null) return;
+
+        var boss = runState.Act.BossEncounter;
+        var name = boss.Title.GetFormattedText();
+
+        if (runState.Act.HasSecondBoss)
+        {
+            var second = runState.Act.SecondBossEncounter;
+            var secondName = second?.Title.GetFormattedText();
+            if (!string.IsNullOrEmpty(secondName))
+                name = $"{name} and {secondName}";
+        }
+
+        SpeechManager.Output(Message.Raw(name));
     }
 
     private Player? GetLocalPlayer()
