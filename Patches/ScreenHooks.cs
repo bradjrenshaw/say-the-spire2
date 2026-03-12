@@ -5,6 +5,7 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
@@ -16,6 +17,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
@@ -27,6 +29,7 @@ using SayTheSpire2.Events;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Screens;
+using MapScreen = SayTheSpire2.Map.MapScreen;
 
 namespace SayTheSpire2.Patches;
 
@@ -116,6 +119,12 @@ public static class ScreenHooks
             nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
         PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuClosed",
             nameof(CharacterSelectClosedPostfix), "CharacterSelect OnSubmenuClosed");
+
+        // Map screen hooks
+        PatchIfFound(harmony, typeof(NMapScreen), "Open",
+            nameof(MapScreenOpenPostfix), "MapScreen Open");
+        PatchIfFound(harmony, typeof(NMapScreen), "Close",
+            nameof(MapScreenClosePostfix), "MapScreen Close");
 
         // Rest site hooks
         PatchIfFound(harmony, typeof(NRestSiteRoom), "_Ready",
@@ -303,6 +312,29 @@ public static class ScreenHooks
         {
             ScreenManager.RemoveScreen(CrystalSphereGameScreen.Current);
         }
+    }
+
+    // Map screen delegates
+    public static void MapScreenOpenPostfix()
+    {
+        if (MapScreen.Current != null) return;
+
+        MapPoint? currentPoint = null;
+        try
+        {
+            var runState = RunManager.Instance.DebugOnlyGetState();
+            currentPoint = runState?.CurrentMapPoint;
+        }
+        catch { }
+
+        var screen = new MapScreen(currentPoint);
+        ScreenManager.PushScreen(screen);
+    }
+
+    public static void MapScreenClosePostfix()
+    {
+        if (MapScreen.Current != null)
+            ScreenManager.RemoveScreen(MapScreen.Current);
     }
 
     // Character select delegates

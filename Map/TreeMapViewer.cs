@@ -147,7 +147,7 @@ public class TreeMapViewer : MapViewer
         if (_rowIndex < 0) _rowIndex = 0;
     }
 
-    private string AnnounceCurrentNode()
+    public string AnnounceCurrentNode()
     {
         return AnnounceNode(Current!);
     }

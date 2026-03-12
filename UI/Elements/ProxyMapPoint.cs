@@ -55,12 +55,20 @@ public class ProxyMapPoint : ProxyElement
         var mp = MapPointNode;
         if (mp?.Point == null) return;
 
+        // If a MapScreen already exists (e.g. from the map key hook), update its start point
+        if (MapScreen.Current != null)
+        {
+            MapScreen.Current.UpdateStartPoint(mp.Point);
+            return;
+        }
+
         _mapScreen = new MapScreen(mp.Point);
         ScreenManager.PushScreen(_mapScreen);
     }
 
     protected override void OnUnfocus()
     {
+        // Only remove the screen if we created it
         if (_mapScreen != null)
         {
             ScreenManager.RemoveScreen(_mapScreen);

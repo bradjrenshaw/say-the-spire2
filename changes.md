@@ -8,7 +8,11 @@
 * Added a setting for each UI element to toggle position announcements on/off (defaults to on for all.)
 * There is now a hotkey to read out all relic counters (keyboard: ctrl+r, controller: rt+back)
 * fixed incorrect controller default for view exhaust/tab right (it is now rt+rb as intended.)
+* Changed the default keyboard binding for view exhaust/tab right from X to F (A/S/D/F row).
+* The map viewer can now be opened during combat, events, and other screens by pressing the map key (M / Back). It starts on the next node ahead and optionally announces your current location.
+* Added "Announce Current Location When Map Opens" setting under Map (defaults to on).
 * View exhaust/tab right on keyboard is now f instead of x by default.
+* Pressing the map key to view the map from anywhere now properly allows you to browse the map with the usual controls.
 
 ## V0.1.3
 This is an emergency release to fix a bug where any events would not be announced during a run if you started a run from the character select screen. The character select screen was not properly being removed from memory, which was causing an uncaught exception that silently aborted the event queue processing (so it never got to the events to announce them.)

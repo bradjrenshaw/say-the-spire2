@@ -9,6 +9,8 @@ namespace SayTheSpire2.Map;
 
 public class MapScreen : Screen
 {
+    public static MapScreen? Current { get; private set; }
+
     private readonly MapHandler _handler = new();
     private TreeMapViewer? _viewer;
     private MapPoint? _startPoint;
@@ -27,6 +29,8 @@ public class MapScreen : Screen
 
     public override void OnPush()
     {
+        Current = this;
+
         if (!_handler.Build())
         {
             Log.Error("[AccessibilityMod] MapScreen: Failed to build map graph");
@@ -39,7 +43,14 @@ public class MapScreen : Screen
         {
             var startNode = _handler.GetNode(_startPoint);
             if (startNode != null)
+            {
                 _viewer.SetStartNode(startNode);
+
+                if (Settings.ModSettings.GetValue<bool>("map.announce_current_on_open"))
+                    SpeechManager.Output(Message.Raw($"You are at {startNode.GetDisplayName()}, {startNode.GetCoordinatesString()}"));
+
+                _viewer.MoveForward();
+            }
         }
 
         Log.Info("[AccessibilityMod] MapScreen pushed, viewer ready");
@@ -48,6 +59,7 @@ public class MapScreen : Screen
     public override void OnPop()
     {
         _viewer = null;
+        if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] MapScreen popped");
     }
 
