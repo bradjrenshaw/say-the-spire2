@@ -50,7 +50,7 @@ public class FocusContext
             var posStr = parent.GetPositionString(element);
             if (!string.IsNullOrEmpty(posStr))
             {
-                if (sb.Length > 0) sb.Append(", ");
+                if (sb.Length > 0) sb.Append(' ');
                 sb.Append(posStr);
             }
         }

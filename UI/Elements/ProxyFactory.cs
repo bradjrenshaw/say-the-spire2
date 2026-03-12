@@ -70,6 +70,12 @@ public static class ProxyFactory
         if (control is NMapPoint)
             return new ProxyMapPoint(control);
 
+        // Card holder or creature directly focused (e.g., hand cards, creatures via controller nav)
+        if (control is NCardHolder)
+            return new ProxyCard(control);
+        if (control is NCreature)
+            return new ProxyCreature(control);
+
         // Check if this control is a hitbox inside a card holder or creature
         var ancestor = FindAncestor(control);
         if (ancestor != null) return ancestor;

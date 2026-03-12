@@ -221,7 +221,8 @@ public static class FocusHooks
 
     public static void CreatureFocusPostfix(NCreature __instance)
     {
-        UIManager.QueueFocus(__instance, new ProxyCreature(__instance));
+        var screenElement = ScreenManager.ResolveElement(__instance);
+        UIManager.QueueFocus(__instance, screenElement ?? new ProxyCreature(__instance));
     }
 
     private static void PatchOnFocus<T>(Harmony harmony, string postfixMethodName, string label)

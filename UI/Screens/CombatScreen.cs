@@ -36,6 +36,15 @@ public class CombatScreen : Screen
     private readonly Dictionary<Creature, CreatureHandlers> _subscribedCreatures = new();
     private CardPileHandlers? _cardPileHandlers;
 
+    // Containers for position announcements (no labels, position only)
+    private readonly ListContainer _rootContainer = new() { AnnounceName = false, AnnouncePosition = false };
+    private readonly ListContainer _potionContainer = new() { AnnounceName = false };
+    private readonly ListContainer _relicContainer = new() { AnnounceName = false };
+    private readonly ListContainer _orbContainer = new() { AnnounceName = false };
+    private readonly ListContainer _creatureContainer = new() { AnnounceName = false };
+    private readonly ListContainer _handContainer = new() { AnnounceName = false };
+    private readonly Dictionary<Control, UIElement> _elementCache = new();
+
     public CombatScreen()
     {
         ClaimAction("announce_block");
@@ -43,6 +52,13 @@ public class CombatScreen : Screen
         ClaimAction("announce_powers");
         ClaimAction("announce_intents");
         ClaimAction("announce_summarized_intents");
+
+        _rootContainer.Add(_potionContainer);
+        _rootContainer.Add(_relicContainer);
+        _rootContainer.Add(_orbContainer);
+        _rootContainer.Add(_creatureContainer);
+        _rootContainer.Add(_handContainer);
+        RootElement = _rootContainer;
     }
 
     private CombatState? GetLiveState()
@@ -74,6 +90,12 @@ public class CombatScreen : Screen
             cm.TurnStarted -= OnTurnStarted;
         }
         UnsubscribeFromState();
+        _elementCache.Clear();
+        _potionContainer.Clear();
+        _relicContainer.Clear();
+        _orbContainer.Clear();
+        _creatureContainer.Clear();
+        _handContainer.Clear();
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] CombatScreen popped.");
     }
@@ -263,6 +285,31 @@ public class CombatScreen : Screen
         EventDispatcher.Enqueue(new CardStolenEvent(cardName));
     }
 
+    public override UIElement? GetElement(Control control)
+    {
+        return _elementCache.TryGetValue(control, out var element) ? element : null;
+    }
+
+    private UIElement GetOrCreateElement(Control control)
+    {
+        if (_elementCache.TryGetValue(control, out var element))
+            return element;
+        element = ProxyFactory.Create(control);
+        _elementCache[control] = element;
+        return element;
+    }
+
+    private void SyncContainer(ListContainer container, IEnumerable<Control>? controls)
+    {
+        container.Clear();
+        if (controls == null) return;
+        foreach (var control in controls)
+        {
+            if (control != null && GodotObject.IsInstanceValid(control))
+                container.Add(GetOrCreateElement(control));
+        }
+    }
+
     /// <summary>
     /// Rebuilds the full focus chain every frame. Every item in every row
     /// gets explicit up/down links to the adjacent rows.
@@ -279,40 +326,34 @@ public class CombatScreen : Screen
             var combatRoom = NCombatRoom.Instance;
             if (combatRoom == null) return;
 
-            if (_isTargeting)
-            {
-                foreach (var creature in combatRoom.CreatureNodes)
-                {
-                    if (creature?.Hitbox == null) continue;
-                    var hitbox = creature.Hitbox;
-                    hitbox.FocusNeighborTop = hitbox.GetPath();
-                    hitbox.FocusNeighborBottom = hitbox.GetPath();
-                }
-                return;
-            }
-
             // -- Collect all rows --
+
+            // Potions row
+            var potionHolders = new List<Control>();
+            var potionCtrl = NRun.Instance?.GlobalUi?.TopBar?.PotionContainer;
+            if (potionCtrl != null)
+            {
+                var holdersParent = potionCtrl.GetNodeOrNull("MarginContainer/PotionHolders");
+                if (holdersParent != null)
+                {
+                    foreach (var child in holdersParent.GetChildren())
+                    {
+                        if (child is Control c)
+                            potionHolders.Add(c);
+                    }
+                }
+            }
 
             // Relics row
             var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
-            NodePath? firstRelicPath = null;
-            if (relicNodes != null && relicNodes.Count > 0)
-            {
-                var first = relicNodes[0];
-                if (GodotObject.IsInstanceValid(first))
-                    firstRelicPath = first.GetPath();
-            }
 
             // Orbs row — collect all orb Controls from the orb container
-            var orbNodes = new System.Collections.Generic.List<Control>();
-            NCreature? playerCreature = null;
+            var orbNodes = new List<Control>();
             foreach (var c in combatRoom.CreatureNodes)
             {
                 if (c != null && c.Entity.IsPlayer && c.OrbManager != null)
                 {
-                    playerCreature = c;
                     var defaultOwner = c.OrbManager.DefaultFocusOwner;
-                    // Only treat as orb row if DefaultFocusOwner isn't the hitbox
                     if (defaultOwner != null && defaultOwner != c.Hitbox)
                     {
                         foreach (var child in c.OrbManager.GetChildren())
@@ -328,15 +369,50 @@ public class CombatScreen : Screen
                 }
             }
             bool hasOrbs = orbNodes.Count > 0;
+            // Save focus target before reversing (game focuses rightmost orb first)
             NodePath? firstOrbPath = hasOrbs ? orbNodes[0].GetPath() : null;
 
-            // Creatures row
+            // Hand row
+            var hand = combatRoom.Ui?.Hand;
+
+            // -- Sync containers for position announcements (always, even during targeting) --
+            SyncContainer(_potionContainer, potionHolders);
+            SyncContainer(_relicContainer, relicNodes?.OfType<Control>());
+            orbNodes.Reverse();
+            SyncContainer(_orbContainer, orbNodes);
+            SyncContainer(_creatureContainer,
+                combatRoom.CreatureNodes
+                    .Where(c => c != null)
+                    .OfType<Control>());
+            SyncContainer(_handContainer, hand?.ActiveHolders?.OfType<Control>());
+
+            // -- Wire focus navigation --
+
+            if (_isTargeting)
+            {
+                foreach (var creature in combatRoom.CreatureNodes)
+                {
+                    if (creature?.Hitbox == null) continue;
+                    var hitbox = creature.Hitbox;
+                    hitbox.FocusNeighborTop = hitbox.GetPath();
+                    hitbox.FocusNeighborBottom = hitbox.GetPath();
+                }
+                return;
+            }
+
+            // NodePaths for row linking
+            NodePath? firstRelicPath = null;
+            if (relicNodes != null && relicNodes.Count > 0)
+            {
+                var first = relicNodes[0];
+                if (GodotObject.IsInstanceValid(first))
+                    firstRelicPath = first.GetPath();
+            }
+
             var firstCreature = combatRoom.CreatureNodes
                 .FirstOrDefault(c => c != null && c.Hitbox != null);
             NodePath? firstCreaturePath = firstCreature?.Hitbox?.GetPath();
 
-            // Hand row
-            var hand = combatRoom.Ui?.Hand;
             NodePath? firstHandPath = null;
             if (hand != null)
             {
@@ -344,8 +420,6 @@ public class CombatScreen : Screen
                 if (firstHolder != null)
                     firstHandPath = firstHolder.GetPath();
             }
-
-            // -- Wire up each row: every item links to the row above and below --
 
             // Relics: ↑ = (leave alone, game links to potions), ↓ = orbs or creatures
             NodePath? relicDown = hasOrbs ? firstOrbPath : firstCreaturePath;
