@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -87,6 +88,7 @@ public class CombatScreen : Screen
             SubscribeToState(liveState);
         }
 
+        UpdateFocusNavigation();
     }
 
     private void SubscribeToState(CombatState state)
@@ -249,100 +251,92 @@ public class CombatScreen : Screen
         return LocalContext.GetMe(runState);
     }
 
-    // -- Navigation fixes --
+    // -- Navigation (frame-driven) --
 
-    public void OnCreatureNavigationUpdated(NCombatRoom combatRoom)
-    {
-        try
-        {
-            SetCreatureFocusToRelics(combatRoom);
-        }
-        catch (System.Exception e)
-        {
-            Log.Error($"[AccessibilityMod] Creature navigation postfix failed: {e.Message}");
-        }
-    }
+    private bool _isTargeting;
 
-    public void OnTargetingStarted()
-    {
-        try
-        {
-            var combatRoom = NCombatRoom.Instance;
-            if (combatRoom == null) return;
-
-            foreach (var creature in combatRoom.CreatureNodes)
-            {
-                if (creature == null) continue;
-                var hitbox = creature.Hitbox;
-                if (hitbox == null) continue;
-                hitbox.FocusNeighborTop = hitbox.GetPath();
-            }
-        }
-        catch (System.Exception e)
-        {
-            Log.Error($"[AccessibilityMod] StartTargeting failed: {e.Message}");
-        }
-    }
-
-    public void OnTargetingFinished()
-    {
-        try
-        {
-            var combatRoom = NCombatRoom.Instance;
-            if (combatRoom == null) return;
-            SetCreatureFocusToRelics(combatRoom);
-        }
-        catch (System.Exception e)
-        {
-            Log.Error($"[AccessibilityMod] FinishTargeting failed: {e.Message}");
-        }
-    }
-
-    public void OnHandLayoutRefreshed(NPlayerHand hand)
-    {
-        try
-        {
-            var combatRoom = NCombatRoom.Instance;
-            if (combatRoom == null) return;
-
-            var firstCreature = combatRoom.CreatureNodes
-                .FirstOrDefault(c => c != null && c.Hitbox != null);
-            if (firstCreature == null) return;
-
-            var creaturePath = firstCreature.Hitbox.GetPath();
-
-            foreach (var holder in hand.ActiveHolders)
-            {
-                if (holder == null) continue;
-                holder.FocusNeighborTop = creaturePath;
-            }
-        }
-        catch (System.Exception e)
-        {
-            Log.Error($"[AccessibilityMod] Hand navigation failed: {e.Message}");
-        }
-    }
+    public void OnTargetingStarted() => _isTargeting = true;
+    public void OnTargetingFinished() => _isTargeting = false;
 
     public void OnCardStolen(string cardName)
     {
         EventDispatcher.Enqueue(new CardStolenEvent(cardName));
     }
 
-    // -- Navigation helpers --
-
-    private static void SetCreatureFocusToRelics(NCombatRoom combatRoom)
+    /// <summary>
+    /// Rebuilds the full focus chain every frame:
+    ///   hand cards → first creature → (player: orbs → relics, others: relics)
+    /// Also ensures all creature hitboxes have FocusMode=All.
+    /// During targeting, locks creatures' upward nav to themselves.
+    /// </summary>
+    private void UpdateFocusNavigation()
     {
-        var firstRelic = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.FirstOrDefault();
-        if (firstRelic == null || !GodotObject.IsInstanceValid(firstRelic)) return;
-
-        var relicPath = firstRelic.GetPath();
-
-        foreach (var creature in combatRoom.CreatureNodes)
+        try
         {
-            if (creature == null) continue;
-            var hitbox = creature.Hitbox;
-            if (hitbox == null) continue;
-            hitbox.FocusNeighborTop = relicPath;
+            var combatRoom = NCombatRoom.Instance;
+            if (combatRoom == null) return;
+
+            var firstRelic = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.FirstOrDefault();
+            NodePath? relicPath = (firstRelic != null && GodotObject.IsInstanceValid(firstRelic))
+                ? firstRelic.GetPath()
+                : null;
+
+            // Find first valid creature for hand→creature link
+            var firstCreature = combatRoom.CreatureNodes
+                .FirstOrDefault(c => c != null && c.Hitbox != null);
+            NodePath? firstCreaturePath = firstCreature?.Hitbox?.GetPath();
+
+            foreach (var creature in combatRoom.CreatureNodes)
+            {
+                if (creature == null) continue;
+                var hitbox = creature.Hitbox;
+                if (hitbox == null) continue;
+
+                if (_isTargeting)
+                {
+                    // During targeting, don't touch FocusMode — the game's
+                    // RestrictControllerNavigation already set it correctly
+                    // for targetable vs non-targetable creatures.
+                    // Just lock upward nav to self so you can't leave creature row.
+                    hitbox.FocusNeighborTop = hitbox.GetPath();
+                }
+                else
+                {
+                    // Outside targeting: ensure all creatures are focusable
+                    hitbox.FocusMode = Control.FocusModeEnum.All;
+
+                    if (creature.Entity.IsPlayer && creature.OrbManager != null)
+                    {
+                        // Player: hitbox → orbs (game handles this), orbs → relics
+                        var orbFocus = creature.OrbManager.DefaultFocusOwner;
+                        if (orbFocus != null && relicPath != null)
+                            orbFocus.FocusNeighborTop = relicPath;
+                    }
+                    else if (relicPath != null)
+                    {
+                        // Non-player creatures: hitbox → relics
+                        hitbox.FocusNeighborTop = relicPath;
+                    }
+                }
+            }
+
+            // Hand cards → first creature
+            if (!_isTargeting && firstCreaturePath != null)
+            {
+                var hand = combatRoom.Ui?.Hand;
+                if (hand != null)
+                {
+                    foreach (var holder in hand.ActiveHolders)
+                    {
+                        if (holder != null)
+                            holder.FocusNeighborTop = firstCreaturePath;
+                    }
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] UpdateFocusNavigation failed: {e.Message}");
         }
     }
 
