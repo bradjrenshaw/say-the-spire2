@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using SayTheSpire2.Settings;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI;
@@ -47,11 +48,15 @@ public class FocusContext
         // Append position from immediate parent container
         if (element.Parent is { AnnouncePosition: true } parent)
         {
-            var posStr = parent.GetPositionString(element);
-            if (!string.IsNullOrEmpty(posStr))
+            var tk = element.GetTypeKey();
+            if (string.IsNullOrEmpty(tk) || FocusStringSettings.ShouldAnnouncePosition(tk))
             {
-                if (sb.Length > 0) sb.Append(' ');
-                sb.Append(posStr);
+                var posStr = parent.GetPositionString(element);
+                if (!string.IsNullOrEmpty(posStr))
+                {
+                    if (sb.Length > 0) sb.Append(' ');
+                    sb.Append(posStr);
+                }
             }
         }
 

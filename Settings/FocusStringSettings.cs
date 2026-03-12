@@ -32,6 +32,7 @@ public static class FocusStringSettings
             _subtypeKeys.Add(typeKey);
         }
         category.Add(new BoolSetting("announce_tooltip", "Announce Tooltip", true));
+        category.Add(new BoolSetting("announce_position", "Announce Position", true));
     }
 
     public static void RegisterDefaults()
@@ -66,5 +67,11 @@ public static class FocusStringSettings
     {
         if (!_registeredKeys.Contains(typeKey)) return true;
         return ModSettings.GetValue<bool>($"ui.{typeKey}.announce_tooltip");
+    }
+
+    public static bool ShouldAnnouncePosition(string typeKey)
+    {
+        if (!_registeredKeys.Contains(typeKey)) return true;
+        return ModSettings.GetValue<bool>($"ui.{typeKey}.announce_position");
     }
 }

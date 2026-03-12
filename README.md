@@ -80,7 +80,7 @@ The mod supports both keyboard and controller. Here are the default bindings:
 | View Draw Pile | A | LT+LB |
 | View Discard Pile | S | RT+RB |
 | View Deck / Tab Left | D | LB |
-| View Exhaust / Tab Right | X | RB |
+| View Exhaust / Tab Right | F | RT+RB |
 | View Map | M | Back |
 | Pause | Escape | Start |
 | Top Panel | T | X |
@@ -92,6 +92,7 @@ The mod supports both keyboard and controller. Here are the default bindings:
 | Announce Intents | Ctrl+I | RT+Y |
 | Announce Summarized Intents | Alt+I | RT+X |
 | Announce Boss | Ctrl+N | RT+B |
+| Announce Relic Counters | Ctrl+R | RT+Back |
 | Mod Settings | Ctrl+M | LT+Start |
 | Select Card 1-10 | 1-0 | — |
 

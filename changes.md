@@ -1,7 +1,14 @@
 ## V0.1.4
-* Added accessibility for the Crystal Sphere minigame. The 11x11 grid is navigable with position announcements, generic item labels matching what sighted players see, and coordinate ranges for multi-tile items. Instructions are read on screen open, tool changes announce with size info (e.g. "Big Divination, 3 by 3"), and divination count changes are announced.
+* The Python installer has been replaced with one coded in Rust. This should prevent Windows Defender eroniously flagging the installer as a virus and improve stability of the app overall.
+* Fixed numerous focus issues when navigating between rows on the combat screen. Creatures and Defect orbs should now consistently be navigable.
+* Added position announcements to combat screen rows (e.g. "card 3 of 5").
+* Added left/right wrap-around navigation for the relics row.
+* Added support for the Crystal sphere/divination event. I did my best to match what sighted players are able to see but the event is somewhat nonintuitive; any feedback on how I can make this clearer would be greatly appreciated.
 * Added "Announce Intent Before HP" setting under UI/Creature. When enabled, creature focus reads intent before HP (e.g. "Slime, attack 7, 50/50 HP" instead of "Slime, 50/50 HP, Intent attack 7").
-* Refactored initialization code so each subsystem registers its own default settings, reducing complexity in ModEntry.
+* Added a setting for each UI element to toggle position announcements on/off (defaults to on for all.)
+* There is now a hotkey to read out all relic counters (keyboard: ctrl+r, controller: rt+back)
+* fixed incorrect controller default for view exhaust/tab right (it is now rt+rb as intended.)
+* View exhaust/tab right on keyboard is now f instead of x by default.
 
 ## V0.1.3
 This is an emergency release to fix a bug where any events would not be announced during a run if you started a run from the character select screen. The character select screen was not properly being removed from memory, which was causing an uncaught exception that silently aborted the event queue processing (so it never got to the events to announce them.)

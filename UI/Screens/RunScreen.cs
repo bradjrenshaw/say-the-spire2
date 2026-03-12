@@ -23,6 +23,7 @@ public class RunScreen : Screen
         ClaimAction("announce_gold");
         ClaimAction("announce_hp");
         ClaimAction("announce_boss");
+        ClaimAction("announce_relic_counters");
     }
 
     public override void OnPush()
@@ -103,6 +104,9 @@ public class RunScreen : Screen
             case "announce_boss":
                 AnnounceBoss();
                 return true;
+            case "announce_relic_counters":
+                AnnounceRelicCounters();
+                return true;
         }
 
         return false;
@@ -140,6 +144,28 @@ public class RunScreen : Screen
         }
 
         SpeechManager.Output(Message.Raw(name));
+    }
+
+    private void AnnounceRelicCounters()
+    {
+        var player = GetLocalPlayer();
+        if (player == null) return;
+
+        var parts = new System.Collections.Generic.List<string>();
+        foreach (var relic in player.Relics)
+        {
+            if (relic.ShowCounter && relic.DisplayAmount != 0)
+            {
+                var name = relic.Title.GetFormattedText();
+                if (!string.IsNullOrEmpty(name))
+                    parts.Add($"{name}, {relic.DisplayAmount}");
+            }
+        }
+
+        if (parts.Count == 0)
+            SpeechManager.Output(Message.Raw("No relic counters"));
+        else
+            SpeechManager.Output(Message.Raw(string.Join(". ", parts)));
     }
 
     private Player? GetLocalPlayer()

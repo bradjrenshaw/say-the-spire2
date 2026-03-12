@@ -135,8 +135,8 @@ public static class InputManager
             .AddBinding(Key.D)
             .AddBinding(ControllerInput.LeftShoulder));
         _actions.Add(new InputAction("mega_view_exhaust_pile_and_tab_right", "View Exhaust / Tab Right", gameAction: "mega_view_exhaust_pile_and_tab_right")
-            .AddBinding(Key.X)
-            .AddBinding(ControllerInput.RightShoulder));
+            .AddBinding(Key.F)
+            .AddBinding(ControllerInput.RightShoulder, modifier: ControllerInput.RightTrigger));
         _actions.Add(new InputAction("mega_view_map", "View Map", gameAction: "mega_view_map")
             .AddBinding(Key.M)
             .AddBinding(ControllerInput.Back));
@@ -186,6 +186,8 @@ public static class InputManager
             .AddBinding(ControllerInput.X, modifier: ControllerInput.RightTrigger));
         _actions.Add(new InputAction("announce_boss", "Announce Boss").AddBinding(Key.N, ctrl: true)
             .AddBinding(ControllerInput.B, modifier: ControllerInput.RightTrigger));
+        _actions.Add(new InputAction("announce_relic_counters", "Announce Relic Counters").AddBinding(Key.R, ctrl: true)
+            .AddBinding(ControllerInput.Back, modifier: ControllerInput.RightTrigger));
         _actions.Add(new InputAction("mod_settings", "Mod Settings").AddBinding(Key.M, ctrl: true)
             .AddBinding(ControllerInput.Start, modifier: ControllerInput.LeftTrigger));
     }
