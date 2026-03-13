@@ -2,7 +2,7 @@ use std::fs;
 use std::io::{Cursor, Read};
 use std::path::Path;
 
-use super::paths::{appdata_mod_dir, version_file};
+use super::paths::{accessibility_file, appdata_mod_dir, version_file};
 
 pub fn get_installed_version() -> Option<String> {
     let vf = version_file();
@@ -13,6 +13,13 @@ pub fn save_installed_version(version: &str) -> Result<(), String> {
     let dir = appdata_mod_dir();
     fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
     fs::write(version_file(), version).map_err(|e| format!("Failed to write version: {}", e))
+}
+
+pub fn enable_accessibility() -> Result<(), String> {
+    let dir = appdata_mod_dir();
+    fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
+    fs::write(accessibility_file(), "{\"enabled\": true}")
+        .map_err(|e| format!("Failed to write accessibility.json: {}", e))
 }
 
 pub fn download_and_extract(

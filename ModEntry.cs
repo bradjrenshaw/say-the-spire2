@@ -20,7 +20,9 @@ namespace SayTheSpire2;
 public static class ModEntry
 {
     public const string Version = "0.1.4";
+    public static bool AccessibilityEnabled { get; private set; }
     private static Harmony? _harmony;
+    private static string? _accessibilityPath;
 
     public static void Initialize()
     {
@@ -38,6 +40,23 @@ public static class ModEntry
             }
             return null;
         };
+
+        // Check accessibility toggle before doing anything else
+        var settingsDir = Path.Combine(
+            Godot.OS.GetUserDataDir(), "mods", "SayTheSpire2");
+        Directory.CreateDirectory(settingsDir);
+        _accessibilityPath = Path.Combine(settingsDir, "accessibility.json");
+        AccessibilityEnabled = ReadAccessibilityEnabled();
+
+        // Always register the accessibility toggle hotkey (Ctrl+Shift+A),
+        // even when inert, so users can enable accessibility without the installer.
+        Input.AccessibilityToggleHook.Initialize();
+
+        if (!AccessibilityEnabled)
+        {
+            Log.Info("[AccessibilityMod] Accessibility disabled. Mod loaded but inert.");
+            return;
+        }
 
         _harmony = new Harmony("bradj.SayTheSpire2");
         _harmony.PatchAll(typeof(ModEntry).Assembly);
@@ -61,6 +80,42 @@ public static class ModEntry
         CombatEventManager.Initialize();
 
         Log.Info("[AccessibilityMod] Initialized. Custom TTS active.");
+    }
+
+    private static bool ReadAccessibilityEnabled()
+    {
+        try
+        {
+            if (_accessibilityPath == null || !File.Exists(_accessibilityPath))
+                return false;
+
+            var json = File.ReadAllText(_accessibilityPath);
+            var doc = System.Text.Json.JsonSerializer.Deserialize<
+                System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>>(json);
+            if (doc != null && doc.TryGetValue("enabled", out var val) && val.ValueKind == System.Text.Json.JsonValueKind.True)
+                return true;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Failed to read accessibility.json: {e.Message}");
+        }
+        return false;
+    }
+
+    public static void SetAccessibilityEnabled(bool enabled)
+    {
+        try
+        {
+            if (_accessibilityPath == null) return;
+            var json = System.Text.Json.JsonSerializer.Serialize(
+                new { enabled }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_accessibilityPath, json);
+            AccessibilityEnabled = enabled;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Failed to write accessibility.json: {e.Message}");
+        }
     }
 
     private static void InitializeSettings()

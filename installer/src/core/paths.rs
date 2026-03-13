@@ -46,6 +46,10 @@ pub fn version_file() -> PathBuf {
     appdata_mod_dir().join("version")
 }
 
+pub fn accessibility_file() -> PathBuf {
+    appdata_mod_dir().join("accessibility.json")
+}
+
 pub fn steam_defaults() -> Vec<PathBuf> {
     if cfg!(target_os = "windows") {
         vec![PathBuf::from("C:\\Program Files (x86)\\Steam")]

@@ -207,6 +207,9 @@ pub fn run() {
                         if let Err(e) = install::save_installed_version(&version) {
                             log_append(&log_c, &format!("Warning: {}", e));
                         }
+                        if let Err(e) = install::enable_accessibility() {
+                            log_append(&log_c, &format!("Warning: {}", e));
+                        }
                         match settings::enable_mods_in_settings() {
                             Ok(msg) => log_append(&log_c, &msg),
                             Err(e) => {
@@ -275,6 +278,9 @@ pub fn run() {
 
                 match install::install_from_file(&zip_path, &game_path) {
                     Ok(_) => {
+                        if let Err(e) = install::enable_accessibility() {
+                            log_append(&log_c, &format!("Warning: {}", e));
+                        }
                         match settings::enable_mods_in_settings() {
                             Ok(msg) => log_append(&log_c, &msg),
                             Err(e) => log_append(&log_c, &e),

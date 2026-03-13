@@ -94,6 +94,7 @@ The mod supports both keyboard and controller. Here are the default bindings:
 | Announce Boss | Ctrl+N | RT+B |
 | Announce Relic Counters | Ctrl+R | RT+Back |
 | Mod Settings | Ctrl+M | LT+Start |
+| Toggle Accessibility | Ctrl+Shift+A | — |
 | Select Card 1-10 | 1-0 | — |
 
 The buffer system lets you review detailed information about whatever is currently focused. Use Ctrl+Up/Down (or right stick up/down) to cycle through items in the current buffer, and Ctrl+Left/Right (or right stick left/right) to switch between buffers.

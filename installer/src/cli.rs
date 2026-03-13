@@ -139,6 +139,9 @@ fn install_from_github(game_path: &PathBuf) {
             if let Err(e) = install::save_installed_version(&release.tag_name) {
                 println!("Warning: Failed to save version: {}", e);
             }
+            if let Err(e) = install::enable_accessibility() {
+                println!("Warning: Failed to enable accessibility: {}", e);
+            }
             match settings::enable_mods_in_settings() {
                 Ok(msg) => println!("{}", msg),
                 Err(e) => {
@@ -180,6 +183,9 @@ fn install_from_file(game_path: &PathBuf) {
 
     match install::install_from_file(&zip_path, game_path) {
         Ok(_) => {
+            if let Err(e) = install::enable_accessibility() {
+                println!("Warning: Failed to enable accessibility: {}", e);
+            }
             match settings::enable_mods_in_settings() {
                 Ok(msg) => println!("{}", msg),
                 Err(e) => println!("{}", e),

@@ -13,6 +13,7 @@
 * Added "Announce Current Location When Map Opens" setting under Map (defaults to on).
 * View exhaust/tab right on keyboard is now f instead of x by default.
 * Pressing the map key to view the map from anywhere now properly allows you to browse the map with the usual controls.
+* Accessibility is now off by default for Workshop installs. The installer automatically enables it. You can also toggle accessibility with Ctrl+Shift+A (requires a game restart to take effect).
 
 ## V0.1.3
 This is an emergency release to fix a bug where any events would not be announced during a run if you started a run from the character select screen. The character select screen was not properly being removed from memory, which was causing an uncaught exception that silently aborted the event queue processing (so it never got to the events to announce them.)
