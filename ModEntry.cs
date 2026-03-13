@@ -20,9 +20,8 @@ namespace SayTheSpire2;
 public static class ModEntry
 {
     public const string Version = "0.1.4";
-    public static bool AccessibilityEnabled { get; private set; }
+    public static bool AccessibilityEnabled => Settings.InstallationConfig.ScreenReader;
     private static Harmony? _harmony;
-    private static string? _accessibilityPath;
 
     public static void Initialize()
     {
@@ -41,12 +40,11 @@ public static class ModEntry
             return null;
         };
 
-        // Check accessibility toggle before doing anything else
+        // Read installation config (screen_reader, disable_godot_uia)
         var settingsDir = Path.Combine(
             Godot.OS.GetUserDataDir(), "mods", "SayTheSpire2");
         Directory.CreateDirectory(settingsDir);
-        _accessibilityPath = Path.Combine(settingsDir, "accessibility.json");
-        AccessibilityEnabled = ReadAccessibilityEnabled();
+        Settings.InstallationConfig.Initialize(settingsDir);
 
         // Always register the accessibility toggle hotkey (Ctrl+Shift+A),
         // even when inert, so users can enable accessibility without the installer.
@@ -54,7 +52,7 @@ public static class ModEntry
 
         if (!AccessibilityEnabled)
         {
-            Log.Info("[AccessibilityMod] Accessibility disabled. Mod loaded but inert.");
+            Log.Info("[AccessibilityMod] Screen reader disabled. Mod loaded but inert.");
             return;
         }
 
@@ -69,7 +67,8 @@ public static class ModEntry
         InitializeKeybindingSettings();
         ScreenManager.Initialize();
         RegisterScreens();
-        DisableBuiltinAccessibility.Initialize();
+        if (Settings.InstallationConfig.DisableGodotUia)
+            DisableBuiltinAccessibility.Initialize();
         FocusHooks.Initialize(_harmony);
         InputRebindHooks.Initialize(_harmony);
         KeyboardNavHooks.Initialize(_harmony);
@@ -82,40 +81,9 @@ public static class ModEntry
         Log.Info("[AccessibilityMod] Initialized. Custom TTS active.");
     }
 
-    private static bool ReadAccessibilityEnabled()
-    {
-        try
-        {
-            if (_accessibilityPath == null || !File.Exists(_accessibilityPath))
-                return true;
-
-            var json = File.ReadAllText(_accessibilityPath);
-            var doc = System.Text.Json.JsonSerializer.Deserialize<
-                System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>>(json);
-            if (doc != null && doc.TryGetValue("enabled", out var val) && val.ValueKind == System.Text.Json.JsonValueKind.False)
-                return false;
-        }
-        catch (Exception e)
-        {
-            Log.Error($"[AccessibilityMod] Failed to read accessibility.json: {e.Message}");
-        }
-        return true;
-    }
-
     public static void SetAccessibilityEnabled(bool enabled)
     {
-        try
-        {
-            if (_accessibilityPath == null) return;
-            var json = System.Text.Json.JsonSerializer.Serialize(
-                new { enabled }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_accessibilityPath, json);
-            AccessibilityEnabled = enabled;
-        }
-        catch (Exception e)
-        {
-            Log.Error($"[AccessibilityMod] Failed to write accessibility.json: {e.Message}");
-        }
+        Settings.InstallationConfig.SetScreenReader(enabled);
     }
 
     private static void InitializeSettings()

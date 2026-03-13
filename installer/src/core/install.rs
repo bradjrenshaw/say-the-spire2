@@ -2,7 +2,9 @@ use std::fs;
 use std::io::{Cursor, Read};
 use std::path::Path;
 
-use super::paths::{accessibility_file, appdata_mod_dir, version_file};
+use serde::{Deserialize, Serialize};
+
+use super::paths::{appdata_mod_dir, installation_file, legacy_accessibility_file, version_file};
 
 pub fn get_installed_version() -> Option<String> {
     let vf = version_file();
@@ -15,11 +17,59 @@ pub fn save_installed_version(version: &str) -> Result<(), String> {
     fs::write(version_file(), version).map_err(|e| format!("Failed to write version: {}", e))
 }
 
-pub fn enable_accessibility() -> Result<(), String> {
+#[derive(Serialize, Deserialize, Clone)]
+pub struct InstallationConfig {
+    pub screen_reader: bool,
+    pub disable_godot_uia: bool,
+}
+
+impl Default for InstallationConfig {
+    fn default() -> Self {
+        Self {
+            screen_reader: true,
+            disable_godot_uia: true,
+        }
+    }
+}
+
+pub fn read_installation_config() -> InstallationConfig {
+    let path = installation_file();
+    if path.exists() {
+        if let Ok(json) = fs::read_to_string(&path) {
+            if let Ok(config) = serde_json::from_str(&json) {
+                return config;
+            }
+        }
+    }
+    InstallationConfig::default()
+}
+
+pub fn save_installation_config(config: &InstallationConfig) -> Result<(), String> {
     let dir = appdata_mod_dir();
     fs::create_dir_all(&dir).map_err(|e| format!("Failed to create directory: {}", e))?;
-    fs::write(accessibility_file(), "{\"enabled\": true}")
-        .map_err(|e| format!("Failed to write accessibility.json: {}", e))
+    let json = serde_json::to_string_pretty(config)
+        .map_err(|e| format!("Failed to serialize installation config: {}", e))?;
+    fs::write(installation_file(), json)
+        .map_err(|e| format!("Failed to write installation.json: {}", e))
+}
+
+pub fn installation_file_exists() -> bool {
+    installation_file().exists()
+}
+
+/// Write default installation.json if it doesn't exist (for upgrades from older versions).
+/// Also cleans up legacy accessibility.json.
+pub fn ensure_installation_config() -> Result<(), String> {
+    let path = installation_file();
+    if !path.exists() {
+        save_installation_config(&InstallationConfig::default())?;
+    }
+    // Clean up legacy file
+    let legacy = legacy_accessibility_file();
+    if legacy.exists() {
+        let _ = fs::remove_file(legacy);
+    }
+    Ok(())
 }
 
 pub fn download_and_extract(

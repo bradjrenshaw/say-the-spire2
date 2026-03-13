@@ -59,12 +59,16 @@ pub fn run() {
         let jaws_btn = Button::builder(&panel)
             .with_label("Install JAWS config")
             .build();
+        let modify_btn = Button::builder(&panel)
+            .with_label("Modify...")
+            .build();
 
         btn_sizer.add_stretch_spacer(1);
         btn_sizer.add(&install_btn, 0, SizerFlag::All, 4);
         btn_sizer.add(&install_file_btn, 0, SizerFlag::All, 4);
         btn_sizer.add(&uninstall_btn, 0, SizerFlag::All, 4);
         btn_sizer.add(&jaws_btn, 0, SizerFlag::All, 4);
+        btn_sizer.add(&modify_btn, 0, SizerFlag::All, 4);
 
         // Layout
         main_sizer.add(&status, 0, SizerFlag::Expand | SizerFlag::All, 8);
@@ -79,6 +83,7 @@ pub fn run() {
         install_file_btn.enable(false);
         uninstall_btn.enable(false);
         jaws_btn.enable(false);
+        modify_btn.enable(false);
 
         // Shared state
         let state = Rc::new(RefCell::new(State { release: None }));
@@ -89,7 +94,7 @@ pub fn run() {
             log_append(&log, &format!("Game directory: {}", detected.display()));
             update_state(
                 &status, &install_btn, &install_file_btn, &uninstall_btn, &jaws_btn,
-                &detected, &state, &log,
+                &modify_btn, &detected, &state, &log,
             );
         } else {
             status.set_label("Game directory not found. Please browse to select it.");
@@ -105,7 +110,7 @@ pub fn run() {
                 if detect::validate_game_path(&path) {
                     update_state(
                         &status, &install_btn, &install_file_btn,
-                        &uninstall_btn, &jaws_btn, &path, &state, &log,
+                        &uninstall_btn, &jaws_btn, &modify_btn, &path, &state, &log,
                     );
                 }
             }
@@ -124,6 +129,7 @@ pub fn run() {
             let install_file_btn_c = install_file_btn.clone();
             let uninstall_btn_c = uninstall_btn.clone();
             let jaws_btn_c = jaws_btn.clone();
+            let modify_btn_c = modify_btn.clone();
             let log_c = log.clone();
             let state_c = state.clone();
 
@@ -136,7 +142,7 @@ pub fn run() {
                         apply_game_path(
                             &path, &path_input_c, &status_c, &install_btn_c,
                             &install_file_btn_c, &uninstall_btn_c, &jaws_btn_c,
-                            &log_c, &state_c,
+                            &modify_btn_c, &log_c, &state_c,
                         );
                     }
                 }
@@ -152,6 +158,7 @@ pub fn run() {
             let install_file_btn_c = install_file_btn.clone();
             let uninstall_btn_c = uninstall_btn.clone();
             let jaws_btn_c = jaws_btn.clone();
+            let modify_btn_c = modify_btn.clone();
             let browse_btn_c = browse_btn.clone();
             let log_c = log.clone();
             let state_c = state.clone();
@@ -207,7 +214,19 @@ pub fn run() {
                         if let Err(e) = install::save_installed_version(&version) {
                             log_append(&log_c, &format!("Warning: {}", e));
                         }
-                        if let Err(e) = install::enable_accessibility() {
+                        // Show options dialog on first install; just ensure defaults on update
+                        if !is_update {
+                            if let Some(config) = show_options_dialog(&frame_c) {
+                                if let Err(e) = install::save_installation_config(&config) {
+                                    log_append(&log_c, &format!("Warning: {}", e));
+                                }
+                            } else {
+                                // User cancelled options — write defaults
+                                if let Err(e) = install::ensure_installation_config() {
+                                    log_append(&log_c, &format!("Warning: {}", e));
+                                }
+                            }
+                        } else if let Err(e) = install::ensure_installation_config() {
                             log_append(&log_c, &format!("Warning: {}", e));
                         }
                         match settings::enable_mods_in_settings() {
@@ -223,7 +242,7 @@ pub fn run() {
                         );
                         update_state(
                             &status_c, &install_btn_c, &install_file_btn_c,
-                            &uninstall_btn_c, &jaws_btn_c, &game_path, &state_c, &log_c,
+                            &uninstall_btn_c, &jaws_btn_c, &modify_btn_c, &game_path, &state_c, &log_c,
                         );
 
                         MessageDialog::builder(
@@ -258,6 +277,7 @@ pub fn run() {
             let install_file_btn_c = install_file_btn.clone();
             let uninstall_btn_c = uninstall_btn.clone();
             let jaws_btn_c = jaws_btn.clone();
+            let modify_btn_c = modify_btn.clone();
             let log_c = log.clone();
             let state_c = state.clone();
 
@@ -276,9 +296,19 @@ pub fn run() {
                 let Some(zip_path_str) = dialog.get_path() else { return };
                 let zip_path = PathBuf::from(&zip_path_str);
 
+                let is_fresh = !install::installation_file_exists();
+
                 match install::install_from_file(&zip_path, &game_path) {
                     Ok(_) => {
-                        if let Err(e) = install::enable_accessibility() {
+                        if is_fresh {
+                            if let Some(config) = show_options_dialog(&frame_c) {
+                                if let Err(e) = install::save_installation_config(&config) {
+                                    log_append(&log_c, &format!("Warning: {}", e));
+                                }
+                            } else if let Err(e) = install::ensure_installation_config() {
+                                log_append(&log_c, &format!("Warning: {}", e));
+                            }
+                        } else if let Err(e) = install::ensure_installation_config() {
                             log_append(&log_c, &format!("Warning: {}", e));
                         }
                         match settings::enable_mods_in_settings() {
@@ -294,7 +324,7 @@ pub fn run() {
                         );
                         update_state(
                             &status_c, &install_btn_c, &install_file_btn_c,
-                            &uninstall_btn_c, &jaws_btn_c, &game_path, &state_c, &log_c,
+                            &uninstall_btn_c, &jaws_btn_c, &modify_btn_c, &game_path, &state_c, &log_c,
                         );
 
                         MessageDialog::builder(
@@ -326,6 +356,7 @@ pub fn run() {
             let install_file_btn_c = install_file_btn.clone();
             let uninstall_btn_c = uninstall_btn.clone();
             let jaws_btn_c = jaws_btn.clone();
+            let modify_btn_c = modify_btn.clone();
             let log_c = log.clone();
             let state_c = state.clone();
 
@@ -370,7 +401,7 @@ pub fn run() {
                 log_append(&log_c, "Uninstall complete.");
                 update_state(
                     &status_c, &install_btn_c, &install_file_btn_c,
-                    &uninstall_btn_c, &jaws_btn_c, &game_path, &state_c, &log_c,
+                    &uninstall_btn_c, &jaws_btn_c, &modify_btn_c, &game_path, &state_c, &log_c,
                 );
 
                 MessageDialog::builder(
@@ -443,9 +474,74 @@ pub fn run() {
             });
         }
 
+        // Modify button
+        {
+            let frame_c = frame.clone();
+            let log_c = log.clone();
+
+            modify_btn.on_click(move |_| {
+                if let Some(config) = show_options_dialog(&frame_c) {
+                    if let Err(e) = install::save_installation_config(&config) {
+                        log_append(&log_c, &format!("Error saving options: {}", e));
+                    } else {
+                        log_append(&log_c, "Installation options saved. Restart the game for changes to take effect.");
+                    }
+                }
+            });
+        }
+
         frame.show(true);
     })
     .expect("Failed to start application");
+}
+
+fn show_options_dialog(parent: &impl WxWidget) -> Option<install::InstallationConfig> {
+    let config = install::read_installation_config();
+
+    let dialog = Dialog::builder(parent, "Installation Options")
+        .with_size(350, 200)
+        .build();
+
+    let sizer = BoxSizer::builder(Orientation::Vertical).build();
+
+    let screen_reader_cb = CheckBox::builder(&dialog)
+        .with_label("Screen reader support")
+        .with_value(config.screen_reader)
+        .build();
+
+    let disable_uia_cb = CheckBox::builder(&dialog)
+        .with_label("Disable Godot UIA")
+        .with_value(config.disable_godot_uia)
+        .build();
+
+    let btn_sizer = BoxSizer::builder(Orientation::Horizontal).build();
+    let ok_btn = Button::builder(&dialog)
+        .with_label("OK")
+        .with_id(ID_OK)
+        .build();
+    let cancel_btn = Button::builder(&dialog)
+        .with_label("Cancel")
+        .with_id(ID_CANCEL)
+        .build();
+    btn_sizer.add_stretch_spacer(1);
+    btn_sizer.add(&ok_btn, 0, SizerFlag::All, 4);
+    btn_sizer.add(&cancel_btn, 0, SizerFlag::All, 4);
+
+    sizer.add(&screen_reader_cb, 0, SizerFlag::Expand | SizerFlag::All, 8);
+    sizer.add(&disable_uia_cb, 0, SizerFlag::Expand | SizerFlag::All, 8);
+    sizer.add_stretch_spacer(1);
+    sizer.add_sizer(&btn_sizer, 0, SizerFlag::Expand | SizerFlag::All, 4);
+
+    dialog.set_sizer(sizer, true);
+
+    if dialog.show_modal() == ID_OK {
+        Some(install::InstallationConfig {
+            screen_reader: screen_reader_cb.is_checked(),
+            disable_godot_uia: disable_uia_cb.is_checked(),
+        })
+    } else {
+        None
+    }
 }
 
 fn apply_game_path(
@@ -456,6 +552,7 @@ fn apply_game_path(
     install_file_btn: &Button,
     uninstall_btn: &Button,
     jaws_btn: &Button,
+    modify_btn: &Button,
     log: &TextCtrl,
     state: &Rc<RefCell<State>>,
 ) {
@@ -467,7 +564,7 @@ fn apply_game_path(
 
     path_input.set_value(&path.to_string_lossy());
     log_append(log, &format!("Game directory: {}", path.display()));
-    update_state(status, install_btn, install_file_btn, uninstall_btn, jaws_btn, path, state, log);
+    update_state(status, install_btn, install_file_btn, uninstall_btn, jaws_btn, modify_btn, path, state, log);
 }
 
 fn update_state(
@@ -476,6 +573,7 @@ fn update_state(
     install_file_btn: &Button,
     uninstall_btn: &Button,
     jaws_btn: &Button,
+    modify_btn: &Button,
     game_path: &std::path::Path,
     state: &Rc<RefCell<State>>,
     log: &TextCtrl,
@@ -486,6 +584,7 @@ fn update_state(
 
     install_file_btn.enable(has_valid_path);
     uninstall_btn.enable(mod_installed);
+    modify_btn.enable(mod_installed);
     jaws_btn.enable(jaws::has_jaws_files(game_path));
 
     if mod_installed {

@@ -47,7 +47,11 @@ pub fn version_file() -> PathBuf {
     appdata_mod_dir().join("version")
 }
 
-pub fn accessibility_file() -> PathBuf {
+pub fn installation_file() -> PathBuf {
+    appdata_mod_dir().join("installation.json")
+}
+
+pub fn legacy_accessibility_file() -> PathBuf {
     appdata_mod_dir().join("accessibility.json")
 }
 
