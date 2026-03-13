@@ -2,6 +2,8 @@
 * Added accessibility toggle. When this is off, the mod is effectively inert, allowing for multiplayer support (requires a game restart.) This was added for multiplayer, but a mod config value will be added that makes this redundant; I left this in as it still may be useful for debugging.
 * Fixed an issue where the Discard pile and Exhaust/Tab Right controls were both assigned to rt+rb by default for their controller bindings. After updating you will need to either manually adjust these or press the reset to defaults hotkey (ctrl shift r) to fix it. If this is a fresh install with a new settings file, they will be correct by default.
 * Fixed Ctrl+Shift+R (Reset Bindings) to reset the mod's own keybindings instead of the game's.
+* Fixed an issue where card and relic buffers no longerl isted rarity as part of their first item.
+* The card buffer now condenses card name, type, and rarity onto the first line. This is a bit of an experimental change but I found I was able to get to the information I needed much faster. Feedback on this would be appreciated.
 
 ## V0.1.4
 * The Python installer has been replaced with one coded in Rust. This should prevent Windows Defender erroniously flagging the installer as a virus and improve stability of the app overall.

@@ -36,7 +36,7 @@ public class RelicBuffer : Buffer
     {
         var title = model.Title.GetFormattedText();
         var rarity = model.Rarity;
-        if (rarity != RelicRarity.None && rarity != RelicRarity.Starter)
+        if (rarity != RelicRarity.None)
             buffer.Add($"{title}, {rarity}");
         else
             buffer.Add(title);

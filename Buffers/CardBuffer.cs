@@ -35,14 +35,11 @@ public class CardBuffer : Buffer
     /// </summary>
     public static void Populate(Buffer buffer, CardModel model)
     {
-        // Name
-        buffer.Add(model.Title);
-
-        // Type and rarity
-        var typeRarity = model.Type.ToString();
-        if (model.Rarity != CardRarity.Common)
-            typeRarity += $", {model.Rarity}";
-        buffer.Add(typeRarity);
+        // Name, type, and rarity
+        var header = $"{model.Title}, {model.Type}";
+        if (model.Rarity != CardRarity.None)
+            header += $", {model.Rarity}";
+        buffer.Add(header);
 
         // Costs (energy + stars on one line)
         var costs = new System.Collections.Generic.List<string>();
