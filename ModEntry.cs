@@ -76,6 +76,8 @@ public static class ModEntry
         ScreenHooks.Initialize(_harmony);
         CombatNavigationHooks.Initialize(_harmony);
         EventHooks.Initialize(_harmony);
+        VotingHooks.Initialize(_harmony);
+        MultiplayerHooks.Initialize(_harmony);
         CombatEventManager.Initialize();
 
         Log.Info("[AccessibilityMod] Initialized. Custom TTS active.");

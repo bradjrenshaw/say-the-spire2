@@ -356,7 +356,16 @@ public static class EventHooks
 
             if (string.IsNullOrEmpty(description)) return;
 
-            var text = string.IsNullOrEmpty(title) ? description : $"{title}. {description}";
+            var prefix = "";
+            try
+            {
+                var eventModel = EventField?.GetValue(__instance) as MegaCrit.Sts2.Core.Models.EventModel;
+                if (eventModel?.IsShared == true)
+                    prefix = "Shared event. ";
+            }
+            catch { }
+
+            var text = prefix + (string.IsNullOrEmpty(title) ? description : $"{title}. {description}");
             Log.Info($"[AccessibilityMod] Event description: \"{text}\"");
             SpeechManager.Output(Message.Raw(text));
         }

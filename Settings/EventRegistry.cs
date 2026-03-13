@@ -56,5 +56,7 @@ public static class EventRegistry
         Register(typeof(PotionObtainedEvent));
         Register(typeof(OrbEvent));
         Register(typeof(RoomEnteredEvent));
+        Register(typeof(MapVoteEvent));
+        Register(typeof(EventVoteEvent));
     }
 }
