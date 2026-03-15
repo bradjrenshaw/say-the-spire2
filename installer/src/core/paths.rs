@@ -3,6 +3,8 @@ use std::path::PathBuf;
 pub const GITHUB_REPO: &str = "bradjrenshaw/say-the-spire2";
 pub const GITHUB_API_URL: &str =
     "https://api.github.com/repos/bradjrenshaw/say-the-spire2/releases/latest";
+pub const GITHUB_RELEASES_URL: &str =
+    "https://api.github.com/repos/bradjrenshaw/say-the-spire2/releases";
 pub const GAME_DIR_NAME: &str = "Slay the Spire 2";
 
 pub const MOD_FILES: &[&str] = &[

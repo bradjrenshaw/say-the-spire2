@@ -1,17 +1,19 @@
 use serde::Deserialize;
 
-use super::paths::GITHUB_API_URL;
+use super::paths::{GITHUB_API_URL, GITHUB_RELEASES_URL};
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct ReleaseInfo {
     pub tag_name: String,
     #[serde(default)]
     pub body: String,
     #[serde(default)]
+    pub prerelease: bool,
+    #[serde(default)]
     pub assets: Vec<Asset>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Asset {
     pub name: String,
     pub browser_download_url: String,
@@ -35,6 +37,26 @@ pub fn fetch_latest_release() -> Result<ReleaseInfo, String> {
 
     resp.json::<ReleaseInfo>()
         .map_err(|e| format!("Failed to parse release info: {}", e))
+}
+
+pub fn fetch_all_releases() -> Result<Vec<ReleaseInfo>, String> {
+    let client = reqwest::blocking::Client::builder()
+        .user_agent("SayTheSpire2Installer")
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+        .map_err(|e| format!("Failed to create HTTP client: {}", e))?;
+
+    let resp = client
+        .get(GITHUB_RELEASES_URL)
+        .send()
+        .map_err(|e| format!("Failed to connect to GitHub: {}", e))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("GitHub API returned status {}", resp.status()));
+    }
+
+    resp.json::<Vec<ReleaseInfo>>()
+        .map_err(|e| format!("Failed to parse releases: {}", e))
 }
 
 pub fn find_zip_asset(assets: &[Asset]) -> Option<&Asset> {

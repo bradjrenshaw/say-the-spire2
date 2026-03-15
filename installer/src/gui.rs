@@ -9,13 +9,14 @@ use crate::core::{detect, github, install, jaws, settings, uninstall};
 
 struct State {
     release: Option<github::ReleaseInfo>,
+    all_releases: Vec<github::ReleaseInfo>,
 }
 
 pub fn run() {
     wxdragon::main(|_app| {
         let frame = Frame::builder()
             .with_title("SayTheSpire2 Installer")
-            .with_size(Size::new(550, 450))
+            .with_size(Size::new(650, 500))
             .build();
 
         let panel = Panel::builder(&frame).build();
@@ -86,7 +87,7 @@ pub fn run() {
         modify_btn.enable(false);
 
         // Shared state
-        let state = Rc::new(RefCell::new(State { release: None }));
+        let state = Rc::new(RefCell::new(State { release: None, all_releases: Vec::new() }));
 
         // Auto-detect game path
         if let Some(detected) = detect::detect_game_path() {
@@ -102,10 +103,18 @@ pub fn run() {
         }
 
         // Fetch release info (before showing window, so no visible delay)
-        match github::fetch_latest_release() {
-            Ok(info) => {
-                log_append(&log, &format!("Latest version: {}", info.tag_name));
-                state.borrow_mut().release = Some(info);
+        match github::fetch_all_releases() {
+            Ok(releases) => {
+                // First non-prerelease is the "latest"
+                let latest = releases.iter().find(|r| !r.prerelease).cloned();
+                if let Some(ref info) = latest {
+                    log_append(&log, &format!("Latest version: {}", info.tag_name));
+                }
+                {
+                    let mut s = state.borrow_mut();
+                    s.all_releases = releases;
+                    s.release = latest;
+                }
                 let path = PathBuf::from(path_input.get_value());
                 if detect::validate_game_path(&path) {
                     update_state(
@@ -166,15 +175,43 @@ pub fn run() {
             install_btn.on_click(move |_| {
                 let game_path = PathBuf::from(path_input_c.get_value());
                 let borrow = state_c.borrow();
-                let Some(info) = borrow.release.as_ref() else { return };
+                if borrow.all_releases.is_empty() { return; }
 
-                // Show release notes and confirm for updates
+                // Build version list for picker
+                let choices: Vec<String> = borrow.all_releases.iter().map(|r| {
+                    if r.prerelease {
+                        format!("{} (pre-release)", r.tag_name)
+                    } else {
+                        r.tag_name.clone()
+                    }
+                }).collect();
+                let choice_refs: Vec<&str> = choices.iter().map(|s| s.as_str()).collect();
+
+                drop(borrow);
+
+                let dialog = SingleChoiceDialog::builder(
+                    &frame_c,
+                    "Select a version to install:",
+                    "Choose Version",
+                    &choice_refs,
+                )
+                .build();
+
+                if dialog.show_modal() != ID_OK {
+                    return;
+                }
+                let selection = dialog.get_selection();
+                if selection < 0 { return; }
+
+                let borrow = state_c.borrow();
+                let info = &borrow.all_releases[selection as usize];
+
                 let is_update = detect::is_mod_installed(&game_path);
-                if is_update && !info.body.is_empty() {
+                if !info.body.is_empty() {
                     let dialog = MessageDialog::builder(
                         &frame_c,
-                        &format!("Release notes:\n\n{}\n\nProceed?", info.body),
-                        &format!("Update to {}", info.tag_name),
+                        &format!("Release notes for {}:\n\n{}\n\nProceed?", info.tag_name, info.body),
+                        &format!("Install {}", info.tag_name),
                     )
                     .with_style(MessageDialogStyle::YesNo | MessageDialogStyle::IconQuestion)
                     .build();
