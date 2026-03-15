@@ -304,6 +304,14 @@ public static class ScreenHooks
             else
                 ScreenManager.PushScreen(new ChooseACardGameScreen(chooseScreen));
         }
+        else if (screen is NCardRewardSelectionScreen rewardScreen
+            && CardRewardGameScreen.Current == null)
+        {
+            if (CombatScreen.Current != null)
+                CombatScreen.Current.PushChild(new CardRewardGameScreen(rewardScreen));
+            else
+                ScreenManager.PushScreen(new CardRewardGameScreen(rewardScreen));
+        }
         else if (screen is NCrystalSphereScreen crystalScreen
             && CrystalSphereGameScreen.Current == null)
         {
@@ -322,6 +330,11 @@ public static class ScreenHooks
             && ChooseACardGameScreen.Current != null)
         {
             ScreenManager.RemoveFromTree(ChooseACardGameScreen.Current);
+        }
+        else if (screen is NCardRewardSelectionScreen
+            && CardRewardGameScreen.Current != null)
+        {
+            ScreenManager.RemoveFromTree(CardRewardGameScreen.Current);
         }
         else if (screen is NCrystalSphereScreen
             && CrystalSphereGameScreen.Current != null)
