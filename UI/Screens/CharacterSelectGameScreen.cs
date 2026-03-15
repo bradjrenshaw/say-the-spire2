@@ -197,7 +197,7 @@ public class CharacterSelectGameScreen : GameScreen
     {
         var list = new ListContainer
         {
-            ContainerLabel = "Lobby",
+            ContainerLabel = _isMultiplayer ? "Lobby" : "Characters",
             AnnounceName = true,
             AnnouncePosition = true,
         };
