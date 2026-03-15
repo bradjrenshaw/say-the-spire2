@@ -1,5 +1,6 @@
 ## V0.1.5
-* The installer has received significant updates. You can now choose which version of the mod to install (including test releases.) You can also choose to disable screenreader support in the installer itself; this is for sighted players so they can play with you in multiplayer (everyone must have the same mods installed.)
+* The installer has received significant updates and it is highly recommended that you download the new version of it. You can now choose which version of the mod to install (including test releases.) You can also choose to disable screenreader support in the installer itself; this is for sighted players so they can play with you in multiplayer (everyone must have the same mods installed.)
+* Fixed a bug in the installer where it would consider earlier mod versions as updates.
 * Fixed controller bindings: View Exhaust / Tab Right now defaults to just RB (was RT+RB, conflicting with View Discard Pile). Note that if you were using an earlier version of the mod, you must update this binding yourself or reset bindings to defaults.
 * The card buffer now condenses name, type, and rarity onto the first line (e.g. "Strike, Attack, Basic"). Feedback would be appreciated for this one.
 * Added multiplayer lobby accessibility: character select buttons, player list buffer (shows connected players with character and ready status), join/leave/character change announcements, and ready state announcements.
@@ -16,10 +17,11 @@
 * Removed the redundant "Announce All Block Lost" setting; "lost all Block" is now always announced when block hits 0.
 * switching to the events buffer now jumps to the most recent item.
 * Fixed hand card selection screen (e.g. Well Laid Plans retain) to include the selected cards row. You can now arrow down to see selected cards and back up to the hand. Note that these directions are swapped in game too compared to Slay the Spire 1; this isn't a mod bug.
-* Fixed grid position announcements to use (x, y) order instead of (y, x). This should also fix inconsistencies with the Crystal Sphere divination event.
+* Fixed grid position announcements to use coordinate order to (x, y) instead of (y, x). This should also fix inconsistencies with the Crystal Sphere divination event.
 * Refactored the focus system to a centralized update loop, fixing issues where container context wasn't announced when backing out of settings subcategories or when controls moved between containers.
 * Fixed Ctrl+Shift+R (Reset Bindings) to reset the mod's own keybindings instead of the game's.
 * Fixed card and relic buffers not listing rarity on the first item.
+* Fixed certain card selection screens not reading (for example the Dreamcatcher relic card reward)
 
 ## V0.1.4
 * The Python installer has been replaced with one coded in Rust. This should prevent Windows Defender erroniously flagging the installer as a virus and improve stability of the app overall.
