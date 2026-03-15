@@ -659,7 +659,7 @@ fn enable_mods_with_retry(parent: &impl WxWidget, log: &TextCtrl) {
 }
 
 fn parse_version(s: &str) -> Option<semver::Version> {
-    let trimmed = s.strip_prefix('v').unwrap_or(s);
+    let trimmed = s.strip_prefix('v').or_else(|| s.strip_prefix('V')).unwrap_or(s);
     semver::Version::parse(trimmed).ok()
 }
 
