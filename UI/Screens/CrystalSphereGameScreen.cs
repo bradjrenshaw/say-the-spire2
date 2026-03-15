@@ -169,8 +169,6 @@ public class CrystalSphereGameScreen : Screen
             _cells[entity.Y, entity.X] = cell;
 
             var proxy = new ProxyCrystalSphereCell(cell);
-            // Position reads "row+1, col+1" — pass X as row, Y as col
-            // so output is "X, Y" (columns change horizontally, rows vertically)
             _grid.Add(proxy, entity.X, entity.Y);
             _registry[cell] = proxy;
 

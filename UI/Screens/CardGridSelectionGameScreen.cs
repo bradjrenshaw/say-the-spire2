@@ -65,7 +65,7 @@ public class CardGridSelectionGameScreen : GameScreen
                     if (rowList[col] is NGridCardHolder holder)
                     {
                         var proxy = new ProxyCard(holder);
-                        gridContainer.Add(proxy, row, col);
+                        gridContainer.Add(proxy, col, row);
                         Register(holder, proxy);
                     }
                 }
