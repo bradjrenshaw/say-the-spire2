@@ -62,13 +62,15 @@ public static class UIManager
 
         if (_currentElement == null) return;
 
-        // Re-resolve from control each frame to catch container changes
+        // Try to upgrade via screen registry (gives container context for path diffing).
+        // Only replace the current element if the screen actually has it registered —
+        // don't fall back to ProxyFactory which would produce a generic downgrade.
         var element = _currentElement;
         if (_currentControl != null && GodotObject.IsInstanceValid(_currentControl))
         {
-            var resolved = ResolveElement(_currentControl);
-            if (resolved != null)
-                element = resolved;
+            var screenResolved = Screens.ScreenManager.ResolveElement(_currentControl);
+            if (screenResolved != null)
+                element = screenResolved;
         }
 
         // Build announcement via path diffing
