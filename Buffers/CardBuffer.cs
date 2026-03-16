@@ -55,8 +55,11 @@ public class CardBuffer : Buffer
         }
         if (model.HasStarCostX)
             costs.Add("X stars");
-        else if (model.CurrentStarCost > 0)
-            costs.Add($"{model.CurrentStarCost} stars");
+        else if (model.CurrentStarCost >= 0)
+        {
+            try { costs.Add($"{model.GetStarCostWithModifiers()} stars"); }
+            catch { costs.Add($"{model.CurrentStarCost} stars"); }
+        }
         if (costs.Count > 0)
             buffer.Add(string.Join(", ", costs));
 

@@ -90,8 +90,13 @@ public class ProxyCard : ProxyElement
 
         if (model.HasStarCostX)
             parts.Add(verbose ? "X stars" : "X");
-        else if (model.CurrentStarCost > 0)
-            parts.Add(verbose ? $"{model.CurrentStarCost} stars" : $"{model.CurrentStarCost}");
+        else if (model.CurrentStarCost >= 0)
+        {
+            int starCost;
+            try { starCost = model.GetStarCostWithModifiers(); }
+            catch { starCost = model.CurrentStarCost; }
+            parts.Add(verbose ? $"{starCost} stars" : $"{starCost}");
+        }
 
         return parts.Count > 0 ? string.Join(", ", parts) : null;
     }
