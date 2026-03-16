@@ -74,6 +74,16 @@ public static class ModEntry
         KeyboardNavHooks.Initialize(_harmony);
         ModalHooks.Initialize(_harmony);
         ScreenHooks.Initialize(_harmony);
+        GameOverHooks.Initialize(_harmony);
+        TimelineHooks.Initialize(_harmony);
+        SettingsScreenHooks.Initialize(_harmony);
+        CardPileHooks.Initialize(_harmony);
+        HandSelectHooks.Initialize(_harmony);
+        OverlayHooks.Initialize(_harmony);
+        LobbyHooks.Initialize(_harmony);
+        MapScreenHooks.Initialize(_harmony);
+        RestSiteHooks.Initialize(_harmony);
+        RunLifecycleHooks.Initialize(_harmony);
         CombatNavigationHooks.Initialize(_harmony);
         EventHooks.Initialize(_harmony);
         VotingHooks.Initialize(_harmony);
