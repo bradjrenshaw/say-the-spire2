@@ -317,7 +317,7 @@ public static class EventHooks
         try
         {
             var field = AccessTools.Field(typeof(NTreasureRoomRelicCollection), "_isEmptyChest");
-            if (field != null && (bool)field.GetValue(__instance))
+            if (field != null && field.GetValue(__instance) is true)
             {
                 var text = new MegaCrit.Sts2.Core.Localization.LocString("gameplay_ui", "TREASURE_EMPTY").GetFormattedText();
                 if (!string.IsNullOrEmpty(text))

@@ -67,6 +67,41 @@ All mod log lines are prefixed with `[AccessibilityMod]`.
 - Does NOT affect Windows Magnifier (pixel-based), high contrast, or sticky keys
 - MUST keep `_wndProcDelegate` reference alive to prevent GC collection
 
+### Architectural Invariants
+
+These rules were discovered through bugs. Check against them before making changes.
+
+**Focus system:**
+- Focus announcing happens ONLY in `UIManager.Update()`, called once per frame. Never announce focus from setters or hooks directly.
+- `SetFocusedControl`/`SetFocusedElement` only store state + set dirty flag. No speech, no buffer updates.
+- Pre-resolved elements (passed to `SetFocusedControl`) must never be downgraded by re-resolve. Only upgrade via screen registry (`ScreenManager.ResolveElement`), never fall back to `ProxyFactory.Create` over a pre-resolved proxy.
+- `FocusContext` is a single global instance in `UIManager`, not per-screen. Path diffing is centralized.
+- Mouse hover must not trigger focus announcements during controller mode. We suppress `CheckForMouseInput` via Harmony to prevent the game from switching back to mouse mode during controller navigation.
+- Disabled `NClickableControl`s have `FocusMode = None` set by the game. We patch `SetEnabled` to restore `FocusMode.All` and use `HasFocus()` fallback in `RefreshFocusPostfix` since `IsFocused` is never true for disabled controls.
+
+**Speech:**
+- `SpeechManager.Output` must NEVER use `interrupt: true`. User preference is to never interrupt existing speech.
+
+**Events:**
+- Events with creature sources use `HasSourceFilter` on their `EventSettingsAttribute`. The `AllowCurrentPlayer/AllowOtherPlayers/AllowEnemies` flags control which sources the game provides visual feedback for — disallowed sources are silently dropped.
+- Power decreased to 0: skip the Decreased event (check `power.Amount > 0`), let the Removed event handle it.
+- Non-stacking powers (`StackType != Counter`) should not show numeric amounts (-1 is misleading).
+
+**Buffers:**
+- `FollowLatest` on a buffer means switching to it jumps to the last item (used by events buffer).
+- `Repopulate()` preserves position. Use stable container/proxy references (not new objects each frame) to avoid path-diffing churn.
+
+**Multiplayer:**
+- All multiplayer event hooks must gate on `IsMultiplayer()` to avoid firing in singleplayer.
+- Local player checks: use `LocalContext.IsMe(creature)` or `player.NetId == LocalContext.NetId`.
+- Player names: `PlatformUtil.GetPlayerName(platform, netId)` with try/catch fallback.
+- The `affects_gameplay: false` manifest field prevents the mod from blocking multiplayer connections.
+
+**Harmony patching (additional):**
+- `NCardHolder` extends `Control`, NOT `NClickableControl`. Focus hooks for card holders use `PatchOnFocus<T>` on specific subclasses that override `OnFocus` (NHandCardHolder, NGridCardHolder, NPreviewCardHolder).
+- `NSelectedHandCardHolder` does NOT override `OnFocus`. Use `FocusEntered` signal connection instead.
+- `NMerchantSlot` extends `Control`, not `NClickableControl`. Has its own `OnFocus` hook.
+
 ### Game's UI Class Hierarchy (key classes)
 - `NClickableControl` - Base for all interactive UI (buttons, cards, relics, etc.)
   - `RefreshFocus()` - private, called on hover and controller focus changes

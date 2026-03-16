@@ -32,6 +32,8 @@ public static class KeyboardNavHooks
                 nameof(ProcessPostfix), isPrefix: false, "NControllerManager._Process");
             PatchSafe(harmony, typeof(NControllerManager), "CheckForControllerInput",
                 nameof(CheckForControllerInputPrefix), isPrefix: true, "NControllerManager.CheckForControllerInput");
+            PatchSafe(harmony, typeof(NControllerManager), "CheckForMouseInput",
+                nameof(CheckForMouseInputPrefix), isPrefix: true, "NControllerManager.CheckForMouseInput");
             Log.Info("[AccessibilityMod] Input hooks patched.");
         }
         catch (Exception e)
@@ -144,6 +146,16 @@ public static class KeyboardNavHooks
     /// event — we handle mode switching ourselves via EnsureFocusMode.
     /// </summary>
     public static bool CheckForControllerInputPrefix()
+    {
+        return !InputManager.InterceptInput;
+    }
+
+    /// <summary>
+    /// Suppress the game's mouse-to-controller mode switching. Without this,
+    /// any mouse movement warps the cursor back on-screen and enables hover-based
+    /// focus, causing erratic focus jumping during controller navigation.
+    /// </summary>
+    public static bool CheckForMouseInputPrefix()
     {
         return !InputManager.InterceptInput;
     }

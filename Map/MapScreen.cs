@@ -15,7 +15,7 @@ public class MapScreen : Screen
     private TreeMapViewer? _viewer;
     private MapPoint? _startPoint;
 
-    public MapScreen(MapPoint startPoint)
+    public MapScreen(MapPoint? startPoint)
     {
         _startPoint = startPoint;
 
