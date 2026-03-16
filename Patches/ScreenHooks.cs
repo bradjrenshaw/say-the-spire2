@@ -160,15 +160,7 @@ public static class ScreenHooks
     private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
         string handlerName, string label, bool isPrefix = false)
     {
-        var method = AccessTools.Method(type, methodName);
-        if (method == null) return;
-
-        var handler = new HarmonyMethod(typeof(ScreenHooks), handlerName);
-        if (isPrefix)
-            harmony.Patch(method, prefix: handler);
-        else
-            harmony.Patch(method, postfix: handler);
-        Log.Info($"[AccessibilityMod] {label} hook patched.");
+        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(ScreenHooks), handlerName, label, isPrefix);
     }
 
     // Core

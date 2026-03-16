@@ -100,18 +100,6 @@ public static class MultiplayerHooks
     private static void PatchIfFound(Harmony harmony, Type type, string methodName,
         string handlerName, string label, bool isPrefix = false)
     {
-        var method = AccessTools.Method(type, methodName);
-        if (method == null)
-        {
-            Log.Error($"[AccessibilityMod] Could not find {type.Name}.{methodName} for {label}!");
-            return;
-        }
-
-        var handler = new HarmonyMethod(typeof(MultiplayerHooks), handlerName);
-        if (isPrefix)
-            harmony.Patch(method, prefix: handler);
-        else
-            harmony.Patch(method, postfix: handler);
-        Log.Info($"[AccessibilityMod] {label} hook patched.");
+        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(MultiplayerHooks), handlerName, label, isPrefix);
     }
 }
