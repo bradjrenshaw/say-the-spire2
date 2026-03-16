@@ -4,6 +4,7 @@ obj/
 *.suo
 .vs/
 .claude/
+!.claude/commands/
 tolk build/
 plan.md
 docs/
