@@ -42,6 +42,15 @@ public static class FocusHooks
         harmony.Patch(refreshFocus, prefix: prefix, postfix: postfix);
         Log.Info("[AccessibilityMod] RefreshFocus hook patched.");
 
+        // Keep disabled controls focusable for accessibility
+        var setEnabled = AccessTools.Method(typeof(NClickableControl), "SetEnabled");
+        if (setEnabled != null)
+        {
+            harmony.Patch(setEnabled,
+                postfix: new HarmonyMethod(typeof(FocusHooks), nameof(SetEnabledPostfix)));
+            Log.Info("[AccessibilityMod] SetEnabled focus override patched.");
+        }
+
         // Patch NSettingsSlider.OnFocus and NPaginator.OnFocus (not NClickableControl subclasses)
         PatchOnFocus<NSettingsSlider>(harmony, nameof(SettingsControlFocusPostfix), "Slider");
         PatchOnFocus<NPaginator>(harmony, nameof(SettingsControlFocusPostfix), "Paginator");
@@ -131,6 +140,13 @@ public static class FocusHooks
         }
     }
 
+    public static void SetEnabledPostfix(NClickableControl __instance, bool enabled)
+    {
+        // Keep disabled controls focusable so screen readers can still read them
+        if (!enabled && __instance.FocusMode == Control.FocusModeEnum.None)
+            __instance.FocusMode = Control.FocusModeEnum.All;
+    }
+
     public static void RefreshFocusPrefix(NClickableControl __instance, out bool __state)
     {
         __state = (bool)IsFocusedProp.GetValue(__instance)!;
@@ -140,6 +156,12 @@ public static class FocusHooks
     {
         bool nowFocused = (bool)IsFocusedProp.GetValue(__instance)!;
         if (nowFocused && !__state)
+        {
+            UIManager.SetFocusedControl(__instance);
+        }
+        // For disabled controls, IsFocused stays false even when Godot gives them focus.
+        // Check Godot's HasFocus() directly as a fallback.
+        else if (!__instance.IsEnabled && __instance.HasFocus())
         {
             UIManager.SetFocusedControl(__instance);
         }

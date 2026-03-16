@@ -23,6 +23,7 @@
 * Fixed card and relic buffers not listing rarity on the first item.
 * Fixed certain card selection screens not reading (for example the Dreamcatcher relic card reward)
 * Grid card selection screens now announce card selected state and how many cards are selected.
+* Fixed various focus issues on the mode select screen, as well as mode buttons lacking tooltips.
 
 ## V0.1.4
 * The Python installer has been replaced with one coded in Rust. This should prevent Windows Defender erroniously flagging the installer as a virus and improve stability of the app overall.

@@ -18,4 +18,25 @@ public class ProxyButton : ProxyElement
     }
 
     public override string? GetTypeKey() => "button";
+
+    public override string? GetStatusString()
+    {
+        // Check if this is a disabled NClickableControl (locked button)
+        if (Control is MegaCrit.Sts2.Core.Nodes.GodotExtensions.NClickableControl ncc && !ncc.IsEnabled)
+            return "Locked";
+        return null;
+    }
+
+    public override string? GetTooltip()
+    {
+        // Look for a Description child (e.g., NSubmenuButton has %Description)
+        var desc = Control.GetNodeOrNull<RichTextLabel>("%Description");
+        if (desc != null)
+        {
+            var text = desc.Text;
+            if (!string.IsNullOrEmpty(text))
+                return StripBbcode(text);
+        }
+        return null;
+    }
 }
