@@ -1,41 +1,8 @@
 ## V0.1.7
-
-### Compatibility
 * Updated mod manifest to new game format (added `id` field). The mod now works with the latest Slay the Spire 2 update.
-
-### Focus System
-* Refactored the focus system to a centralized update loop. Focus announcing now only happens once per frame from a single location, fixing multiple bugs where container context wasn't announced correctly.
-* Fixed disabled/locked buttons (e.g., locked game modes) not being read by the screen reader. They now announce their name, tooltip, and "Locked" status.
-* Suppressed mouse hover from stealing focus during controller navigation. Previously, if the mouse cursor was on screen, it could cause erratic focus jumping.
+* Suppressed mouse hover from stealing focus during keyboard and controller navigation. Previously, if the mouse cursor was on screen, it could cause erratic focus jumping. This could happen even if you didn't have a mouse plugged in or you were using a laptop trackpad for various reasons. Hopefully this fixes the last of the eratic focus issues but please report anything acting oddly.
 * Fixed character select screen container announcing "Lobby" in singleplayer (now says "Characters").
-
-### Card Selection
-* Added support for card reward selection screens (e.g., Dreamcatcher relic). Cards are now announced with position.
-* Card grid selection screens now announce "Selected" for chosen cards and show the total selected count.
-* Map vote announcements now include node coordinates.
-
-### Combat Events
-* Fixed power events: decreasing a power to 0 no longer double-announces (only "lost PowerName" is announced).
-* Non-stacking powers no longer show misleading numeric amounts.
-* Stolen cards (Swipe power) now show in the creature buffer.
-* Removed the redundant "Announce All Block Lost" setting.
-* Star costs now reflect combat modifiers like Void Form.
-
-### Installer
-* Install button now shows a version picker with all releases including pre-releases.
-* Added settings file retry dialog when the game hasn't been launched yet.
-* Fixed version comparison to use proper semver (handles V/v prefix).
-* Installer window resized to 650x500.
-
-### Codebase Health
-* Split ScreenHooks.cs (591 lines) into 10 focused hook files organized by screen responsibility.
-* Extracted CombatCardPileHandlers and CombatCreatureHandlers from CombatScreen.
-* Consolidated duplicated helpers: MultiplayerHelper, HarmonyHelper.PatchIfFound, MapNode.GetPointTypeName.
-* Added error logging to 28 previously silent catch blocks.
-* Added ProxyFactory fallback logging to detect missing proxy types.
-* Documented all critical reflection targets in CLAUDE.md.
-* Added AGENTS.md with code review guidelines and checklists.
-* Unified map coordinates to consistent 0-based format.
+* Fixed an issue where reported map coordinates were inconsistent between various screens (for example multiplayer votes were off by 1 in both x and y.)
 
 ## V0.1.6
 * Emergency fix for a bug introduced in V0.1.5 which caused the shop items to be processed by our mod as generic buttons, making the shop basically unusable.
