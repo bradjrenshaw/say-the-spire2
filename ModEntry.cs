@@ -19,7 +19,7 @@ namespace SayTheSpire2;
 [ModInitializer(nameof(Initialize))]
 public static class ModEntry
 {
-    public const string Version = "0.1.6";
+    public const string Version = "0.1.7";
     public static bool AccessibilityEnabled => Settings.InstallationConfig.ScreenReader;
     private static Harmony? _harmony;
 
