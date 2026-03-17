@@ -1,4 +1,5 @@
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
@@ -33,7 +34,7 @@ public static class MapScreenHooks
             var runState = RunManager.Instance.DebugOnlyGetState();
             currentPoint = runState?.CurrentMapPoint;
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Map current point access failed: {e.Message}"); }
 
         var screen = new MapScreen(currentPoint);
         ScreenManager.PushScreen(screen);

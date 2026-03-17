@@ -77,7 +77,7 @@ public static class VotingHooks
             var nodeName = GetMapPointName(point);
             // Local player's creature as source
             Creature? localCreature = null;
-            try { localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature; } catch { }
+            try { localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature; } catch (Exception e) { Log.Error($"[AccessibilityMod] Local creature lookup failed: {e.Message}"); }
             EventDispatcher.Enqueue(new MapVoteEvent($"Voted for {nodeName}", localCreature));
         }
         catch (Exception e)

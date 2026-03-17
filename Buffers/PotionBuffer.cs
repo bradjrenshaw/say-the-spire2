@@ -1,5 +1,7 @@
+using System;
 using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
@@ -61,6 +63,6 @@ public class PotionBuffer : Buffer
                 }
             }
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Potion hover tips access failed: {e.Message}"); }
     }
 }

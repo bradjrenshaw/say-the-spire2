@@ -127,7 +127,7 @@ public class CardGridSelectionGameScreen : GameScreen
                 }
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Card grid selection label access failed: {e.Message}"); }
 
         return "Card Selection";
     }

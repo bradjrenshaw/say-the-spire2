@@ -1,4 +1,6 @@
+using System;
 using Godot;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Timeline;
 
@@ -44,7 +46,7 @@ public class ProxyEpochSlot : ProxyElement
             if (!string.IsNullOrEmpty(unlockText))
                 return unlockText;
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Epoch slot unlock info failed: {e.Message}"); }
 
         return null;
     }

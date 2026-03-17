@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
@@ -69,7 +71,7 @@ public class RelicBuffer : Buffer
                 }
             }
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic hover tips access failed: {e.Message}"); }
     }
 
     /// <summary>
@@ -88,7 +90,7 @@ public class RelicBuffer : Buffer
                     result.Add(cardTip);
             }
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic card tips access failed: {e.Message}"); }
         return result;
     }
 }

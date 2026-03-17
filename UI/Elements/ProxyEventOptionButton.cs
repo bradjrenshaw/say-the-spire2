@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using SayTheSpire2.Buffers;
 
@@ -128,13 +130,13 @@ public class ProxyEventOptionButton : ProxyElement
                             if (!string.IsNullOrEmpty(relicDesc))
                                 relicBuffer.Add(StripBbcode(relicDesc));
                         }
-                        catch { }
+                        catch (Exception e) { Log.Error($"[AccessibilityMod] Event option relic description failed: {e.Message}"); }
                         if (relicBuffer.Count > 0)
                             buffers.EnableBuffer("relic", true);
                     }
                 }
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Event option hover tips failed: {e.Message}"); }
 
             buffers.EnableBuffer("ui", true);
         }

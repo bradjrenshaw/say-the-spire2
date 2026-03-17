@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Orbs;
 using SayTheSpire2.Buffers;
@@ -86,6 +87,6 @@ public class ProxyOrb : ProxyElement
                 }
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Orb hover tips access failed: {e.Message}"); }
     }
 }

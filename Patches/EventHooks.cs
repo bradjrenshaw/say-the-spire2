@@ -364,7 +364,7 @@ public static class EventHooks
                 if (eventModel?.IsShared == true)
                     prefix = "Shared event. ";
             }
-            catch { }
+            catch (System.Exception e) { Log.Error($"[AccessibilityMod] Event shared status check failed: {e.Message}"); }
 
             var text = prefix + (string.IsNullOrEmpty(title) ? description : $"{title}. {description}");
             Log.Info($"[AccessibilityMod] Event description: \"{text}\"");

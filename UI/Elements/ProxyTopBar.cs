@@ -1,7 +1,9 @@
+using System;
 using System.Reflection;
 using Godot;
 using MegaCrit.sts2.Core.Nodes.TopBar;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
@@ -91,7 +93,7 @@ public class ProxyTopBar : ProxyElement
             if (!string.IsNullOrEmpty(tipDesc))
                 uiBuffer.Add(StripBbcode(tipDesc));
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Top bar tooltip access failed: {e.Message}"); }
 
         buffers.EnableBuffer("ui", true);
         return "ui";

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Godot;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Rewards;
@@ -133,6 +134,6 @@ public class ProxyRewardButton : ProxyElement
                 }
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Reward hover tips access failed: {e.Message}"); }
     }
 }

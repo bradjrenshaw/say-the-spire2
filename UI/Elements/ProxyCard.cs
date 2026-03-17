@@ -1,7 +1,9 @@
+using System;
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
@@ -112,7 +114,7 @@ public class ProxyCard : ProxyElement
             if (!string.IsNullOrEmpty(desc))
                 return StripBbcode(desc);
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card tooltip description failed: {e.Message}"); }
 
         return null;
     }

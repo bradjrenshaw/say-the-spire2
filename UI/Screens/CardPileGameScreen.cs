@@ -63,7 +63,7 @@ public class CardPileGameScreen : GameScreen
         var cardRows = CardRowsField?.GetValue(_grid) as System.Collections.IList;
         int columns = 1;
         try { columns = (int)(ColumnsProperty?.GetValue(_grid) ?? 1); }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Card pile columns access failed: {e.Message}"); }
 
         if (cardRows != null)
         {

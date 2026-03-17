@@ -55,7 +55,7 @@ public class CharacterSelectGameScreen : GameScreen
                 }
             }
         }
-        catch { }
+        catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Character select lobby init failed: {e.Message}"); }
     }
 
     public override void OnPop()
@@ -114,7 +114,7 @@ public class CharacterSelectGameScreen : GameScreen
                         SpeechManager.Output(Message.Raw("No longer ready"));
                 }
             }
-            catch { }
+            catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Multiplayer ready state poll failed: {e.Message}"); }
         }
     }
 
@@ -136,7 +136,7 @@ public class CharacterSelectGameScreen : GameScreen
             // Skip local player changes — handled by polling
             if (player.id == screen.Lobby.LocalPlayer.id) return;
         }
-        catch { }
+        catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Lobby local player check failed: {e.Message}"); }
 
         var name = GetPlayerName(player.id);
         var charName = player.character?.Title?.GetFormattedText() ?? "No character";
@@ -165,7 +165,7 @@ public class CharacterSelectGameScreen : GameScreen
         {
             return MultiplayerHelper.GetPlayerName(playerId, _screen.Lobby?.NetService.Platform);
         }
-        catch { }
+        catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Player name lookup failed: {e.Message}"); }
         return $"Player {playerId}";
     }
 

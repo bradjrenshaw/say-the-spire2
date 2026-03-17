@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -5,6 +6,7 @@ using Godot;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using SayTheSpire2.Buffers;
@@ -111,7 +113,7 @@ public class ProxyCreature : ProxyElement
             if (!string.IsNullOrEmpty(title))
                 return title;
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Intent title lookup failed: {e.Message}"); }
         return intent.IntentType.ToString();
     }
 

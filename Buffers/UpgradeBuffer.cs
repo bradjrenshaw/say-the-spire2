@@ -1,3 +1,4 @@
+using System;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
@@ -67,7 +68,7 @@ public class UpgradeBuffer : Buffer
                 if (!string.IsNullOrEmpty(desc))
                     Add(desc);
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Upgrade description access failed: {e.Message}"); }
         }
         catch (System.Exception e)
         {

@@ -1,6 +1,8 @@
+using System;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
@@ -78,7 +80,7 @@ public class CardBuffer : Buffer
                 if (!string.IsNullOrEmpty(desc))
                     buffer.Add(ProxyElement.StripBbcode(desc));
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Card description fallback failed: {e.Message}"); }
         }
 
         // Enchantment
@@ -100,7 +102,7 @@ public class CardBuffer : Buffer
                 if (enchant.Status == EnchantmentStatus.Disabled)
                     buffer.Add("Enchantment disabled");
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Card enchantment access failed: {e.Message}"); }
         }
 
         // Hover tips (keywords, powers, etc.)
@@ -121,6 +123,6 @@ public class CardBuffer : Buffer
                 }
             }
         }
-        catch { }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card hover tips access failed: {e.Message}"); }
     }
 }

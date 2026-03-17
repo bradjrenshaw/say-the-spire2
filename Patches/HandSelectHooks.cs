@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MegaCrit.Sts2.Core.CardSelection;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
@@ -34,7 +35,7 @@ public static class HandSelectHooks
             if (!string.IsNullOrEmpty(text))
                 label = text;
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Hand select prompt access failed: {e.Message}"); }
 
         var handScreen = new HandSelectGameScreen(__instance, label);
         if (CombatScreen.Current != null)

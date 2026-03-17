@@ -202,7 +202,7 @@ public static class FocusHooks
                     EventDispatcher.Enqueue(new DialogueEvent(null, clean));
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Speech bubble postfix failed: {e.Message}"); }
     }
 
     public static void SpeechBubbleCreaturePostfix(string text, Creature speaker)
@@ -216,7 +216,7 @@ public static class FocusHooks
                     EventDispatcher.Enqueue(new DialogueEvent(speaker.Name, clean));
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Creature speech bubble postfix failed: {e.Message}"); }
     }
 
     public static void MerchantDialoguePostfix(NMerchantDialogue __instance)
@@ -233,7 +233,7 @@ public static class FocusHooks
                     EventDispatcher.Enqueue(new DialogueEvent("Merchant", clean));
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Merchant dialogue postfix failed: {e.Message}"); }
     }
 
     public static void MerchantSlotFocusPostfix(NMerchantSlot __instance)

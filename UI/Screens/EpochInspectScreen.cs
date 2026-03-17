@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Timeline;
@@ -50,7 +51,7 @@ public class EpochInspectScreen : GameScreen
                 if (!string.IsNullOrEmpty(unlockText))
                     parts.Add(Message.StripBbcode(unlockText));
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Epoch unlock text access failed: {e.Message}"); }
 
             if (parts.Count > 0)
             {
@@ -83,7 +84,7 @@ public class EpochInspectScreen : GameScreen
                 if (!string.IsNullOrEmpty(unlockText))
                     parts.Add(Message.StripBbcode(unlockText));
             }
-            catch { }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Epoch paginate unlock text access failed: {e.Message}"); }
 
             if (parts.Count > 0)
             {
