@@ -39,16 +39,16 @@ public class DefaultScreen : Screen
                 Speech.SpeechManager.Output("Mod keybindings reset to defaults.");
                 return true;
             case "mod_settings":
-                OpenModSettings();
+                OpenModMenu();
                 return true;
         }
 
         return false;
     }
 
-    private static void OpenModSettings()
+    private static void OpenModMenu()
     {
-        var screen = new ModSettingsScreen(ModSettings.Root);
+        var screen = new ModMenuScreen();
         ScreenManager.PushScreen(screen);
     }
 }

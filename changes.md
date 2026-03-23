@@ -1,4 +1,5 @@
 ## V0.2.0
+* The mod now has documentation. It can viewed on the github for the latest version [here](https://bradjrenshaw.github.io/say-the-spire2). Alternatively you can select view Documentation from the mod menu.
 * Fixed a number of focus issues with potions and relics outside of combat. The potion slots are now properly treated as separate elements and the relics row now wraps properly.
 * Fixed players in multiplayer missing most information from their buffers.
 * Fixed the hand card selection screen not wrapping horizontally.

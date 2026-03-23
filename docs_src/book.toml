@@ -1,0 +1,5 @@
+[book]
+authors = ["bradjrenshaw"]
+language = "en"
+src = "src"
+title = "Say the Spire 2 Documentation"

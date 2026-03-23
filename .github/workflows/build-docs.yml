@@ -1,0 +1,32 @@
+name: Setup Docs Site
+run-name: ${{ github.actor }} is generating docs for github pages.
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: peaceiris/actions-mdbook@v1
+      - run: cp ./changes.md ./docs_src/src/
+      - name: generate-docs
+        working-directory: ./docs_src
+        run: mdbook build
+      - uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./docs_src/book
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v1
