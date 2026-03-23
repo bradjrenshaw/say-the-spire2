@@ -101,6 +101,8 @@ public static class ProxyFactory
                 return new ProxyCard(control);
             if (current is NCreature)
                 return new ProxyCreature(control);
+            if (current is MegaCrit.Sts2.Core.Nodes.Multiplayer.NMultiplayerPlayerState playerState)
+                return new ProxyMultiplayerPlayerState(control, playerState);
             current = current.GetParent();
         }
         return null;

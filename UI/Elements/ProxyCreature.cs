@@ -86,6 +86,19 @@ public class ProxyCreature : ProxyElement
         if (LocalContext.IsMe(entity))
             return "player";
 
+        // If this is another player in multiplayer, bind the player buffer to them
+        if (entity.IsPlayer && entity.Player != null)
+        {
+            var playerBuffer = buffers.GetBuffer("player") as PlayerBuffer;
+            if (playerBuffer != null)
+            {
+                playerBuffer.Bind(entity.Player);
+                playerBuffer.Update();
+                buffers.EnableBuffer("player", true);
+            }
+            return "player";
+        }
+
         var creatureBuffer = buffers.GetBuffer("creature") as CreatureBuffer;
         if (creatureBuffer != null)
         {

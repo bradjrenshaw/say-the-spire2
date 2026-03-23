@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
@@ -8,7 +9,24 @@ namespace SayTheSpire2.Buffers;
 
 public class PlayerBuffer : Buffer
 {
+    private Player? _boundPlayer;
+
     public PlayerBuffer() : base("player") { }
+
+    /// <summary>
+    /// Bind to a specific player (e.g., a remote player in multiplayer).
+    /// Pass null to revert to local player.
+    /// </summary>
+    public void Bind(Player? player)
+    {
+        _boundPlayer = player;
+    }
+
+    protected override void ClearBinding()
+    {
+        _boundPlayer = null;
+        Clear();
+    }
 
     public override void Update()
     {
@@ -21,42 +39,50 @@ public class PlayerBuffer : Buffer
 
         try
         {
-            var runState = RunManager.Instance.DebugOnlyGetState();
-            if (runState == null) return;
-
-            var player = LocalContext.GetMe(runState);
+            var player = _boundPlayer;
+            if (player == null)
+            {
+                var runState = RunManager.Instance.DebugOnlyGetState();
+                if (runState == null) return;
+                player = LocalContext.GetMe(runState);
+            }
             if (player == null) return;
 
-            var creature = player.Creature;
-            var pcs = player.PlayerCombatState;
-
-            Add($"HP: {creature.CurrentHp}/{creature.MaxHp}");
-
-            if (creature.Block > 0)
-                Add($"Block: {creature.Block}");
-
-            if (pcs != null)
-                Add(ResourceHelper.GetResourceString(pcs));
-
-            Add($"Gold: {player.Gold}");
-
-            if (pcs != null)
-            {
-                var piles = $"Draw: {pcs.DrawPile.Cards.Count}, Hand: {pcs.Hand.Cards.Count}, Discard: {pcs.DiscardPile.Cards.Count}";
-                if (pcs.ExhaustPile.Cards.Count > 0)
-                    piles += $", Exhaust: {pcs.ExhaustPile.Cards.Count}";
-                Add(piles);
-            }
-
-            if (creature.Powers.Count > 0)
-            {
-                foreach (var power in creature.Powers)
-                    AddPowerToBuffer(this, power);
-            }
+            PopulateForPlayer(player);
         }
         catch
         {
             // Combat state may not be accessible
+        }
+    }
+
+    private void PopulateForPlayer(Player player)
+    {
+        var creature = player.Creature;
+        var pcs = player.PlayerCombatState;
+
+        Add($"HP: {creature.CurrentHp}/{creature.MaxHp}");
+
+        if (creature.Block > 0)
+            Add($"Block: {creature.Block}");
+
+        if (pcs != null)
+            Add(ResourceHelper.GetResourceString(pcs));
+
+        Add($"Gold: {player.Gold}");
+
+        if (pcs != null)
+        {
+            var piles = $"Draw: {pcs.DrawPile.Cards.Count}, Hand: {pcs.Hand.Cards.Count}, Discard: {pcs.DiscardPile.Cards.Count}";
+            if (pcs.ExhaustPile.Cards.Count > 0)
+                piles += $", Exhaust: {pcs.ExhaustPile.Cards.Count}";
+            Add(piles);
+        }
+
+        if (creature.Powers.Count > 0)
+        {
+            foreach (var power in creature.Powers)
+                AddPowerToBuffer(this, power);
         }
     }
 

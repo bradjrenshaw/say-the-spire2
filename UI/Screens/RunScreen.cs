@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+using Godot;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
 using SayTheSpire2.Input;
@@ -18,12 +22,22 @@ public class RunScreen : Screen
 
     private Player? _subscribedPlayer;
 
+    // Containers for position announcements out of combat
+    private readonly UI.Elements.ListContainer _rootContainer = new() { AnnounceName = false, AnnouncePosition = false };
+    private readonly UI.Elements.ListContainer _potionContainer = new() { AnnounceName = false, AnnouncePosition = true };
+    private readonly UI.Elements.ListContainer _relicContainer = new() { AnnounceName = false, AnnouncePosition = true };
+    private readonly Dictionary<Control, UI.Elements.UIElement> _elementCache = new();
+
     public RunScreen()
     {
         ClaimAction("announce_gold");
         ClaimAction("announce_hp");
         ClaimAction("announce_boss");
         ClaimAction("announce_relic_counters");
+
+        _rootContainer.Add(_potionContainer);
+        _rootContainer.Add(_relicContainer);
+        RootElement = _rootContainer;
     }
 
     public override void OnPush()
@@ -46,6 +60,11 @@ public class RunScreen : Screen
             UnsubscribeFromPlayer();
             SubscribeToPlayer();
         }
+
+        // Wire focus navigation for relics/potions when not in combat
+        // (CombatScreen handles its own wiring during combat)
+        if (CombatScreen.Current == null)
+            UpdateTopBarNavigation();
     }
 
     private void SubscribeToPlayer()
@@ -166,6 +185,110 @@ public class RunScreen : Screen
             SpeechManager.Output(Message.Raw("No relic counters"));
         else
             SpeechManager.Output(Message.Raw(string.Join(". ", parts)));
+    }
+
+    public override UI.Elements.UIElement? GetElement(Control control)
+    {
+        return _elementCache.TryGetValue(control, out var element) ? element : null;
+    }
+
+    private UI.Elements.UIElement GetOrCreateElement(Control control)
+    {
+        if (_elementCache.TryGetValue(control, out var element))
+            return element;
+        element = UI.Elements.ProxyFactory.Create(control);
+        _elementCache[control] = element;
+        return element;
+    }
+
+    private void SyncContainer(UI.Elements.ListContainer container, IEnumerable<Control>? controls)
+    {
+        container.Clear();
+        if (controls == null) return;
+        foreach (var control in controls)
+        {
+            if (control != null && GodotObject.IsInstanceValid(control))
+                container.Add(GetOrCreateElement(control));
+        }
+    }
+
+    private void UpdateTopBarNavigation()
+    {
+        try
+        {
+            var globalUi = NRun.Instance?.GlobalUi;
+            if (globalUi == null) return;
+
+            // Collect potion holders
+            var potionHolders = new List<Control>();
+            var potionCtrl = globalUi.TopBar?.PotionContainer;
+            if (potionCtrl != null)
+            {
+                var holdersParent = potionCtrl.GetNodeOrNull("MarginContainer/PotionHolders");
+                if (holdersParent != null)
+                {
+                    foreach (var child in holdersParent.GetChildren())
+                    {
+                        if (child is Control c)
+                            potionHolders.Add(c);
+                    }
+                }
+            }
+
+            // Collect relic holders
+            var relicNodes = globalUi.RelicInventory?.RelicNodes;
+
+            // Sync containers for position announcements
+            SyncContainer(_potionContainer, potionHolders);
+            SyncContainer(_relicContainer, relicNodes?.OfType<Control>());
+
+            // Wire potions: left/right between middle elements only,
+            // leave first/last edges alone (game links them to gold/room icon)
+            for (int i = 0; i < potionHolders.Count; i++)
+            {
+                var self = potionHolders[i].GetPath();
+                if (i > 0)
+                    potionHolders[i].FocusNeighborLeft = potionHolders[i - 1].GetPath();
+                if (i < potionHolders.Count - 1)
+                    potionHolders[i].FocusNeighborRight = potionHolders[i + 1].GetPath();
+                potionHolders[i].FocusNeighborTop = self;
+                // Down goes to first relic if available
+                if (relicNodes != null && relicNodes.Count > 0)
+                {
+                    var firstRelic = relicNodes.FirstOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
+                    if (firstRelic != null)
+                        potionHolders[i].FocusNeighborBottom = firstRelic.GetPath();
+                }
+            }
+
+            // Wire relics: left/right wrapping
+            if (relicNodes != null && relicNodes.Count > 0)
+            {
+                var firstValid = relicNodes.FirstOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
+                var lastValid = relicNodes.LastOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
+                var firstPath = firstValid?.GetPath();
+                var lastPath = lastValid?.GetPath();
+                var firstPotionPath = potionHolders.Count > 0 ? potionHolders[0].GetPath() : null;
+
+                foreach (var relic in relicNodes)
+                {
+                    if (relic == null || !GodotObject.IsInstanceValid(relic)) continue;
+
+                    // Up goes to potions
+                    if (firstPotionPath != null)
+                        relic.FocusNeighborTop = firstPotionPath;
+
+                    // Leave FocusNeighborBottom alone — game sets it to current screen content
+
+                    // Wrap left/right
+                    if (relic == firstValid && lastPath != null)
+                        relic.FocusNeighborLeft = lastPath;
+                    if (relic == lastValid && firstPath != null)
+                        relic.FocusNeighborRight = firstPath;
+                }
+            }
+        }
+        catch { }
     }
 
     private Player? GetLocalPlayer()

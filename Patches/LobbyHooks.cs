@@ -15,6 +15,9 @@ public static class LobbyHooks
             nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
         PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuClosed",
             nameof(CharacterSelectClosedPostfix), "CharacterSelect OnSubmenuClosed");
+        // CleanUpLobby is called when a run starts (bypasses OnSubmenuClosed)
+        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "CleanUpLobby",
+            nameof(CharacterSelectClosedPostfix), "CharacterSelect CleanUpLobby");
 
         // Multiplayer lobby hooks (IStartRunLobbyListener on NCharacterSelectScreen)
         PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerConnected",

@@ -1,3 +1,9 @@
+## V0.2.0
+* Fixed a number of focus issues with potions and relics outside of combat. The potion slots are now properly treated as separate elements and the relics row now wraps properly.
+* Fixed players in multiplayer missing most information from their buffers.
+* Fixed the hand card selection screen not wrapping horizontally.
+* Fixed a bug where the character select screen was not properly removed from memory when it was closed, leading to a number of focus issues when attempting to start more than one run in a single session. Again. I think for real this time.
+
 ## V0.1.7
 * Updated mod manifest to new game format (added `id` field). The mod now works with the latest Slay the Spire 2 update.
 * Suppressed mouse hover from stealing focus during keyboard and controller navigation. Previously, if the mouse cursor was on screen, it could cause erratic focus jumping. This could happen even if you didn't have a mouse plugged in or you were using a laptop trackpad for various reasons. Hopefully this fixes the last of the eratic focus issues but please report anything acting oddly.

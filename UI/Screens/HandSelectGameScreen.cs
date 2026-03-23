@@ -96,8 +96,8 @@ public class HandSelectGameScreen : GameScreen
         for (int i = 0; i < handHolders.Count; i++)
         {
             var self = handHolders[i].GetPath();
-            handHolders[i].FocusNeighborLeft = i > 0 ? handHolders[i - 1].GetPath() : self;
-            handHolders[i].FocusNeighborRight = i < handHolders.Count - 1 ? handHolders[i + 1].GetPath() : self;
+            handHolders[i].FocusNeighborLeft = i > 0 ? handHolders[i - 1].GetPath() : handHolders[^1].GetPath();
+            handHolders[i].FocusNeighborRight = i < handHolders.Count - 1 ? handHolders[i + 1].GetPath() : handHolders[0].GetPath();
             handHolders[i].FocusNeighborTop = self;
             handHolders[i].FocusNeighborBottom = selectedHolders.Count > 0 ? selectedHolders[0].GetPath() : self;
         }
@@ -105,8 +105,8 @@ public class HandSelectGameScreen : GameScreen
         for (int i = 0; i < selectedHolders.Count; i++)
         {
             var self = selectedHolders[i].GetPath();
-            selectedHolders[i].FocusNeighborLeft = i > 0 ? selectedHolders[i - 1].GetPath() : self;
-            selectedHolders[i].FocusNeighborRight = i < selectedHolders.Count - 1 ? selectedHolders[i + 1].GetPath() : self;
+            selectedHolders[i].FocusNeighborLeft = i > 0 ? selectedHolders[i - 1].GetPath() : selectedHolders[^1].GetPath();
+            selectedHolders[i].FocusNeighborRight = i < selectedHolders.Count - 1 ? selectedHolders[i + 1].GetPath() : selectedHolders[0].GetPath();
             selectedHolders[i].FocusNeighborTop = handHolders.Count > 0 ? handHolders[0].GetPath() : self;
             selectedHolders[i].FocusNeighborBottom = self;
         }
