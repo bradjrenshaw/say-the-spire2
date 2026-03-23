@@ -126,7 +126,7 @@ public class PlayerBuffer : Buffer
                     }
                     var cardName = cardTip.Card?.Title;
                     if (!string.IsNullOrEmpty(cardName))
-                        buffer.Add($"Stolen card: {cardName}");
+                        buffer.Add(cardName);
                 }
             }
             if (first)

@@ -3,6 +3,7 @@
 * Fixed players in multiplayer missing most information from their buffers.
 * Fixed the hand card selection screen not wrapping horizontally.
 * Fixed a bug where the character select screen was not properly removed from memory when it was closed, leading to a number of focus issues when attempting to start more than one run in a single session. Again. I think for real this time.
+* Fixed an issue where all card hover tips in buffers were reported as "stolen card".
 
 ## V0.1.7
 * Updated mod manifest to new game format (added `id` field). The mod now works with the latest Slay the Spire 2 update.
