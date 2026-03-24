@@ -6,6 +6,12 @@ public abstract class Setting
     public string Label { get; }
     public CategorySetting? Parent { get; internal set; }
 
+    /// <summary>
+    /// Lower values sort first. Settings are sorted by priority, then alphabetically within each level.
+    /// Default is 0.
+    /// </summary>
+    public int SortPriority { get; set; }
+
     protected Setting(string key, string label)
     {
         Key = key;

@@ -140,7 +140,7 @@ public class ModSettingsScreen : Screen
 
     private void BuildControls()
     {
-        foreach (var setting in _category.Children.OrderBy(s => s.Label))
+        foreach (var setting in _category.Children.OrderBy(s => s.SortPriority).ThenBy(s => s.Label))
         {
             switch (setting)
             {

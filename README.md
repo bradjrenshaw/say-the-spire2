@@ -115,3 +115,4 @@ When you focus a map node, the mod's map viewer activates. The map is presented 
 I would like to thank everyone who has tested the mod so far, the feedback has been invaluable and the mod is much better as a result. I woud also like to thank those who have directly contributed to the mod:
 
 * Rashad Naqeeb for contributing the Jaws configuration files
+* QgSama for contributing the Simplified Chinese localization.

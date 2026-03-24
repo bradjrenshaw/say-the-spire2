@@ -1,5 +1,6 @@
 ## V0.2.0
 * The mod now has documentation. It can be viewed on the github for the latest version [here](https://bradjrenshaw.github.io/say-the-spire2). Alternatively you can select view Documentation from the mod menu.
+* The mod now has a Simplified Chinese localization (thanks to QgSama.) Note that not all text is localized; more text will be localizable in future mod updates.
 * Fixed a number of focus issues with potions and relics outside of combat. The potion slots are now properly treated as separate elements and the relics row now wraps properly.
 * Fixed players in multiplayer missing most information from their buffers.
 * Fixed the hand card selection screen not wrapping horizontally.
@@ -8,7 +9,7 @@
 * Implemented missing events for Card Played, Potion Used, and End Turn. These default to not reading for the player but reading for other players; this can be configured from event settings.
 * You can now press confirm or select on a player in multiplayer to open their expanded screen. this displays their hand, relics, and potions.
 * Fixed an issue where power gained announcements for stackless powers (such as Shrink) would not trigger.
-* The mod now has a Simplified chinese localization (thanks to QgSama)
+* Fixed an issue where certain settings in the settings menu were listed in the wrong order (such as the speech handler selection.)
 
 ## V0.1.7
 * Updated mod manifest to new game format (added `id` field). The mod now works with the latest Slay the Spire 2 update.
