@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 
@@ -13,6 +14,8 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
         AccessTools.Field(typeof(NRunHistoryPlayerIcon), "_ascensionLabel");
     private static readonly FieldInfo? AchievementLockField =
         AccessTools.Field(typeof(NRunHistoryPlayerIcon), "_achievementLock");
+    private static readonly FieldInfo? HoverTipsField =
+        AccessTools.Field(typeof(NRunHistoryPlayerIcon), "_hoverTips");
 
     public ProxyRunHistoryPlayerIcon(Control control) : base(control) { }
 
@@ -45,5 +48,30 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
             parts.Add("Achievements locked");
 
         return parts.Count > 0 ? string.Join(", ", parts) : null;
+    }
+
+    public string? GetExpandedDetails()
+    {
+        var icon = Icon;
+        if (icon == null)
+            return null;
+
+        var parts = new List<string>();
+        var hoverTips = HoverTipsField?.GetValue(icon) as IEnumerable<IHoverTip>;
+        if (hoverTips != null)
+        {
+            foreach (var tip in hoverTips)
+            {
+                if (tip is HoverTip hoverTip)
+                {
+                    if (!string.IsNullOrWhiteSpace(hoverTip.Title))
+                        parts.Add(hoverTip.Title.Trim());
+                    if (!string.IsNullOrWhiteSpace(hoverTip.Description))
+                        parts.Add(ProxyElement.StripBbcode(hoverTip.Description).Replace('\n', ' ').Trim());
+                }
+            }
+        }
+
+        return parts.Count > 0 ? string.Join(". ", parts) : null;
     }
 }

@@ -67,6 +67,9 @@ public static class ProxyFactory
         if (control is NMapPointHistoryEntry)
             return new ProxyRunHistoryMapPoint(control);
 
+        if (control is NDeckHistoryEntry)
+            return new ProxyDeckHistoryEntry(control);
+
         if (control is NCardPoolFilter)
             return new ProxyCardPoolFilter(control);
 

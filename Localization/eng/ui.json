@@ -68,8 +68,8 @@
   "DAILY_RUN_LEADERBOARD.NO_FRIENDS": "No friends on this leaderboard",
   "DAILY_RUN_LEADERBOARD.SCORE_WARNING": "Score upload warning",
   "DAILY_RUN_LEADERBOARD.SCORE_WARNING_TOOLTIP": "This run will not upload a score to the leaderboard.",
-  "DAILY_RUN_LEADERBOARD.NAV_HELP_WITH_DAY": "Up and down move through entries. Left and right change day. Page Up and Page Down change page.",
-  "DAILY_RUN_LEADERBOARD.NAV_HELP_NO_DAY": "Up and down move through entries. Page Up and Page Down change page.",
+  "DAILY_RUN_LEADERBOARD.NAV_HELP_WITH_DAY": "Up and down move through entries. Left and right change day. Tab left and tab right change page.",
+  "DAILY_RUN_LEADERBOARD.NAV_HELP_NO_DAY": "Up and down move through entries. Tab left and tab right change page.",
   "DAILY_RUN_LEADERBOARD.LOADING_PAGE": "Loading page {page}",
   "DAILY_RUN_LEADERBOARD.PAGE_NO_SCORES": "Page {page}, no scores",
   "DAILY_RUN_LEADERBOARD.PAGE_NO_FRIENDS": "Page {page}, no friends",
@@ -77,5 +77,9 @@
   "DAILY_RUN_LEADERBOARD.ENTRIES": "{count} entries",
   "DAILY_RUN_LEADERBOARD.ENTRY": "Leaderboard entry",
   "DAILY_RUN_LEADERBOARD.RANK_ONLY": "Rank {rank}",
-  "DAILY_RUN_LEADERBOARD.SCORE": "Score {score}"
+  "DAILY_RUN_LEADERBOARD.SCORE": "Score {score}",
+  "DAILY_RUN_LEADERBOARD.PREVIOUS_DAY": "Previous day",
+  "DAILY_RUN_LEADERBOARD.NEXT_DAY": "Next day",
+  "DAILY_RUN_LEADERBOARD.PREVIOUS_PAGE": "Previous page",
+  "DAILY_RUN_LEADERBOARD.NEXT_PAGE": "Next page"
 }

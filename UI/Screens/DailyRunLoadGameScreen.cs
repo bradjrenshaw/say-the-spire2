@@ -14,11 +14,12 @@ using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Speech;
+using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
 
-public class DailyRunLoadGameScreen : Screen
+public class DailyRunLoadGameScreen : GameScreen
 {
     private static readonly FieldInfo? LobbyField =
         AccessTools.Field(typeof(NDailyRunLoadScreen), "_lobby");
@@ -26,22 +27,16 @@ public class DailyRunLoadGameScreen : Screen
     public static DailyRunLoadGameScreen? Current { get; private set; }
 
     private readonly NDailyRunLoadScreen _screen;
-    private readonly NavigableContainer _nav = new()
+    private readonly ListContainer _root = new()
     {
         ContainerLabel = Ui("DAILY_RUN.SCREEN_NAME"),
         AnnounceName = true,
         AnnouncePosition = true,
     };
+    private readonly HashSet<ulong> _connectedControls = new();
+    private string? _stateToken;
 
-    private readonly ActionElement _characterElement;
-    private readonly ActionElement _dateElement;
-    private readonly List<ActionElement> _modifierElements = new();
-    private readonly ActionElement _leaderboardElement;
-    private readonly ActionElement _scoreWarningElement;
-    private readonly ActionElement _embarkElement;
-    private readonly ActionElement _unreadyElement;
-    private readonly ActionElement _backElement;
-
+    private NDailyRunCharacterContainer? _characterContainer;
     private Label? _dateLabel;
     private List<NDailyRunScreenModifier> _modifierControls = new();
     private NDailyRunLeaderboard? _leaderboard;
@@ -49,93 +44,46 @@ public class DailyRunLoadGameScreen : Screen
     private NClickableControl? _embarkButton;
     private NClickableControl? _unreadyButton;
     private NClickableControl? _backButton;
+
     public override string? ScreenName => Ui("DAILY_RUN.SCREEN_NAME");
 
     public DailyRunLoadGameScreen(NDailyRunLoadScreen screen)
     {
         _screen = screen;
-        RootElement = _nav;
-
-        ClaimAction("ui_up");
-        ClaimAction("ui_down");
+        RootElement = _root;
         ClaimAction("ui_accept");
         ClaimAction("ui_select");
         ClaimAction("ui_cancel");
         ClaimAction("mega_pause_and_back");
-
-        _characterElement = new ActionElement(
-            () => GetCharacterLabel(),
-            status: () => GetCharacterStatus());
-        _dateElement = new ActionElement(
-            () => GetDateText() ?? Ui("DAILY_RUN.SAVE_FALLBACK"));
-        for (int i = 0; i < 3; i++)
-        {
-            int index = i;
-            _modifierElements.Add(new ActionElement(
-                () => GetModifierText(index) ?? Ui("DAILY_RUN.MODIFIER", new { index = index + 1 }),
-                isVisible: () => GetModifierVisible(index)));
-        }
-        _leaderboardElement = new ActionElement(
-            () => Ui("DAILY_RUN.LEADERBOARD"),
-            typeKey: () => "button",
-            onActivated: OpenLeaderboard);
-        _scoreWarningElement = new ActionElement(
-            () => new LocString("main_menu_ui", "DAILY_RUN_MENU.NO_UPLOAD_HOVERTIP.title").GetFormattedText(),
-            tooltip: () => new LocString("main_menu_ui", "DAILY_RUN_MENU.NO_UPLOAD_HOVERTIP.description").GetFormattedText(),
-            isVisible: () => _scoreWarning?.Visible == true);
-        _embarkElement = new ActionElement(
-            () => GetEmbarkLabel(),
-            status: () => GetButtonStatus(_embarkButton),
-            typeKey: () => "button",
-            isVisible: () => IsVisible(_embarkButton),
-            onActivated: () => Activate(_embarkButton));
-        _unreadyElement = new ActionElement(
-            () => Ui("DAILY_RUN.CANCEL_READY"),
-            status: () => GetButtonStatus(_unreadyButton),
-            typeKey: () => "button",
-            isVisible: () => IsVisible(_unreadyButton),
-            onActivated: () => Activate(_unreadyButton));
-        _backElement = new ActionElement(
-            () => Ui("DAILY_RUN.BACK"),
-            status: () => GetButtonStatus(_backButton),
-            typeKey: () => "button",
-            isVisible: () => IsVisible(_backButton),
-            onActivated: () => Activate(_backButton));
-
-        _nav.Add(_characterElement);
-        _nav.Add(_dateElement);
-        foreach (var modifier in _modifierElements)
-            _nav.Add(modifier);
-        _nav.Add(_leaderboardElement);
-        _nav.Add(_scoreWarningElement);
-        _nav.Add(_embarkElement);
-        _nav.Add(_unreadyElement);
-        _nav.Add(_backElement);
     }
 
     public override void OnPush()
     {
         Current = this;
         ResolveControls();
-        _nav.FocusFirst();
+        _stateToken = BuildStateToken();
+        base.OnPush();
+        EnsureFocus();
     }
 
     public override void OnPop()
     {
+        base.OnPop();
         if (Current == this) Current = null;
-    }
-
-    public override void OnFocus()
-    {
-        if (_nav.FocusedChild == null || !_nav.FocusedChild.IsVisible)
-            _nav.FocusFirst();
     }
 
     public override void OnUpdate()
     {
         ResolveControls();
-        if (_nav.FocusedChild == null || !_nav.FocusedChild.IsVisible)
-            _nav.FocusFirst();
+        var token = BuildStateToken();
+        if (token != _stateToken)
+        {
+            _stateToken = token;
+            ClearRegistry();
+            BuildRegistry();
+        }
+
+        EnsureFocus();
     }
 
     public override bool OnActionJustPressed(InputAction action)
@@ -144,10 +92,16 @@ public class DailyRunLoadGameScreen : Screen
         {
             case "ui_cancel":
             case "mega_pause_and_back":
+                if (TryCloseLeaderboardChild())
+                    return true;
+
                 Activate(_backButton);
                 return true;
+            case "ui_accept":
+            case "ui_select":
+                return ActivateFocusedControl();
             default:
-                return _nav.HandleAction(action);
+                return false;
         }
     }
 
@@ -200,12 +154,64 @@ public class DailyRunLoadGameScreen : Screen
         SpeechManager.Output(Message.Localized("ui", "DAILY_RUN.NO_LONGER_READY"));
     }
 
+    protected override void BuildRegistry()
+    {
+        _root.Clear();
+
+        RegisterFocusable(_characterContainer, new ActionElement(
+            () => GetCharacterLabel(),
+            status: () => GetCharacterStatus()));
+
+        RegisterFocusable(_dateLabel, new ActionElement(
+            () => GetDateText() ?? Ui("DAILY_RUN.SAVE_FALLBACK")));
+
+        for (int i = 0; i < _modifierControls.Count; i++)
+        {
+            int index = i;
+            RegisterFocusable(_modifierControls[i], new ActionElement(
+                () => GetModifierText(index) ?? Ui("DAILY_RUN.MODIFIER", new { index = index + 1 }),
+                isVisible: () => GetModifierVisible(index)));
+        }
+
+        RegisterFocusable(_leaderboard, new ActionElement(
+            () => Ui("DAILY_RUN.LEADERBOARD"),
+            typeKey: () => "button",
+            status: () => GetLeaderboardStatus(),
+            isVisible: () => _leaderboard?.Visible == true));
+
+        RegisterFocusable(_scoreWarning, new ActionElement(
+            () => new LocString("main_menu_ui", "DAILY_RUN_MENU.NO_UPLOAD_HOVERTIP.title").GetFormattedText(),
+            tooltip: () => new LocString("main_menu_ui", "DAILY_RUN_MENU.NO_UPLOAD_HOVERTIP.description").GetFormattedText(),
+            isVisible: () => _scoreWarning?.Visible == true));
+
+        RegisterFocusable(_embarkButton, new ActionElement(
+            () => Ui("DAILY_RUN.READY"),
+            status: () => GetButtonStatus(_embarkButton),
+            typeKey: () => "button",
+            isVisible: () => IsVisible(_embarkButton)));
+
+        RegisterFocusable(_unreadyButton, new ActionElement(
+            () => Ui("DAILY_RUN.CANCEL_READY"),
+            status: () => GetButtonStatus(_unreadyButton),
+            typeKey: () => "button",
+            isVisible: () => IsVisible(_unreadyButton)));
+
+        RegisterFocusable(_backButton, new ActionElement(
+            () => Ui("DAILY_RUN.BACK"),
+            status: () => GetButtonStatus(_backButton),
+            typeKey: () => "button",
+            isVisible: () => IsVisible(_backButton)));
+
+        WireFocusNeighbors();
+    }
+
     private void ResolveControls()
     {
         if (!GodotObject.IsInstanceValid(_screen))
             return;
 
         _dateLabel ??= _screen.GetNodeOrNull<Label>("%Date");
+        _characterContainer ??= _screen.GetNodeOrNull<NDailyRunCharacterContainer>("%CharacterContainer");
         if (_modifierControls.Count == 0)
         {
             var container = _screen.GetNodeOrNull<Control>("%ModifiersContainer");
@@ -217,6 +223,111 @@ public class DailyRunLoadGameScreen : Screen
         _embarkButton ??= _screen.GetNodeOrNull<NClickableControl>("%ConfirmButton");
         _unreadyButton ??= _screen.GetNodeOrNull<NClickableControl>("%UnreadyButton");
         _backButton ??= _screen.GetNodeOrNull<NClickableControl>("%BackButton");
+    }
+
+    private void RegisterFocusable(Control? control, UIElement element)
+    {
+        if (control == null)
+            return;
+
+        control.FocusMode = Control.FocusModeEnum.All;
+        Register(control, element);
+        ConnectFocusSignal(control, element);
+        _root.Add(element);
+    }
+
+    private void ConnectFocusSignal(Control control, UIElement element)
+    {
+        if (!_connectedControls.Add(control.GetInstanceId()))
+            return;
+
+        control.FocusEntered += () => UIManager.SetFocusedControl(control, element);
+    }
+
+    private void WireFocusNeighbors()
+    {
+        var controls = GetFocusableControls();
+        for (int i = 0; i < controls.Count; i++)
+        {
+            var self = controls[i].GetPath();
+            controls[i].FocusNeighborTop = i > 0 ? controls[i - 1].GetPath() : self;
+            controls[i].FocusNeighborBottom = i < controls.Count - 1 ? controls[i + 1].GetPath() : self;
+            controls[i].FocusNeighborLeft = self;
+            controls[i].FocusNeighborRight = self;
+        }
+    }
+
+    private List<Control> GetFocusableControls()
+    {
+        var controls = new List<Control>();
+        AddIfVisible(controls, _characterContainer);
+        AddIfVisible(controls, _dateLabel);
+        foreach (var modifier in _modifierControls)
+            AddIfVisible(controls, modifier);
+        AddIfVisible(controls, _leaderboard);
+        AddIfVisible(controls, _scoreWarning);
+        AddIfVisible(controls, _embarkButton);
+        AddIfVisible(controls, _unreadyButton);
+        AddIfVisible(controls, _backButton);
+        return controls;
+    }
+
+    private void EnsureFocus()
+    {
+        if (ActiveChild != null)
+            return;
+
+        var focusOwner = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
+        var controls = GetFocusableControls();
+        if (focusOwner != null && controls.Contains(focusOwner))
+            return;
+
+        controls.FirstOrDefault()?.GrabFocus();
+    }
+
+    private bool ActivateFocusedControl()
+    {
+        var focused = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
+        if (focused == null || !_screen.IsAncestorOf(focused))
+            return true;
+
+        if (focused == _leaderboard)
+        {
+            OpenLeaderboard();
+            return true;
+        }
+
+        if (focused is NClickableControl button)
+        {
+            Activate(button);
+            return true;
+        }
+
+        return true;
+    }
+
+    private bool TryCloseLeaderboardChild()
+    {
+        if (ActiveChild is not DailyLeaderboardScreen child)
+            return false;
+
+        RemoveChild(child);
+        if (_leaderboard != null)
+        {
+            var tree = _leaderboard.GetTree();
+            if (tree != null)
+                tree.CreateTimer(0).Timeout += RestoreLeaderboardFocus;
+        }
+        return true;
+    }
+
+    private void RestoreLeaderboardFocus()
+    {
+        if (_leaderboard == null)
+            return;
+
+        _leaderboard.GrabFocus();
+        UIManager.SetFocusedControl(_leaderboard, GetElement(_leaderboard));
     }
 
     private LoadRunLobby? Lobby => LobbyField?.GetValue(_screen) as LoadRunLobby;
@@ -272,20 +383,44 @@ public class DailyRunLoadGameScreen : Screen
         return index >= 0 && index < _modifierControls.Count && _modifierControls[index].Visible;
     }
 
+    private string? GetLeaderboardStatus()
+    {
+        if (_leaderboard == null)
+            return null;
+
+        var dayLabel = _leaderboard.GetNodeOrNull<Label>("%DateLabel")?.Text;
+        return string.IsNullOrWhiteSpace(dayLabel) ? null : dayLabel.Trim();
+    }
+
     private void OpenLeaderboard()
     {
         if (_leaderboard != null)
-            ScreenManager.PushScreen(new DailyLeaderboardScreen(_leaderboard));
-    }
-
-    private string GetEmbarkLabel()
-    {
-        return Ui("DAILY_RUN.READY");
+            PushChild(new DailyLeaderboardScreen(_leaderboard, _leaderboard));
     }
 
     private string GetPlayerName(ulong playerId)
     {
         return MultiplayerHelper.GetPlayerName(playerId, Lobby?.NetService.Platform);
+    }
+
+    private string BuildStateToken()
+    {
+        return string.Join("|",
+            _dateLabel?.Text ?? "",
+            _embarkButton?.Visible ?? false,
+            _embarkButton?.IsEnabled ?? false,
+            _unreadyButton?.Visible ?? false,
+            _unreadyButton?.IsEnabled ?? false,
+            _backButton?.IsEnabled ?? false,
+            _scoreWarning?.Visible ?? false,
+            _modifierControls.Count,
+            string.Join("|", _modifierControls.Select(control => control.Visible ? GetModifierText(_modifierControls.IndexOf(control)) : "")));
+    }
+
+    private static void AddIfVisible(List<Control> controls, Control? control)
+    {
+        if (control != null && control.Visible)
+            controls.Add(control);
     }
 
     private static bool IsVisible(Control? control)

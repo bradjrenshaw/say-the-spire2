@@ -1,6 +1,10 @@
+using System;
+using System.Collections.Generic;
+using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.DailyRun;
 using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
@@ -8,41 +12,54 @@ namespace SayTheSpire2.UI.Screens;
 public class DailyLeaderboardScreen : Screen
 {
     private readonly DailyLeaderboardAdapter _adapter;
-    private readonly NavigableContainer _nav = new()
+    private readonly Control? _returnFocus;
+    private readonly ListContainer _root = new()
     {
         ContainerLabel = Ui("DAILY_RUN.LEADERBOARD"),
         AnnounceName = true,
+        AnnouncePosition = false,
+    };
+    private readonly ListContainer _rows = new()
+    {
+        AnnounceName = false,
         AnnouncePosition = true,
     };
+    private readonly ListContainer _extras = new()
+    {
+        AnnounceName = false,
+        AnnouncePosition = false,
+    };
+    private readonly List<UIElement> _focusables = new();
 
     private string? _lastStateToken;
+    private int _focusedIndex = -1;
 
     public override string? ScreenName => Ui("DAILY_RUN.LEADERBOARD");
 
-    public DailyLeaderboardScreen(NDailyRunLeaderboard leaderboard)
+    public DailyLeaderboardScreen(NDailyRunLeaderboard leaderboard, Control? returnFocus = null)
     {
         _adapter = new DailyLeaderboardAdapter(leaderboard);
-        RootElement = _nav;
+        _returnFocus = returnFocus;
+        _root.Add(_rows);
+        _root.Add(_extras);
+        RootElement = _root;
 
         ClaimAction("ui_up");
         ClaimAction("ui_down");
         ClaimAction("ui_left");
         ClaimAction("ui_right");
-        ClaimAction("daily_leaderboard_prev_page");
-        ClaimAction("daily_leaderboard_next_page");
-        ClaimAction("ui_cancel");
-        ClaimAction("mega_pause_and_back");
+        ClaimAction("ui_accept");
+        ClaimAction("ui_select");
+        ClaimAction("mega_view_deck_and_tab_left");
+        ClaimAction("mega_view_exhaust_pile_and_tab_right");
     }
 
     public override void OnPush()
     {
-        Rebuild(forceFocusFirst: true);
-    }
+        if (_adapter.CurrentPage != 0)
+            _adapter.SetPage(0);
 
-    public override void OnFocus()
-    {
-        if (_nav.FocusedChild == null || !_nav.FocusedChild.IsVisible)
-            _nav.FocusFirst();
+        Rebuild(forceFocusFirst: true);
     }
 
     public override void OnUpdate()
@@ -51,72 +68,173 @@ public class DailyLeaderboardScreen : Screen
         if (token != _lastStateToken)
             Rebuild(forceFocusFirst: false);
 
-        if (_nav.FocusedChild == null || !_nav.FocusedChild.IsVisible)
-            _nav.FocusFirst();
+        EnsureFocus();
     }
 
     public override bool OnActionJustPressed(InputAction action)
     {
         switch (action.Key)
         {
-            case "ui_cancel":
-            case "mega_pause_and_back":
-                ScreenManager.RemoveScreen(this);
-                return true;
+            case "ui_up":
+                return MoveRelative(-1);
+            case "ui_down":
+                return MoveRelative(1);
             case "ui_left":
                 TryChangeDay(-1);
                 return true;
             case "ui_right":
                 TryChangeDay(1);
                 return true;
-            case "daily_leaderboard_prev_page":
-                _adapter.ChangePage(-1);
+            case "ui_accept":
+            case "ui_select":
+                return ActivateFocused();
+            case "mega_view_deck_and_tab_left":
+                if (_adapter.CanPagePrevious())
+                    _adapter.ChangePage(-1);
                 return true;
-            case "daily_leaderboard_next_page":
-                _adapter.ChangePage(1);
+            case "mega_view_exhaust_pile_and_tab_right":
+                if (_adapter.CanPageNext())
+                    _adapter.ChangePage(1);
                 return true;
             default:
-                return _nav.HandleAction(action);
+                return false;
         }
     }
 
     private void Rebuild(bool forceFocusFirst)
     {
-        var previousIndex = _nav.FocusIndex;
-        _nav.Clear();
+        var previousIndex = _focusedIndex;
+
+        _rows.Clear();
+        _extras.Clear();
+        _focusables.Clear();
 
         foreach (var entry in _adapter.GetEntries())
         {
-            _nav.Add(new ActionElement(
+            var element = new ActionElement(
                 () => entry.Label,
-                status: () => entry.Status));
+                status: () => entry.Status);
+            _rows.Add(element);
+            _focusables.Add(element);
         }
 
-        if (_adapter.IsLoading)
+        if (_focusables.Count == 0)
         {
-            _nav.Add(new ActionElement(() => Ui("DAILY_RUN_LEADERBOARD.LOADING_SCORES")));
+            var fallback = new ActionElement(
+                () => GetFallbackLabel(),
+                status: () => _adapter.GetSummary());
+            _extras.Add(fallback);
+            _focusables.Add(fallback);
         }
-        else if (_adapter.HasNoScores)
+
+        AddExtraButton(
+            label: Ui("DAILY_RUN_LEADERBOARD.PREVIOUS_PAGE"),
+            enabled: _adapter.CanPagePrevious(),
+            onActivated: () => _adapter.ChangePage(-1));
+        AddExtraButton(
+            label: Ui("DAILY_RUN_LEADERBOARD.NEXT_PAGE"),
+            enabled: _adapter.CanPageNext(),
+            onActivated: () => _adapter.ChangePage(1));
+
+        if (_adapter.SupportsDayNavigation())
         {
-            _nav.Add(new ActionElement(() => Ui("DAILY_RUN_LEADERBOARD.NO_SCORES")));
-        }
-        else if (_adapter.HasNoFriends)
-        {
-            _nav.Add(new ActionElement(() => Ui("DAILY_RUN_LEADERBOARD.NO_FRIENDS")));
+            AddExtraButton(
+                label: Ui("DAILY_RUN_LEADERBOARD.PREVIOUS_DAY"),
+                enabled: _adapter.CanChangeDayPrevious(),
+                onActivated: () => _adapter.ChangeDay(-1));
+            AddExtraButton(
+                label: Ui("DAILY_RUN_LEADERBOARD.NEXT_DAY"),
+                enabled: _adapter.CanChangeDayNext(),
+                onActivated: () => _adapter.ChangeDay(1));
         }
 
         if (_adapter.HasScoreWarning)
         {
-            _nav.Add(new ActionElement(
+            var warning = new ActionElement(
                 () => Ui("DAILY_RUN_LEADERBOARD.SCORE_WARNING"),
-                tooltip: () => Ui("DAILY_RUN_LEADERBOARD.SCORE_WARNING_TOOLTIP")));
+                tooltip: () => Ui("DAILY_RUN_LEADERBOARD.SCORE_WARNING_TOOLTIP"));
+            _extras.Add(warning);
+            _focusables.Add(warning);
         }
 
         _lastStateToken = _adapter.GetStateToken();
+
         if (forceFocusFirst || previousIndex < 0)
-            _nav.FocusFirst();
-        else
-            _nav.SetFocusIndex(previousIndex);
+        {
+            FocusFirst();
+            return;
+        }
+
+        SetFocusIndex(Math.Min(previousIndex, _focusables.Count - 1));
+    }
+
+    public override void OnPop()
+    {
+        _returnFocus?.CallDeferred(Control.MethodName.GrabFocus);
+    }
+
+    private void AddExtraButton(string label, bool enabled, Action onActivated)
+    {
+        var button = new ActionElement(
+            () => label,
+            status: () => enabled ? null : Ui("DAILY_RUN.DISABLED"),
+            typeKey: () => "button",
+            onActivated: enabled ? onActivated : null);
+        _extras.Add(button);
+        _focusables.Add(button);
+    }
+
+    private void FocusFirst()
+    {
+        if (_focusables.Count == 0)
+            return;
+
+        SetFocusIndex(0);
+    }
+
+    private void EnsureFocus()
+    {
+        if (_focusedIndex < 0 || _focusedIndex >= _focusables.Count)
+            FocusFirst();
+    }
+
+    private bool MoveRelative(int direction)
+    {
+        if (_focusables.Count == 0)
+            return true;
+
+        var target = _focusedIndex < 0
+            ? 0
+            : Math.Clamp(_focusedIndex + direction, 0, _focusables.Count - 1);
+
+        if (target == _focusedIndex)
+            return true;
+
+        SetFocusIndex(target);
+        return true;
+    }
+
+    private void SetFocusIndex(int index)
+    {
+        if (index < 0 || index >= _focusables.Count)
+            return;
+
+        if (_focusedIndex >= 0 && _focusedIndex < _focusables.Count)
+            _focusables[_focusedIndex].Unfocus();
+
+        _focusedIndex = index;
+        UIManager.SetFocusedElement(_focusables[index]);
+    }
+
+    private bool ActivateFocused()
+    {
+        if (_focusedIndex < 0 || _focusedIndex >= _focusables.Count)
+            return false;
+
+        if (_focusables[_focusedIndex] is ActionElement action)
+            return action.Activate();
+
+        return false;
     }
 
     private void TryChangeDay(int delta)
@@ -133,6 +251,18 @@ public class DailyLeaderboardScreen : Screen
 
         if (_adapter.CanChangeDayNext())
             _adapter.ChangeDay(1);
+    }
+
+    private string GetFallbackLabel()
+    {
+        if (_adapter.IsLoading)
+            return Ui("DAILY_RUN_LEADERBOARD.LOADING_SCORES");
+        if (_adapter.HasNoScores)
+            return Ui("DAILY_RUN_LEADERBOARD.NO_SCORES");
+        if (_adapter.HasNoFriends)
+            return Ui("DAILY_RUN_LEADERBOARD.NO_FRIENDS");
+
+        return Ui("DAILY_RUN.LEADERBOARD");
     }
 
     private static string Ui(string key)

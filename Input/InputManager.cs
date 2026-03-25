@@ -164,18 +164,18 @@ public static class InputManager
         _actions.Add(new InputAction("mega_top_panel", "Top Panel", gameAction: "mega_top_panel")
             .AddBinding(Key.T)
             .AddBinding(ControllerInput.X));
-        _actions.Add(new InputAction("mega_select_card_1", "Quick Select 1", gameAction: "mega_select_card_1").AddBinding(Key.Key1));
-        _actions.Add(new InputAction("mega_select_card_2", "Quick Select 2", gameAction: "mega_select_card_2").AddBinding(Key.Key2));
-        _actions.Add(new InputAction("mega_select_card_3", "Quick Select 3", gameAction: "mega_select_card_3").AddBinding(Key.Key3));
-        _actions.Add(new InputAction("mega_select_card_4", "Quick Select 4", gameAction: "mega_select_card_4").AddBinding(Key.Key4));
-        _actions.Add(new InputAction("mega_select_card_5", "Quick Select 5", gameAction: "mega_select_card_5").AddBinding(Key.Key5));
-        _actions.Add(new InputAction("mega_select_card_6", "Quick Select 6", gameAction: "mega_select_card_6").AddBinding(Key.Key6));
-        _actions.Add(new InputAction("mega_select_card_7", "Quick Select 7", gameAction: "mega_select_card_7").AddBinding(Key.Key7));
-        _actions.Add(new InputAction("mega_select_card_8", "Quick Select 8", gameAction: "mega_select_card_8").AddBinding(Key.Key8));
-        _actions.Add(new InputAction("mega_select_card_9", "Quick Select 9", gameAction: "mega_select_card_9").AddBinding(Key.Key9));
-        _actions.Add(new InputAction("mega_select_card_10", "Quick Select 10", gameAction: "mega_select_card_10").AddBinding(Key.Key0));
-        _actions.Add(new InputAction("mega_select_card_11", "Quick Select 11").AddBinding(Key.Minus));
-        _actions.Add(new InputAction("mega_select_card_12", "Quick Select 12").AddBinding(Key.Equal));
+        _actions.Add(new InputAction("mega_select_card_1", "Creature Status 1", gameAction: "mega_select_card_1").AddBinding(Key.Key1));
+        _actions.Add(new InputAction("mega_select_card_2", "Creature Status 2", gameAction: "mega_select_card_2").AddBinding(Key.Key2));
+        _actions.Add(new InputAction("mega_select_card_3", "Creature Status 3", gameAction: "mega_select_card_3").AddBinding(Key.Key3));
+        _actions.Add(new InputAction("mega_select_card_4", "Creature Status 4", gameAction: "mega_select_card_4").AddBinding(Key.Key4));
+        _actions.Add(new InputAction("mega_select_card_5", "Creature Status 5", gameAction: "mega_select_card_5").AddBinding(Key.Key5));
+        _actions.Add(new InputAction("mega_select_card_6", "Creature Status 6", gameAction: "mega_select_card_6").AddBinding(Key.Key6));
+        _actions.Add(new InputAction("mega_select_card_7", "Creature Status 7", gameAction: "mega_select_card_7").AddBinding(Key.Key7));
+        _actions.Add(new InputAction("mega_select_card_8", "Creature Status 8", gameAction: "mega_select_card_8").AddBinding(Key.Key8));
+        _actions.Add(new InputAction("mega_select_card_9", "Creature Status 9", gameAction: "mega_select_card_9").AddBinding(Key.Key9));
+        _actions.Add(new InputAction("mega_select_card_10", "Creature Status 10", gameAction: "mega_select_card_10").AddBinding(Key.Key0));
+        _actions.Add(new InputAction("mega_select_card_11", "Creature Status 11").AddBinding(Key.Minus));
+        _actions.Add(new InputAction("mega_select_card_12", "Creature Status 12").AddBinding(Key.Equal));
         _actions.Add(new InputAction("mega_release_card", "Release Card", gameAction: "mega_release_card").AddBinding(Key.Down));
     }
 
@@ -222,8 +222,6 @@ public static class InputManager
         _actions.Add(new InputAction("announce_combatant_intent_10", "Combatant Intent 10").AddBinding(Key.Key0, shift: true));
         _actions.Add(new InputAction("announce_combatant_intent_11", "Combatant Intent 11").AddBinding(Key.Minus, shift: true));
         _actions.Add(new InputAction("announce_combatant_intent_12", "Combatant Intent 12").AddBinding(Key.Equal, shift: true));
-        _actions.Add(new InputAction("daily_leaderboard_prev_page", "Leaderboard Previous Page").AddBinding(Key.Pageup));
-        _actions.Add(new InputAction("daily_leaderboard_next_page", "Leaderboard Next Page").AddBinding(Key.Pagedown));
     }
 
     /// <summary>

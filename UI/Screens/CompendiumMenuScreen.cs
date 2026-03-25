@@ -1,7 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.MainMenu;
-using SayTheSpire2.Input;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
@@ -9,13 +8,13 @@ namespace SayTheSpire2.UI.Screens;
 public class CompendiumMenuScreen : GameScreen
 {
     private readonly NCompendiumSubmenu _screen;
-    private readonly NavigableContainer _root = new()
+    private readonly ListContainer _root = new()
     {
         ContainerLabel = "Compendium",
         AnnounceName = true,
         AnnouncePosition = true,
     };
-    private NClickableControl? _backButton;
+    private readonly System.Collections.Generic.List<NClickableControl> _buttons = new();
 
     public override string? ScreenName => "Compendium";
 
@@ -23,62 +22,43 @@ public class CompendiumMenuScreen : GameScreen
     {
         _screen = screen;
         RootElement = _root;
-        ClaimAction("ui_left");
-        ClaimAction("ui_right");
-        ClaimAction("ui_up");
-        ClaimAction("ui_down");
-        ClaimAction("ui_accept");
-        ClaimAction("ui_select");
-    }
-
-    public override void OnPush()
-    {
-        base.OnPush();
-        _root.FocusFirst();
-    }
-
-    public override bool OnActionJustPressed(InputAction action)
-    {
-        return action.Key switch
-        {
-            "ui_right" or "ui_down" => _root.MoveRelative(1),
-            "ui_left" or "ui_up" => _root.MoveRelative(-1),
-            _ => _root.HandleAction(action),
-        };
     }
 
     protected override void BuildRegistry()
     {
         _root.Clear();
-        _backButton = null;
+        _buttons.Clear();
 
         RegisterButton("%CardLibraryButton");
         RegisterButton("%RelicCollectionButton");
         RegisterButton("%PotionLabButton");
         RegisterButton("%StatisticsButton");
         RegisterButton("%RunHistoryButton");
-        RegisterButton("%ConfirmButton", isBack: true);
+        RegisterButton("%ConfirmButton");
+        WireFocusNeighbors();
     }
 
-    private void RegisterButton(string nodePath, bool isBack = false)
+    private void RegisterButton(string nodePath)
     {
         var control = _screen.GetNodeOrNull<NClickableControl>(nodePath);
         if (control == null || !control.Visible)
             return;
 
         var proxy = ProxyFactory.Create(control);
-        var element = new ActionElement(
-            () => proxy.GetLabel(),
-            status: () => proxy.GetStatusString(),
-            tooltip: () => proxy.GetTooltip(),
-            typeKey: () => proxy.GetTypeKey(),
-            extras: () => proxy.GetExtrasString(),
-            isVisible: () => proxy.IsVisible,
-            onActivated: () => control.EmitSignal(NClickableControl.SignalName.Released, control));
-        _root.Add(element);
-        Register(control, element);
+        _root.Add(proxy);
+        _buttons.Add(control);
+        Register(control, proxy);
+    }
 
-        if (isBack)
-            _backButton = control;
+    private void WireFocusNeighbors()
+    {
+        for (int i = 0; i < _buttons.Count; i++)
+        {
+            var self = _buttons[i].GetPath();
+            _buttons[i].FocusNeighborTop = i > 0 ? _buttons[i - 1].GetPath() : self;
+            _buttons[i].FocusNeighborBottom = i < _buttons.Count - 1 ? _buttons[i + 1].GetPath() : self;
+            _buttons[i].FocusNeighborLeft = self;
+            _buttons[i].FocusNeighborRight = self;
+        }
     }
 }

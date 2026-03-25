@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.StatsScreen;
 using SayTheSpire2.Input;
+using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
@@ -10,7 +11,7 @@ namespace SayTheSpire2.UI.Screens;
 public class StatsGameScreen : GameScreen
 {
     private readonly NStatsScreen _screen;
-    private readonly NavigableContainer _root = new()
+    private readonly ListContainer _root = new()
     {
         ContainerLabel = "Statistics",
         AnnounceName = true,
@@ -28,15 +29,12 @@ public class StatsGameScreen : GameScreen
         RootElement = _root;
         ClaimAction("ui_left");
         ClaimAction("ui_right");
-        ClaimAction("ui_up");
-        ClaimAction("ui_down");
     }
 
     public override void OnPush()
     {
         base.OnPush();
         _stateToken = BuildStateToken();
-        _root.FocusFirst();
     }
 
     public override void OnPop()
@@ -57,16 +55,12 @@ public class StatsGameScreen : GameScreen
         _stateToken = token;
         ClearRegistry();
         BuildRegistry();
-        if (_root.FocusedChild == null || !_root.FocusedChild.IsVisible)
-            _root.FocusFirst();
     }
 
     public override bool OnActionJustPressed(InputAction action)
     {
         return action.Key switch
         {
-            "ui_down" => _root.MoveRelative(1),
-            "ui_up" => _root.MoveRelative(-1),
             "ui_right" => MoveFocusedValue(1),
             "ui_left" => MoveFocusedValue(-1),
             _ => false,
@@ -83,6 +77,7 @@ public class StatsGameScreen : GameScreen
 
         RegisterOverallStats(grid);
         RegisterCharacterStats(grid);
+        WireFocusNeighbors();
     }
 
     private void RegisterOverallStats(NGeneralStatsGrid grid)
@@ -173,12 +168,34 @@ public class StatsGameScreen : GameScreen
 
     private bool MoveFocusedValue(int delta)
     {
-        if (_root.FocusedChild is not StatsValueElement element)
+        var focused = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
+        if (focused == null || !_screen.IsAncestorOf(focused))
+            return true;
+
+        if (GetElement(focused) is not StatsValueElement element)
             return true;
 
         if (element.MoveValue(delta))
-            UIManager.SetFocusedElement(element);
+            UIManager.SetFocusedControl(focused, element);
 
         return true;
+    }
+
+    private void WireFocusNeighbors()
+    {
+        var controls = GetRegisteredControls()
+            .Select(pair => pair.Key)
+            .OfType<NStatEntry>()
+            .Where(control => control.Visible)
+            .ToList();
+
+        for (int i = 0; i < controls.Count; i++)
+        {
+            var self = controls[i].GetPath();
+            controls[i].FocusNeighborTop = i > 0 ? controls[i - 1].GetPath() : self;
+            controls[i].FocusNeighborBottom = i < controls.Count - 1 ? controls[i + 1].GetPath() : self;
+            controls[i].FocusNeighborLeft = self;
+            controls[i].FocusNeighborRight = self;
+        }
     }
 }

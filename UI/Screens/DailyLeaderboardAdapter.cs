@@ -120,6 +120,18 @@ internal sealed class DailyLeaderboardAdapter
         return results;
     }
 
+    public IReadOnlyList<NDailyRunLeaderboardRow> GetRowControls()
+    {
+        var scoreContainer = ScoreContainerField?.GetValue(_leaderboard) as VBoxContainer;
+        if (scoreContainer == null)
+            return Array.Empty<NDailyRunLeaderboardRow>();
+
+        return scoreContainer.GetChildren()
+            .OfType<NDailyRunLeaderboardRow>()
+            .Where(row => (bool?)RowIsHeaderField?.GetValue(row) != true)
+            .ToList();
+    }
+
     public bool CanPagePrevious()
     {
         return IsEnabled(LeftArrowField?.GetValue(_leaderboard) as NClickableControl);
@@ -139,6 +151,14 @@ internal sealed class DailyLeaderboardAdapter
         SetPageMethod.Invoke(_leaderboard, new object[] { target });
     }
 
+    public void SetPage(int page)
+    {
+        if (SetPageMethod == null)
+            return;
+
+        SetPageMethod.Invoke(_leaderboard, new object[] { Math.Max(0, page) });
+    }
+
     public bool CanChangeDayPrevious()
     {
         var paginator = PaginatorField?.GetValue(_leaderboard) as NLeaderboardDayPaginator;
@@ -156,6 +176,20 @@ internal sealed class DailyLeaderboardAdapter
         var paginator = PaginatorField?.GetValue(_leaderboard) as NLeaderboardDayPaginator;
         return IsVisible(PaginatorLeftArrowField?.GetValue(paginator) as Control)
             || IsVisible(PaginatorRightArrowField?.GetValue(paginator) as Control);
+    }
+
+    public NClickableControl? GetPreviousPageControl() => LeftArrowField?.GetValue(_leaderboard) as NClickableControl;
+    public NClickableControl? GetNextPageControl() => RightArrowField?.GetValue(_leaderboard) as NClickableControl;
+    public NClickableControl? GetPreviousDayControl()
+    {
+        var paginator = PaginatorField?.GetValue(_leaderboard) as NLeaderboardDayPaginator;
+        return PaginatorLeftArrowField?.GetValue(paginator) as NClickableControl;
+    }
+
+    public NClickableControl? GetNextDayControl()
+    {
+        var paginator = PaginatorField?.GetValue(_leaderboard) as NLeaderboardDayPaginator;
+        return PaginatorRightArrowField?.GetValue(paginator) as NClickableControl;
     }
 
     public void ChangeDay(int delta)
