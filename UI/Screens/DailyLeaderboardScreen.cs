@@ -33,6 +33,8 @@ public class DailyLeaderboardScreen : Screen
 
     private string? _lastStateToken;
     private int _focusedIndex = -1;
+    private bool _pendingDayFocus;
+    private bool _pendingPageFocus;
 
     public override string? ScreenName => Ui("DAILY_RUN.LEADERBOARD");
 
@@ -66,7 +68,30 @@ public class DailyLeaderboardScreen : Screen
     {
         var token = _adapter.GetStateToken();
         if (token != _lastStateToken)
-            Rebuild(forceFocusFirst: false);
+        {
+            if (_pendingDayFocus && _adapter.IsLoading)
+            {
+                _lastStateToken = token;
+            }
+            else if (_pendingDayFocus)
+            {
+                Rebuild(forceFocusFirst: true);
+                _pendingDayFocus = false;
+            }
+            else if (_pendingPageFocus && _adapter.IsLoading)
+            {
+                _lastStateToken = token;
+            }
+            else if (_pendingPageFocus)
+            {
+                Rebuild(forceFocusFirst: false, preferredIndex: GetFirstEntryIndex());
+                _pendingPageFocus = false;
+            }
+            else
+            {
+                Rebuild(forceFocusFirst: false);
+            }
+        }
 
         EnsureFocus();
     }
@@ -90,24 +115,38 @@ public class DailyLeaderboardScreen : Screen
                 return ActivateFocused();
             case "mega_view_deck_and_tab_left":
                 if (_adapter.CanPagePrevious())
+                {
+                    _pendingPageFocus = true;
                     _adapter.ChangePage(-1);
+                }
                 return true;
             case "mega_view_exhaust_pile_and_tab_right":
                 if (_adapter.CanPageNext())
+                {
+                    _pendingPageFocus = true;
                     _adapter.ChangePage(1);
+                }
                 return true;
             default:
                 return false;
         }
     }
 
-    private void Rebuild(bool forceFocusFirst)
+    private void Rebuild(bool forceFocusFirst, int? preferredIndex = null)
     {
         var previousIndex = _focusedIndex;
 
         _rows.Clear();
         _extras.Clear();
         _focusables.Clear();
+
+        var dayLabel = _adapter.GetDayLabel();
+        if (!string.IsNullOrWhiteSpace(dayLabel))
+        {
+            var dayElement = new ActionElement(() => dayLabel);
+            _rows.Add(dayElement);
+            _focusables.Add(dayElement);
+        }
 
         foreach (var entry in _adapter.GetEntries())
         {
@@ -165,6 +204,12 @@ public class DailyLeaderboardScreen : Screen
             return;
         }
 
+        if (preferredIndex.HasValue)
+        {
+            SetFocusIndex(Math.Clamp(preferredIndex.Value, 0, _focusables.Count - 1));
+            return;
+        }
+
         SetFocusIndex(Math.Min(previousIndex, _focusables.Count - 1));
     }
 
@@ -190,6 +235,16 @@ public class DailyLeaderboardScreen : Screen
             return;
 
         SetFocusIndex(0);
+    }
+
+    private int GetFirstEntryIndex()
+    {
+        var hasDayLabel = !string.IsNullOrWhiteSpace(_adapter.GetDayLabel());
+        var hasEntries = _adapter.GetEntries().Count > 0;
+        if (hasDayLabel && hasEntries)
+            return 1;
+
+        return 0;
     }
 
     private void EnsureFocus()
@@ -245,12 +300,18 @@ public class DailyLeaderboardScreen : Screen
         if (delta < 0)
         {
             if (_adapter.CanChangeDayPrevious())
+            {
+                _pendingDayFocus = true;
                 _adapter.ChangeDay(-1);
+            }
             return;
         }
 
         if (_adapter.CanChangeDayNext())
+        {
+            _pendingDayFocus = true;
             _adapter.ChangeDay(1);
+        }
     }
 
     private string GetFallbackLabel()
