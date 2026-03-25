@@ -162,7 +162,15 @@ public static class ModEntry
 
     private static void InitializeLocalization()
     {
-        Localization.LocalizationManager.Initialize();
+        var language = "eng";
+        try
+        {
+            var gameLang = MegaCrit.Sts2.Core.Localization.LocManager.Instance?.Language;
+            if (!string.IsNullOrEmpty(gameLang))
+                language = gameLang;
+        }
+        catch { }
+        Localization.LocalizationManager.Initialize(language);
         Localization.Message.LocalizationResolver = Localization.LocalizationManager.Get;
     }
 
