@@ -9,7 +9,6 @@ using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
-using SayTheSpire2.Speech;
 using SayTheSpire2.UI;
 using SayTheSpire2.UI.Elements;
 
@@ -86,22 +85,9 @@ public class RunHistoryGameScreen : GameScreen
             return false;
 
         var focused = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
-        if (focused is NMapPointHistoryEntry point)
-        {
-            var proxy = GetOrCreateMapProxy(point);
-            var details = proxy.GetExpandedDetails();
-            if (!string.IsNullOrWhiteSpace(details))
-                SpeechManager.Output(Message.Raw(details));
-            return true;
-        }
-
         if (focused is NRunHistoryPlayerIcon icon)
         {
             SelectPlayerMethod?.Invoke(_screen, new object[] { icon });
-            var proxy = GetOrCreatePlayerProxy(icon);
-            var details = proxy.GetExpandedDetails();
-            if (!string.IsNullOrWhiteSpace(details))
-                SpeechManager.Output(Message.Raw(details));
             return true;
         }
 

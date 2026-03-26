@@ -10,6 +10,8 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
+using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -45,7 +47,7 @@ public class ProxyRunHistoryMapPoint : ProxyElement
     public override string? GetStatusString()
     {
         var questIcon = QuestIconField?.GetValue(EntryControl) as Control;
-        return questIcon?.Visible == true ? "Quest completed" : null;
+        return questIcon?.Visible == true ? Ui("RUN_HISTORY.QUEST_COMPLETED") : null;
     }
 
     public override string? GetTooltip()
@@ -53,32 +55,58 @@ public class ProxyRunHistoryMapPoint : ProxyElement
         return BuildSummary(includeRoomModel: true);
     }
 
+    public override string? HandleBuffers(BufferManager buffers)
+    {
+        var uiBuffer = buffers.GetBuffer("ui");
+        if (uiBuffer == null)
+            return base.HandleBuffers(buffers);
+
+        uiBuffer.Clear();
+
+        var label = GetLabel();
+        if (!string.IsNullOrWhiteSpace(label))
+            uiBuffer.Add(label);
+
+        var status = GetStatusString();
+        if (!string.IsNullOrWhiteSpace(status))
+            uiBuffer.Add(status);
+
+        var tooltip = GetTooltip();
+        if (!string.IsNullOrWhiteSpace(tooltip))
+            uiBuffer.Add(tooltip);
+
+        var details = GetExpandedDetailItems();
+        foreach (var detail in details)
+            uiBuffer.Add(detail);
+
+        buffers.EnableBuffer("ui", true);
+        return "ui";
+    }
+
     public string? GetExpandedDetails()
+    {
+        var sections = GetExpandedDetailItems();
+        return sections.Count > 0 ? string.Join(". ", sections) : null;
+    }
+
+    private List<string> GetExpandedDetailItems()
     {
         var control = EntryControl;
         var entry = EntryField?.GetValue(control) as MapPointHistoryEntry;
         var player = Player;
         if (control == null || entry == null || player == null)
-            return null;
+            return new List<string>();
 
         var playerEntry = entry.PlayerStats.FirstOrDefault(stat => stat.PlayerId == player.Id);
         if (playerEntry == null)
-            return null;
+            return new List<string>();
 
         var sections = new List<string>();
-        var actions = BuildActionDetails(entry, playerEntry);
-        if (actions.Count > 0)
-            sections.Add("Actions: " + string.Join("; ", actions));
+        sections.AddRange(BuildActionDetails(playerEntry));
+        sections.AddRange(BuildRewardDetails(playerEntry));
+        sections.AddRange(BuildSkippedDetails(playerEntry));
 
-        var rewards = BuildRewardDetails(playerEntry, actions);
-        if (rewards.Count > 0)
-            sections.Add("Rewards: " + string.Join("; ", rewards));
-
-        var skipped = BuildSkippedDetails(playerEntry);
-        if (skipped.Count > 0)
-            sections.Add("Skipped: " + string.Join("; ", skipped));
-
-        return sections.Count > 0 ? string.Join(". ", sections) : null;
+        return sections;
     }
 
     private string? BuildSummary(bool includeRoomModel)
@@ -102,21 +130,21 @@ public class ProxyRunHistoryMapPoint : ProxyElement
                 parts.Add(roomTitle);
         }
 
-        parts.Add($"{playerEntry.CurrentHp}/{playerEntry.MaxHp} HP");
-        parts.Add($"{playerEntry.CurrentGold} gold");
+        parts.Add(Ui("RUN_HISTORY.HP", new { current = playerEntry.CurrentHp, max = playerEntry.MaxHp }));
+        parts.Add(Ui("RUN_HISTORY.GOLD", new { gold = playerEntry.CurrentGold }));
 
         if (playerEntry.DamageTaken > 0)
-            parts.Add($"{playerEntry.DamageTaken} damage taken");
+            parts.Add(Ui("RUN_HISTORY.DAMAGE_TAKEN", new { amount = playerEntry.DamageTaken }));
         if (playerEntry.HpHealed > 0)
-            parts.Add($"{playerEntry.HpHealed} healed");
+            parts.Add(Ui("RUN_HISTORY.HEALED", new { amount = playerEntry.HpHealed }));
         if (playerEntry.MaxHpGained > 0)
-            parts.Add($"{playerEntry.MaxHpGained} max HP gained");
+            parts.Add(Ui("RUN_HISTORY.MAX_HP_GAINED", new { amount = playerEntry.MaxHpGained }));
         if (playerEntry.MaxHpLost > 0)
-            parts.Add($"{playerEntry.MaxHpLost} max HP lost");
+            parts.Add(Ui("RUN_HISTORY.MAX_HP_LOST", new { amount = playerEntry.MaxHpLost }));
         if (room != null && room.TurnsTaken > 0)
-            parts.Add($"{room.TurnsTaken} turns");
+            parts.Add(Ui("RUN_HISTORY.TURNS", new { amount = room.TurnsTaken }));
         if (playerEntry.GoldGained > 0)
-            parts.Add($"{playerEntry.GoldGained} gold gained");
+            parts.Add(Ui("RUN_HISTORY.GOLD_GAINED", new { amount = playerEntry.GoldGained }));
 
         return string.Join(", ", parts.Where(part => !string.IsNullOrWhiteSpace(part)));
     }
@@ -140,93 +168,104 @@ public class ProxyRunHistoryMapPoint : ProxyElement
         return null;
     }
 
-    private static List<string> BuildActionDetails(MapPointHistoryEntry entry, PlayerMapPointHistoryEntry playerEntry)
+    private static List<string> BuildActionDetails(PlayerMapPointHistoryEntry playerEntry)
     {
         var actions = new List<string>();
 
         foreach (var ancient in playerEntry.AncientChoices.Where(choice => choice.WasChosen))
-            actions.Add("Chose " + FormatLocString(ancient.Title));
+            actions.Add(Ui("RUN_HISTORY.CHOSE", new { value = FormatLocString(ancient.Title) }));
         foreach (var ancient in playerEntry.AncientChoices.Where(choice => !choice.WasChosen))
-            actions.Add("Skipped " + FormatLocString(ancient.Title));
+            actions.Add(Ui("RUN_HISTORY.SKIPPED", new { value = FormatLocString(ancient.Title) }));
 
         foreach (var eventChoice in playerEntry.EventChoices)
-            actions.Add("Chose " + FormatEventChoice(eventChoice));
+            actions.Add(Ui("RUN_HISTORY.CHOSE", new { value = FormatEventChoice(eventChoice) }));
 
         foreach (var restSiteChoice in playerEntry.RestSiteChoices)
-            actions.Add("Rest site: " + restSiteChoice.Replace('_', ' '));
+            actions.Add(Ui("RUN_HISTORY.REST_SITE", new { value = restSiteChoice.Replace('_', ' ') }));
 
         foreach (var quest in playerEntry.CompletedQuests)
-            actions.Add("Quest completed: " + FormatValue(SaveUtil.CardOrDeprecated(quest).Title));
+            actions.Add(Ui("RUN_HISTORY.QUEST_COMPLETED_ITEM", new { value = FormatValue(SaveUtil.CardOrDeprecated(quest).Title) }));
 
         foreach (var potion in playerEntry.PotionUsed)
-            actions.Add("Used potion: " + FormatValue(SaveUtil.PotionOrDeprecated(potion).Title));
+            actions.Add(Ui("RUN_HISTORY.USED_POTION", new { value = FormatValue(SaveUtil.PotionOrDeprecated(potion).Title) }));
         foreach (var potion in playerEntry.PotionDiscarded)
-            actions.Add("Removed potion: " + FormatValue(SaveUtil.PotionOrDeprecated(potion).Title));
+            actions.Add(Ui("RUN_HISTORY.REMOVED_POTION", new { value = FormatValue(SaveUtil.PotionOrDeprecated(potion).Title) }));
 
         if (playerEntry.GoldSpent > 0)
-            actions.Add($"{playerEntry.GoldSpent} gold spent");
+            actions.Add(Ui("RUN_HISTORY.GOLD_SPENT", new { amount = playerEntry.GoldSpent }));
         if (playerEntry.GoldLost > 0)
-            actions.Add($"{playerEntry.GoldLost} gold lost");
+            actions.Add(Ui("RUN_HISTORY.GOLD_LOST", new { amount = playerEntry.GoldLost }));
         if (playerEntry.GoldStolen > 0)
-            actions.Add($"{playerEntry.GoldStolen} gold stolen");
+            actions.Add(Ui("RUN_HISTORY.GOLD_STOLEN", new { amount = playerEntry.GoldStolen }));
 
-        return Deduplicate(actions);
+        return actions.Where(value => !string.IsNullOrWhiteSpace(value)).ToList();
     }
 
-    private static List<string> BuildRewardDetails(PlayerMapPointHistoryEntry playerEntry, IReadOnlyCollection<string> actions)
+    private static List<string> BuildRewardDetails(PlayerMapPointHistoryEntry playerEntry)
     {
         var rewards = new List<string>();
         var pickedCardTitles = playerEntry.CardChoices
             .Where(choice => choice.wasPicked)
             .Select(choice => CardModel.FromSerializable(choice.Card).Title)
             .ToHashSet();
+        var chosenTitles = playerEntry.AncientChoices
+            .Where(choice => choice.WasChosen)
+            .Select(choice => FormatLocString(choice.Title))
+            .Where(title => !string.IsNullOrWhiteSpace(title))
+            .ToHashSet();
 
         foreach (var choice in playerEntry.CardChoices.Where(choice => choice.wasPicked))
-            rewards.Add("Picked card: " + CardModel.FromSerializable(choice.Card).Title);
+            rewards.Add(Ui("RUN_HISTORY.PICKED_CARD", new { value = CardModel.FromSerializable(choice.Card).Title }));
 
         foreach (var card in playerEntry.CardsGained)
         {
             var title = CardModel.FromSerializable(card).Title;
             if (!pickedCardTitles.Contains(title))
-                rewards.Add("Obtained card: " + title);
+                rewards.Add(Ui("RUN_HISTORY.OBTAINED_CARD", new { value = title }));
         }
 
         foreach (var relic in playerEntry.RelicChoices.Where(choice => choice.wasPicked))
-            rewards.Add("Obtained relic: " + FormatValue(SaveUtil.RelicOrDeprecated(relic.choice).Title));
+        {
+            var title = FormatValue(SaveUtil.RelicOrDeprecated(relic.choice).Title);
+            // Keep this trim intentionally narrow: only suppress exact "Chose X"
+            // duplicates for chosen relic/potion rewards and exact picked/obtained
+            // card overlaps. Broader dedupe risks hiding distinct outcomes.
+            if (!chosenTitles.Contains(title))
+                rewards.Add(Ui("RUN_HISTORY.OBTAINED_RELIC", new { value = title }));
+        }
 
         foreach (var potion in playerEntry.PotionChoices.Where(choice => choice.wasPicked))
-            rewards.Add("Obtained potion: " + FormatValue(SaveUtil.PotionOrDeprecated(potion.choice).Title));
+        {
+            var title = FormatValue(SaveUtil.PotionOrDeprecated(potion.choice).Title);
+            if (!chosenTitles.Contains(title))
+                rewards.Add(Ui("RUN_HISTORY.OBTAINED_POTION", new { value = title }));
+        }
 
         foreach (var card in playerEntry.CardsRemoved)
-            rewards.Add("Removed card: " + CardModel.FromSerializable(card).Title);
+            rewards.Add(Ui("RUN_HISTORY.REMOVED_CARD", new { value = CardModel.FromSerializable(card).Title }));
         foreach (var relic in playerEntry.RelicsRemoved)
-            rewards.Add("Removed relic: " + FormatValue(SaveUtil.RelicOrDeprecated(relic).Title));
+            rewards.Add(Ui("RUN_HISTORY.REMOVED_RELIC", new { value = FormatValue(SaveUtil.RelicOrDeprecated(relic).Title) }));
 
         foreach (var card in playerEntry.UpgradedCards)
-            rewards.Add("Upgraded: " + FormatValue(SaveUtil.CardOrDeprecated(card).Title));
+            rewards.Add(Ui("RUN_HISTORY.UPGRADED", new { value = FormatValue(SaveUtil.CardOrDeprecated(card).Title) }));
         foreach (var card in playerEntry.DowngradedCards)
-            rewards.Add("Downgraded: " + FormatValue(SaveUtil.CardOrDeprecated(card).Title));
+            rewards.Add(Ui("RUN_HISTORY.DOWNGRADED", new { value = FormatValue(SaveUtil.CardOrDeprecated(card).Title) }));
 
         foreach (var enchantment in playerEntry.CardsEnchanted)
-            rewards.Add($"Enchanted: {CardModel.FromSerializable(enchantment.Card).Title} with {FormatValue(SaveUtil.EnchantmentOrDeprecated(enchantment.Enchantment).Title)}");
+            rewards.Add(Ui("RUN_HISTORY.ENCHANTED", new
+            {
+                card = CardModel.FromSerializable(enchantment.Card).Title,
+                enchantment = FormatValue(SaveUtil.EnchantmentOrDeprecated(enchantment.Enchantment).Title)
+            }));
 
         foreach (var transformation in playerEntry.CardsTransformed)
-            rewards.Add($"Transformed: {CardModel.FromSerializable(transformation.OriginalCard).Title} into {CardModel.FromSerializable(transformation.FinalCard).Title}");
+            rewards.Add(Ui("RUN_HISTORY.TRANSFORMED", new
+            {
+                original = CardModel.FromSerializable(transformation.OriginalCard).Title,
+                final = CardModel.FromSerializable(transformation.FinalCard).Title
+            }));
 
-        rewards = Deduplicate(rewards);
-        var chosenItems = actions
-            .Where(action => action.StartsWith("Chose "))
-            .Select(action => action["Chose ".Length..].Trim())
-            .Where(action => !string.IsNullOrWhiteSpace(action))
-            .ToHashSet();
-
-        if (chosenItems.Count == 0)
-            return rewards;
-
-        // Keep this trim intentionally narrow: only remove exact reward lines that
-        // restate a spoken "Chose X" item. Broader cross-section dedupe risks
-        // hiding meaningful run-history outcomes that are visually distinct.
-        return rewards.Where(reward => !IsRedundantChosenReward(reward, chosenItems)).ToList();
+        return rewards.Where(value => !string.IsNullOrWhiteSpace(value)).ToList();
     }
 
     private static List<string> BuildSkippedDetails(PlayerMapPointHistoryEntry playerEntry)
@@ -234,13 +273,13 @@ public class ProxyRunHistoryMapPoint : ProxyElement
         var skipped = new List<string>();
 
         foreach (var choice in playerEntry.CardChoices.Where(choice => !choice.wasPicked))
-            skipped.Add("Card: " + CardModel.FromSerializable(choice.Card).Title);
+            skipped.Add(Ui("RUN_HISTORY.SKIPPED_CARD", new { value = CardModel.FromSerializable(choice.Card).Title }));
         foreach (var relic in playerEntry.RelicChoices.Where(choice => !choice.wasPicked))
-            skipped.Add("Relic: " + FormatValue(SaveUtil.RelicOrDeprecated(relic.choice).Title));
+            skipped.Add(Ui("RUN_HISTORY.SKIPPED_RELIC", new { value = FormatValue(SaveUtil.RelicOrDeprecated(relic.choice).Title) }));
         foreach (var potion in playerEntry.PotionChoices.Where(choice => !choice.wasPicked))
-            skipped.Add("Potion: " + FormatValue(SaveUtil.PotionOrDeprecated(potion.choice).Title));
+            skipped.Add(Ui("RUN_HISTORY.SKIPPED_POTION", new { value = FormatValue(SaveUtil.PotionOrDeprecated(potion.choice).Title) }));
 
-        return Deduplicate(skipped);
+        return skipped.Where(value => !string.IsNullOrWhiteSpace(value)).ToList();
     }
 
     private static string FormatEventChoice(EventOptionHistoryEntry eventChoice)
@@ -270,37 +309,13 @@ public class ProxyRunHistoryMapPoint : ProxyElement
         };
     }
 
-    private static List<string> Deduplicate(IEnumerable<string> values)
+    private static string Ui(string key, object vars)
     {
-        var result = new List<string>();
-        var seen = new HashSet<string>();
-        foreach (var value in values)
-        {
-            if (string.IsNullOrWhiteSpace(value) || !seen.Add(value))
-                continue;
-            result.Add(value);
-        }
-
-        return result;
+        return Message.Localized("ui", key, vars).Resolve();
     }
 
-    private static bool IsRedundantChosenReward(string reward, HashSet<string> chosenItems)
+    private static string Ui(string key)
     {
-        foreach (var prefix in new[]
-                 {
-                     "Obtained relic: ",
-                     "Obtained potion: ",
-                     "Picked card: ",
-                     "Obtained card: ",
-                 })
-        {
-            if (!reward.StartsWith(prefix))
-                continue;
-
-            var item = reward[prefix.Length..].Trim();
-            return chosenItems.Contains(item);
-        }
-
-        return false;
+        return LocalizationManager.GetOrDefault("ui", key, key);
     }
 }
