@@ -15,9 +15,13 @@
   "NAV.COORDINATES": "({col}, {row})",
   "NAV.NODE": "{type} {coordinates}",
   "NAV.NODE_WITH_STATE": "{type} {coordinates}, {state}",
+  "NAV.CURRENT_LOCATION": "You are at {type}, {coordinates}",
+  "NAV.ON_PATH_TO": "on path to {markers}",
+  "NAV.DIVERGES_FROM": "diverges from {markers}",
   "NAV.BRANCH": "path {position} of {total}: {type} {coordinates}",
   "NAV.NO_FORWARD": "No path forward",
   "NAV.NO_BACKWARD": "No path backward",
   "NAV.NO_MORE_BRANCHES": "No more branches",
-  "QUEST_MARKED": "Quest"
+  "QUEST_MARKED": "Quest",
+  "MARKERS.MARKED": "Marked"
 }

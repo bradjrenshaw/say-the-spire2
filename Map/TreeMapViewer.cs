@@ -30,6 +30,12 @@ public class TreeMapViewer : MapViewer
         RefreshSiblings();
     }
 
+    public override string? JumpToNode(MapNode node)
+    {
+        SetStartNode(node);
+        return MapNodeAnnouncementFormatter.DescribeNode(node, Handler, _rowNodes, includeChoicePrefix: true);
+    }
+
     public override string? MoveForward()
     {
         if (Current == null) return null;
@@ -149,7 +155,7 @@ public class TreeMapViewer : MapViewer
 
     public string AnnounceCurrentNode()
     {
-        return AnnounceNode(Current!);
+        return MapNodeAnnouncementFormatter.DescribeNode(Current!, Handler, _rowNodes);
     }
 
     private string AnnounceBackwardNode()
@@ -175,7 +181,7 @@ public class TreeMapViewer : MapViewer
                 if (sb.Length > 0) sb.Append(", ");
                 sb.Append(GetChoiceText());
                 sb.Append(", ");
-                sb.Append(AnnounceNode(Current!));
+                sb.Append(MapNodeAnnouncementFormatter.DescribeNode(Current!, Handler, _rowNodes));
                 break;
             }
 
@@ -255,20 +261,9 @@ public class TreeMapViewer : MapViewer
             sb.Append(GetChoiceText());
             sb.Append(", ");
         }
-        sb.Append(AnnounceNode(visited[^1]));
+        sb.Append(MapNodeAnnouncementFormatter.DescribeNode(visited[^1], Handler, _rowNodes));
 
         return sb.ToString();
-    }
-
-    private static string AnnounceNode(MapNode node)
-    {
-        var state = node.GetStateString();
-        if (state != null)
-        {
-            return Message.Localized("map_nav", "NAV.NODE_WITH_STATE", new { type = node.GetDisplayName(), coordinates = node.GetCoordinatesString(), state }).Resolve();
-        }
-
-        return Message.Localized("map_nav", "NAV.NODE", new { type = node.GetDisplayName(), coordinates = node.GetCoordinatesString() }).Resolve();
     }
 
     private static string GetChoiceText()

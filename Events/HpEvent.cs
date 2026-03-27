@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -13,7 +14,7 @@ public class HpEvent : GameEvent
     public HpEvent(Creature creature, int oldHp, int newHp)
     {
         Source = creature;
-        _creatureName = creature.Name;
+        _creatureName = MultiplayerHelper.GetCreatureName(creature);
         _oldHp = oldHp;
         _newHp = newHp;
     }

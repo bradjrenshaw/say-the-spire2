@@ -213,7 +213,9 @@ public static class FocusHooks
             {
                 var clean = ProxyElement.StripBbcode(text);
                 if (!string.IsNullOrEmpty(clean))
-                    EventDispatcher.Enqueue(new DialogueEvent(speaker.Name, clean));
+                    EventDispatcher.Enqueue(new DialogueEvent(
+                        SayTheSpire2.Multiplayer.MultiplayerHelper.GetCreatureName(speaker),
+                        clean));
             }
         }
         catch (System.Exception e) { Log.Error($"[AccessibilityMod] Creature speech bubble postfix failed: {e.Message}"); }

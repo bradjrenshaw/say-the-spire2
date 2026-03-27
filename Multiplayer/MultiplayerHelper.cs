@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Context;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Platform;
@@ -35,6 +36,23 @@ public static class MultiplayerHelper
     public static string GetPlayerName(Player player)
     {
         return GetPlayerName(player.NetId);
+    }
+
+    /// <summary>
+    /// Get the spoken/display name for a creature.
+    /// In multiplayer, player creatures now expose NetId through Creature.Name,
+    /// so resolve through PlatformUtil instead.
+    /// </summary>
+    public static string GetCreatureName(Creature creature, PlatformType? platform = null)
+    {
+        try
+        {
+            if (creature.IsPlayer && creature.Player != null && !RunManager.Instance.IsSinglePlayerOrFakeMultiplayer)
+                return GetPlayerName(creature.Player.NetId, platform);
+        }
+        catch { }
+
+        return creature.Name;
     }
 
     /// <summary>

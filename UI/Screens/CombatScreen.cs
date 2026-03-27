@@ -235,7 +235,7 @@ public class CombatScreen : Screen
 
         var parts = new List<string>
         {
-            creature.Name,
+            Multiplayer.MultiplayerHelper.GetCreatureName(creature),
             creature.CurrentHp.ToString()
         };
 
@@ -455,13 +455,17 @@ public class CombatScreen : Screen
 
     private void OnPlayerEndedTurn(Player player, bool canBackOut)
     {
-        var name = player.Creature?.Name ?? Multiplayer.MultiplayerHelper.GetPlayerName(player.NetId);
+        var name = player.Creature != null
+            ? Multiplayer.MultiplayerHelper.GetCreatureName(player.Creature)
+            : Multiplayer.MultiplayerHelper.GetPlayerName(player.NetId);
         EventDispatcher.Enqueue(new EndTurnEvent(name, ready: true, player.Creature));
     }
 
     private void OnPlayerUnendedTurn(Player player)
     {
-        var name = player.Creature?.Name ?? Multiplayer.MultiplayerHelper.GetPlayerName(player.NetId);
+        var name = player.Creature != null
+            ? Multiplayer.MultiplayerHelper.GetCreatureName(player.Creature)
+            : Multiplayer.MultiplayerHelper.GetPlayerName(player.NetId);
         EventDispatcher.Enqueue(new EndTurnEvent(name, ready: false, player.Creature));
     }
 

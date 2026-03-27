@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.UI.Elements;
@@ -44,7 +45,7 @@ public class ProxyCreature : ProxyElement
     {
         var entity = GetEntity();
         if (entity == null) return CleanNodeName(Control.Name);
-        return entity.Name;
+        return MultiplayerHelper.GetCreatureName(entity);
     }
 
     public override string? GetTypeKey() => "creature";
@@ -84,7 +85,16 @@ public class ProxyCreature : ProxyElement
 
         // If this is the local player, use the player buffer (always-enabled by RunScreen)
         if (LocalContext.IsMe(entity))
+        {
+            var playerBuffer = buffers.GetBuffer("player") as PlayerBuffer;
+            if (playerBuffer != null)
+            {
+                playerBuffer.Bind(null);
+                playerBuffer.Update();
+                buffers.EnableBuffer("player", true);
+            }
             return "player";
+        }
 
         // If this is another player in multiplayer, bind the player buffer to them
         if (entity.IsPlayer && entity.Player != null)

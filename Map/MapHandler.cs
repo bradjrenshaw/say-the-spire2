@@ -83,6 +83,17 @@ public class MapHandler
         return _nodeMap.TryGetValue(point, out var node) ? node : null;
     }
 
+    public MapNode? GetNode(MapCoord coord)
+    {
+        foreach (var node in _nodeMap.Values)
+        {
+            if (node.Point.coord.Equals(coord))
+                return node;
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Get all nodes at a given row, sorted by column.
     /// </summary>

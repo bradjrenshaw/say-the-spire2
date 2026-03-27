@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -11,7 +12,7 @@ public class DeathEvent : GameEvent
     public DeathEvent(Creature creature)
     {
         Source = creature;
-        _creatureName = creature.Name;
+        _creatureName = MultiplayerHelper.GetCreatureName(creature);
     }
 
     public override string? GetMessage() => $"{_creatureName} died";

@@ -63,6 +63,7 @@ public class BindingSetting : Setting
                 if (parsed != null)
                     _action.AddBinding(parsed);
             }
+
         }
         finally
         {

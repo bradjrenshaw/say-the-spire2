@@ -59,9 +59,9 @@ public static class ModEntry
         _harmony = new Harmony("bradj.SayTheSpire2");
         _harmony.PatchAll(typeof(ModEntry).Assembly);
 
+        InitializeLocalization();
         InitializeSettings();
         InitializeSpeech();
-        InitializeLocalization();
         InitializeBuffers();
         InputManager.Initialize();
         InitializeKeybindingSettings();
@@ -126,12 +126,24 @@ public static class ModEntry
         profiling.Changed += v => Events.EventDispatcher.Profiling = v;
 
         // Map settings
-        var mapCategory = new Settings.CategorySetting("map", "Map");
+        var mapCategory = new Settings.CategorySetting("map", Ui("MAP.SETTINGS.CATEGORY", "Map"));
         Settings.ModSettings.Root.Add(mapCategory);
-        mapCategory.Add(new Settings.BoolSetting("auto_advance", "Automatically Follow Paths until Choice Node", false));
-        mapCategory.Add(new Settings.BoolSetting("auto_advance_backward", "Automatically Follow Paths Backward until Choice Node", false));
-        mapCategory.Add(new Settings.BoolSetting("verbose_backward", "Read Intermediate Nodes on Backward Paths", true));
-        mapCategory.Add(new Settings.BoolSetting("announce_current_on_open", "Announce Current Location When Map Opens", true));
+        mapCategory.Add(new Settings.BoolSetting("auto_advance", Ui("MAP.SETTINGS.AUTO_ADVANCE", "Automatically Follow Paths until Choice Node"), false));
+        mapCategory.Add(new Settings.BoolSetting("auto_advance_backward", Ui("MAP.SETTINGS.AUTO_ADVANCE_BACKWARD", "Automatically Follow Paths Backward until Choice Node"), false));
+        mapCategory.Add(new Settings.BoolSetting("verbose_backward", Ui("MAP.SETTINGS.VERBOSE_BACKWARD", "Read Intermediate Nodes on Backward Paths"), true));
+        mapCategory.Add(new Settings.BoolSetting("announce_current_on_open", Ui("MAP.SETTINGS.ANNOUNCE_CURRENT_ON_OPEN", "Announce Current Location When Map Opens"), true));
+
+        var poiCategory = new Settings.CategorySetting("points_of_interest", Ui("MAP_POI.SETTINGS.CATEGORY", "Points of Interest"));
+        mapCategory.Add(poiCategory);
+        poiCategory.Add(new Settings.BoolSetting("elite", Ui("MAP_POI.SETTINGS.ELITE", "Elite"), true));
+        poiCategory.Add(new Settings.BoolSetting("shop", Ui("MAP_POI.SETTINGS.SHOP", "Shop"), true));
+        poiCategory.Add(new Settings.BoolSetting("treasure", Ui("MAP_POI.SETTINGS.TREASURE", "Treasure"), true));
+        poiCategory.Add(new Settings.BoolSetting("rest_site", Ui("MAP_POI.SETTINGS.REST_SITE", "Rest Site"), false));
+        poiCategory.Add(new Settings.BoolSetting("unknown", Ui("MAP_POI.SETTINGS.UNKNOWN", "Unknown"), false));
+        poiCategory.Add(new Settings.BoolSetting("monster", Ui("MAP_POI.SETTINGS.MONSTER", "Monster"), false));
+        poiCategory.Add(new Settings.BoolSetting("boss", Ui("MAP_POI.SETTINGS.BOSS", "Boss"), false));
+        poiCategory.Add(new Settings.BoolSetting("ancient", Ui("MAP_POI.SETTINGS.ANCIENT", "Ancient"), false));
+        poiCategory.Add(new Settings.BoolSetting("quest_marked", Ui("MAP_POI.SETTINGS.QUEST_MARKED", "Quest Marked"), false));
 
         // Speech handler settings
         var speechCategory = new Settings.CategorySetting("speech", "Speech");
@@ -179,6 +191,11 @@ public static class ModEntry
     private static void InitializeBuffers()
     {
         BufferManager.Instance.RegisterDefaults();
+    }
+
+    private static string Ui(string key, string fallback)
+    {
+        return Localization.LocalizationManager.GetOrDefault("ui", key, fallback);
     }
 
     private static void RegisterScreens()

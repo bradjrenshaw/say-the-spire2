@@ -17,16 +17,15 @@ public class ProxyMapPoint : ProxyElement
     {
         var mp = MapPointNode;
         if (mp?.Point == null) return CleanNodeName(Control.Name);
-        return MapNode.GetPointDisplayName(mp.Point);
+        return MapScreen.Current?.DescribePoint(mp.Point, includeChoicePrefix: false)
+            ?? MapNode.GetPointDisplayName(mp.Point);
     }
 
-    public override string? GetTypeKey() => "map node";
+    public override string? GetTypeKey() => null;
 
     public override string? GetStatusString()
     {
-        var mp = MapPointNode;
-        if (mp?.Point == null) return null;
-        return MapNode.GetCoordinatesString(mp.Point);
+        return null;
     }
 
     protected override void OnFocus()

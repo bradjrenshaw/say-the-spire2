@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -13,7 +14,7 @@ public class BlockEvent : GameEvent
     public BlockEvent(Creature creature, int oldBlock, int newBlock)
     {
         Source = creature;
-        _creatureName = creature.Name;
+        _creatureName = MultiplayerHelper.GetCreatureName(creature);
         _oldBlock = oldBlock;
         _newBlock = newBlock;
     }

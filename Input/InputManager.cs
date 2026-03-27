@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Input;
@@ -189,6 +190,19 @@ public static class InputManager
             .AddBinding(ControllerInput.RightStickRight));
         _actions.Add(new InputAction("buffer_prev", "Previous Buffer").AddBinding(Key.Left, ctrl: true)
             .AddBinding(ControllerInput.RightStickLeft));
+        _actions.Add(new InputAction("map_poi_prev", Ui("MAP_POI.ACTION_PREVIOUS", "Previous Point of Interest"))
+            .AddBinding(Key.Comma)
+            .AddBinding(ControllerInput.RightStickLeft, modifier: ControllerInput.LeftTrigger));
+        _actions.Add(new InputAction("map_poi_next", Ui("MAP_POI.ACTION_NEXT", "Next Point of Interest"))
+            .AddBinding(Key.Period)
+            .AddBinding(ControllerInput.RightStickRight, modifier: ControllerInput.LeftTrigger));
+        _actions.Add(new InputAction("map_poi_toggle_mode", Ui("MAP_POI.ACTION_TOGGLE_MODE", "Toggle Point of Interest Mode"))
+            .AddBinding(Key.Backslash)
+            .AddBinding(ControllerInput.RightStickUp, modifier: ControllerInput.LeftTrigger));
+        _actions.Add(new InputAction("map_toggle_current_marker", Ui("MAP_MARKERS.ACTION_TOGGLE_CURRENT", "Toggle Current Marker"))
+            .AddBinding(Key.Slash));
+        _actions.Add(new InputAction("map_clear_all_markers", Ui("MAP_MARKERS.ACTION_CLEAR_ALL", "Clear All Markers"))
+            .AddBinding(Key.Slash, ctrl: true, shift: true));
         _actions.Add(new InputAction("reset_bindings", "Reset Bindings").AddBinding(Key.R, ctrl: true, shift: true));
         _actions.Add(new InputAction("announce_gold", "Announce Gold").AddBinding(Key.G, ctrl: true)
             .AddBinding(ControllerInput.A, modifier: ControllerInput.RightTrigger));
@@ -222,6 +236,11 @@ public static class InputManager
         _actions.Add(new InputAction("announce_combatant_intent_10", "Combatant Intent 10").AddBinding(Key.Key0, shift: true));
         _actions.Add(new InputAction("announce_combatant_intent_11", "Combatant Intent 11").AddBinding(Key.Minus, shift: true));
         _actions.Add(new InputAction("announce_combatant_intent_12", "Combatant Intent 12").AddBinding(Key.Equal, shift: true));
+    }
+
+    private static string Ui(string key, string fallback)
+    {
+        return LocalizationManager.GetOrDefault("ui", key, fallback);
     }
 
     /// <summary>
