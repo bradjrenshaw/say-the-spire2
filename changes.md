@@ -17,6 +17,7 @@
 * Fixed a bug where UI elements that yielded the same text (such as card reward buttons with identical labels) would be treated as the same element.
 * Fixed a bug where epochs within each timeline era were listed in reverse order.
 * Fixed a bug where controller focus would act strangely in rest sites if you have the ability to choose multiple actions (control focus neighbors were not being continuously updated.)
+* Fixed a bug where ascension text on the character select screen would be read before newly focused characters. The text is now also part of the tooltip for the character button.
 
 ## V0.2.0
 * The mod now has documentation. It can be viewed on the github for the latest version [here](https://bradjrenshaw.github.io/say-the-spire2). Alternatively you can select view Documentation from the mod menu.

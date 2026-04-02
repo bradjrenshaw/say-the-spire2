@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using SayTheSpire2.Buffers;
@@ -65,12 +66,35 @@ public class ProxyCharacterButton : ProxyElement
             return !string.IsNullOrEmpty(unlockText) ? unlockText : null;
         }
 
+        var parts = new System.Collections.Generic.List<string>();
+
         if (button.IsRandom)
         {
             var desc = new LocString("characters", character.CharacterSelectDesc).GetFormattedText();
-            return !string.IsNullOrEmpty(desc) ? desc : null;
+            if (!string.IsNullOrEmpty(desc))
+                parts.Add(desc);
         }
 
+        var ascension = GetAscensionText(button);
+        if (ascension != null)
+            parts.Add(ascension);
+
+        return parts.Count > 0 ? string.Join(". ", parts) : null;
+    }
+
+    private static string? GetAscensionText(NCharacterSelectButton button)
+    {
+        Node? node = button;
+        while (node != null && node is not NCharacterSelectScreen)
+            node = node.GetParent();
+        var panel = (node as NCharacterSelectScreen)?.GetNodeOrNull<NAscensionPanel>("%AscensionPanel");
+        if (panel != null && panel.Visible)
+        {
+            var asc = panel.Ascension;
+            var title = AscensionHelper.GetTitle(asc).GetFormattedText();
+            var description = AscensionHelper.GetDescription(asc).GetFormattedText();
+            return $"Ascension {asc}: {title}. {description}";
+        }
         return null;
     }
 

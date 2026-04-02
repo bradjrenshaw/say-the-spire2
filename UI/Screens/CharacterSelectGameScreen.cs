@@ -22,6 +22,7 @@ public class CharacterSelectGameScreen : GameScreen
 
     private readonly NCharacterSelectScreen _screen;
     private int _lastAscension = -1;
+    private Control? _lastFocusedButton;
     private bool _isMultiplayer;
     private bool _lastLocalReady;
 
@@ -85,13 +86,16 @@ public class CharacterSelectGameScreen : GameScreen
     {
         if (!GodotObject.IsInstanceValid(_screen)) return;
 
-        // Ascension polling
+        // Ascension polling — only announce when the user changes ascension (D/F),
+        // not when switching characters causes the displayed ascension to change.
+        var focusedButton = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
         var panel = _screen.GetNodeOrNull<NAscensionPanel>("%AscensionPanel");
         if (panel != null)
         {
             var current = panel.Ascension;
-            if (_lastAscension == -1)
+            if (_lastAscension == -1 || focusedButton != _lastFocusedButton)
             {
+                // Initial load or character changed — update silently
                 _lastAscension = current;
             }
             else if (current != _lastAscension)
@@ -102,6 +106,7 @@ public class CharacterSelectGameScreen : GameScreen
                 SpeechManager.Output(Message.Raw($"Ascension {current}: {title}. {description}"));
             }
         }
+        _lastFocusedButton = focusedButton;
 
         // Multiplayer ready state polling
         if (_isMultiplayer)
