@@ -12,6 +12,7 @@ public static class UIManager
 {
     private static UIElement? _currentElement;
     private static Control? _currentControl;
+    private static Control? _lastAnnouncedControl;
     private static UIElement? _lastAnnouncedElement;
     private static string? _lastAnnouncedText;
     private static bool _dirty;
@@ -76,11 +77,13 @@ public static class UIManager
         // Build announcement via path diffing
         var text = BuildFocusAnnouncement(element);
 
-        // Only announce if something changed
-        if (string.IsNullOrEmpty(text) || text == _lastAnnouncedText)
+        // Only announce if something changed (text or control reference)
+        var controlChanged = _currentControl != null && _currentControl != _lastAnnouncedControl;
+        if (string.IsNullOrEmpty(text) || (text == _lastAnnouncedText && !controlChanged))
             return;
 
         _lastAnnouncedText = text;
+        _lastAnnouncedControl = _currentControl;
 
         // Unfocus previous, focus new
         if (_lastAnnouncedElement != null && _lastAnnouncedElement != element)

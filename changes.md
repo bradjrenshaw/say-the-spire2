@@ -1,3 +1,22 @@
+## V0.3.0
+* Fixed an issue where localization was only using English and not the current game language.
+* Fixed an issue where the Chinese localization would not load due to using the wrong localization code.
+* The game's act banner text is now announced (the act name and number is displayed at the start of each act visually.)
+* Fixed a bug where card upgrades would be read out at incorrect times (for example, reward screens with upgraded cards would trigger the upgrade event erroniously)
+* Various map improvements thanks to @amerikrainian:
+    * You can now browse points of interest (shops, elites, etc) with dedicated controls.
+        * You can mark those points. Doing so will modify the text of map nodes, telling you whether or not that node will lead you towards that target or diverge away from it.
+* Various multiplayer improvements and fixes thanks to @amerikrainian:
+    * Player intents are now read
+    * Fixed a bug where the player buffer would not properly update to match the current player when unhovering another player.
+    * Fixed a bug where player names in multiplayer would be read out as their steam ID (a string of numbers) instead of their display name.
+* Added several screens thanks to @amerikrainian:
+    * The daily run screen, including leaderboard, is now fully supported.
+    * Added support for run history, stats, potion lab, and relics screens in the compendium.
+* You can now press f1 for context-sensitive help on any screen. Use the up/down controls to navigate through all available messages on each screen. If a message contains multiple actions, use left/right to browse each action individually.
+* Fixed a bug where UI elements that yielded the same text (such as card reward buttons with identical labels) would be treated as the same element.
+* Fixed a bug where epochs within each timeline era were listed in reverse order.
+
 ## V0.2.0
 * The mod now has documentation. It can be viewed on the github for the latest version [here](https://bradjrenshaw.github.io/say-the-spire2). Alternatively you can select view Documentation from the mod menu.
 * The mod now has a Simplified Chinese localization (thanks to QgSama.) Note that not all text is localized; more text will be localizable in future mod updates.

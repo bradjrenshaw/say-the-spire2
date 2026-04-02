@@ -194,7 +194,7 @@ public class TimelineGameScreen : GameScreen
             var slots = eraCol.GetChildren().OfType<NEpochSlot>().ToList();
             if (slots.Count > 0)
             {
-                slots.Sort((a, b) => a.eraPosition.CompareTo(b.eraPosition));
+                slots.Sort((a, b) => a.GlobalPosition.Y.CompareTo(b.GlobalPosition.Y));
                 columns.Add((eraCol, slots));
             }
         }
