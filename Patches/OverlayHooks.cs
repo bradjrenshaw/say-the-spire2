@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
+using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Runs;
@@ -88,6 +89,11 @@ public static class OverlayHooks
         {
             ScreenManager.PushScreen(new CrystalSphereGameScreen(crystalScreen));
         }
+        else if (screen is NRewardsScreen rewardsScreen
+            && RewardsGameScreen.Current == null)
+        {
+            ScreenManager.PushScreen(new RewardsGameScreen(rewardsScreen));
+        }
     }
 
     public static void OverlayRemovePostfix(IOverlayScreen screen)
@@ -111,6 +117,11 @@ public static class OverlayHooks
             && CrystalSphereGameScreen.Current != null)
         {
             ScreenManager.RemoveScreen(CrystalSphereGameScreen.Current);
+        }
+        else if (screen is NRewardsScreen
+            && RewardsGameScreen.Current != null)
+        {
+            ScreenManager.RemoveScreen(RewardsGameScreen.Current);
         }
     }
 

@@ -250,6 +250,7 @@
   "SCREENS.REST_SITE": "Rest Site",
   "SCREENS.HAND_SELECT": "Hand",
   "SCREENS.DIALOG": "Dialog",
+  "SCREENS.REWARDS": "Rewards",
 
   "CONTAINERS.CARD_LIBRARY": "Card Library",
   "CONTAINERS.FILTERS": "Filters",
@@ -325,5 +326,7 @@
   "HELP.DECREASE_ASCENSION": "Decrease Ascension",
   "HELP.INCREASE_ASCENSION": "Increase Ascension",
   "HELP.PREVIOUS_TAB": "Previous Tab",
-  "HELP.NEXT_TAB": "Next Tab"
+  "HELP.NEXT_TAB": "Next Tab",
+  "HELP.REWARDS_NAV": "Navigate rewards with directional controls. Press Select to claim a reward.",
+  "HELP.REWARDS_PROCEED": "Proceed (skipping any unclaimed rewards)"
 }
