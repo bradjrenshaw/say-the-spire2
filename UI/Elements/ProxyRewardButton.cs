@@ -26,7 +26,36 @@ public class ProxyRewardButton : ProxyElement
         return reward.Description.GetFormattedText();
     }
 
-    public override string? GetTypeKey() => "button";
+    public override string? GetTypeKey() => GetReward() switch
+    {
+        PotionReward => "potion",
+        RelicReward => "relic",
+        CardReward or SpecialCardReward => "card",
+        _ => "button",
+    };
+
+    public override string? GetTooltip()
+    {
+        var inner = GetInnerProxy();
+        return inner?.GetTooltip();
+    }
+
+    public override string? GetStatusString()
+    {
+        var inner = GetInnerProxy();
+        return inner?.GetStatusString();
+    }
+
+    private ProxyElement? GetInnerProxy()
+    {
+        var reward = GetReward();
+        return reward switch
+        {
+            PotionReward pr when pr.Potion != null => ProxyPotionHolder.FromModel(pr.Potion),
+            RelicReward rr => RelicField?.GetValue(rr) is RelicModel relic ? ProxyRelicHolder.FromModel(relic) : null,
+            _ => null,
+        };
+    }
 
     public override string? HandleBuffers(BufferManager buffers)
     {

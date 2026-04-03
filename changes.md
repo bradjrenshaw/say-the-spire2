@@ -1,6 +1,7 @@
 ## V0.3.0
 * Fixed an issue where localization was only using English and not the current game language.
 * Fixed an issue where the Chinese localization would not load due to using the wrong localization code.
+* All mod text should now be localizable (added roughly 120 missing strings to the locale files.)
 * The game's act banner text is now announced (the act name and number is displayed at the start of each act visually.)
 * Fixed a bug where card upgrades would be read out at incorrect times (for example, reward screens with upgraded cards would trigger the upgrade event erroniously)
 * Various map improvements thanks to @amerikrainian:
@@ -20,6 +21,7 @@
 * Fixed a bug where epochs within each timeline era were listed in reverse order.
 * Fixed a bug where controller focus would act strangely in rest sites if you have the ability to choose multiple actions (control focus neighbors were not being continuously updated.)
 * Fixed a bug where ascension text on the character select screen would be read before newly focused characters. The text is now also part of the tooltip for the character button.
+* Fixed a bug where post-combat rewards were often missing their type and tooltip.
 
 ## V0.2.0
 * The mod now has documentation. It can be viewed on the github for the latest version [here](https://bradjrenshaw.github.io/say-the-spire2). Alternatively you can select view Documentation from the mod menu.
