@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Nodes.Ftue;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Elements;
+using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
 
@@ -25,6 +26,14 @@ public static class ModalHooks
         else
         {
             Log.Error("[AccessibilityMod] Could not find NModalContainer.Add()!");
+        }
+
+        var clearMethod = AccessTools.Method(typeof(NModalContainer), "Clear");
+        if (clearMethod != null)
+        {
+            harmony.Patch(clearMethod,
+                postfix: new HarmonyMethod(typeof(ModalHooks), nameof(ClearPostfix)));
+            Log.Info("[AccessibilityMod] NModalContainer.Clear hook patched.");
         }
 
         // Patch page turn methods on NCombatRulesFtue to re-announce text
@@ -50,20 +59,35 @@ public static class ModalHooks
         var tree = modalToCreate.GetTree();
         if (tree != null)
         {
-            // Use a local variable to hold the handler so we can disconnect after one call
             SignalAwaiter awaiter = modalToCreate.ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-            awaiter.OnCompleted(() => AnnounceModal(modalToCreate));
+            awaiter.OnCompleted(() => OnModalReady(modalToCreate));
         }
         else
         {
-            AnnounceModal(modalToCreate);
+            OnModalReady(modalToCreate);
         }
+    }
+
+    public static void ClearPostfix()
+    {
+        if (ModalScreen.Current != null)
+            ScreenManager.RemoveScreen(ModalScreen.Current);
+    }
+
+    private static void OnModalReady(Node modal)
+    {
+        if (!GodotObject.IsInstanceValid(modal)) return;
+
+        AnnounceModal(modal);
+
+        // Push a screen so the modal participates in help and element resolution
+        if (ModalScreen.Current != null)
+            ScreenManager.RemoveScreen(ModalScreen.Current);
+        ScreenManager.PushScreen(new ModalScreen(modal));
     }
 
     private static void AnnounceModal(Node modal)
     {
-        if (!GodotObject.IsInstanceValid(modal)) return;
-
         var sb = new StringBuilder();
 
         // Look for header/title text
@@ -120,13 +144,11 @@ public static class ModalHooks
 
     private static string? FindTextNodeRecursive(Node node, string targetName)
     {
-        // Check if this node matches the target name
         if (node.Name == targetName)
         {
             return ExtractText(node);
         }
 
-        // Check children
         for (int i = 0; i < node.GetChildCount(); i++)
         {
             var result = FindTextNodeRecursive(node.GetChild(i), targetName);

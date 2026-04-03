@@ -249,6 +249,7 @@
   "SCREENS.TIMELINE": "Timeline",
   "SCREENS.REST_SITE": "Rest Site",
   "SCREENS.HAND_SELECT": "Hand",
+  "SCREENS.DIALOG": "Dialog",
 
   "CONTAINERS.CARD_LIBRARY": "Card Library",
   "CONTAINERS.FILTERS": "Filters",
