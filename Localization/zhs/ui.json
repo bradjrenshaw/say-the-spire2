@@ -39,5 +39,10 @@
   "CHECKBOX.UNCHECKED": "未勾选",
   "POSITIONS.LIST": "{position} / {total}",
   "POSITIONS.GRID": "第 {row} 行, 第 {column} 列",
-  "POSITIONS.CATEGORY_LIST": "{position} / {total} {category}"
+  "POSITIONS.CATEGORY_LIST": "{position} / {total} {category}",
+  "CUSTOM_RUN.START": "Start custom run",
+  "CUSTOM_RUN.ROWS.SEED": "Seed",
+  "CUSTOM_RUN.ROWS.CHARACTERS": "Characters",
+  "CUSTOM_RUN.ROWS.ASCENSION": "Ascension",
+  "CUSTOM_RUN.ROWS.MODIFIERS": "Modifiers"
 }

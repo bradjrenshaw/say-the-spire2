@@ -82,6 +82,7 @@ public static class ModEntry
         OverlayHooks.Initialize(_harmony);
         LobbyHooks.Initialize(_harmony);
         DailyRunHooks.Initialize(_harmony);
+        CustomRunHooks.Initialize(_harmony);
         CompendiumHooks.Initialize(_harmony);
         MapScreenHooks.Initialize(_harmony);
         RestSiteHooks.Initialize(_harmony);

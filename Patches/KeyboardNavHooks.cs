@@ -137,7 +137,7 @@ public static class KeyboardNavHooks
     /// </summary>
     public static bool UnhandledKeyInputPrefix()
     {
-        return !InputManager.InterceptInput;
+        return !InputManager.InterceptInput || InputManager.IsFocusedTextEditingActive();
     }
 
     /// <summary>

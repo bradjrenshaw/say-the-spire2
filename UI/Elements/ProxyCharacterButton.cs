@@ -2,6 +2,7 @@ using Godot;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
+using MegaCrit.Sts2.Core.Nodes.Screens.CustomRun;
 using SayTheSpire2.Buffers;
 
 namespace SayTheSpire2.UI.Elements;
@@ -85,9 +86,14 @@ public class ProxyCharacterButton : ProxyElement
     private static string? GetAscensionText(NCharacterSelectButton button)
     {
         Node? node = button;
-        while (node != null && node is not NCharacterSelectScreen)
+        while (node != null && node is not NCharacterSelectScreen && node is not NCustomRunScreen)
             node = node.GetParent();
-        var panel = (node as NCharacterSelectScreen)?.GetNodeOrNull<NAscensionPanel>("%AscensionPanel");
+        var panel = node switch
+        {
+            NCharacterSelectScreen characterSelect => characterSelect.GetNodeOrNull<NAscensionPanel>("%AscensionPanel"),
+            NCustomRunScreen customRun => customRun.GetNodeOrNull<NAscensionPanel>("%AscensionPanel"),
+            _ => null,
+        };
         if (panel != null && panel.Visible)
         {
             var asc = panel.Ascension;

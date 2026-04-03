@@ -40,6 +40,9 @@ public static class ProxyFactory
         if (control is NInputSettingsEntry)
             return new ProxyInputBinding(control);
 
+        if (control is LineEdit)
+            return new ProxyTextInput(control);
+
         if (control is NTickbox)
             return new ProxyCheckbox(control);
 

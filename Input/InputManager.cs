@@ -4,6 +4,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.ScreenContext;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using SayTheSpire2.Localization;
@@ -301,6 +302,9 @@ public static class InputManager
 
         if (inputEvent is InputEventKey keyEvent)
         {
+            if (ShouldLetFocusedTextControlHandleKey(controller, keyEvent))
+                return false;
+
             if (keyEvent.Echo)
                 return true;
 
@@ -540,6 +544,47 @@ public static class InputManager
             return false;
 
         return ListeningEntryField.GetValue(panel) != null;
+    }
+
+    private static bool ShouldLetFocusedTextControlHandleKey(NControllerManager controller, InputEventKey keyEvent)
+    {
+        var focusedControl = controller.GetViewport()?.GuiGetFocusOwner() as Control;
+        if (!IsTextEditingActive(focusedControl))
+            return false;
+
+        return IsTextEditingKey(keyEvent);
+    }
+
+    public static bool IsFocusedTextEditingActive()
+    {
+        var focusedControl = _controllerManager?.GetViewport()?.GuiGetFocusOwner() as Control;
+        return IsTextEditingActive(focusedControl);
+    }
+
+    private static bool IsTextEditingActive(Control? control)
+    {
+        return control switch
+        {
+            LineEdit lineEdit => lineEdit.Editable && lineEdit.IsEditing(),
+            NMegaTextEdit textEdit => textEdit.Editable && textEdit.IsEditing(),
+            _ => false,
+        };
+    }
+
+    private static bool IsTextEditingKey(InputEventKey keyEvent)
+    {
+        if (keyEvent.AltPressed)
+            return false;
+
+        if (keyEvent.Keycode is Key.Backspace or Key.Delete or Key.Left or Key.Right or Key.Home or Key.End)
+            return true;
+
+        if (keyEvent.CtrlPressed)
+        {
+            return keyEvent.Keycode is Key.A or Key.C or Key.V or Key.X or Key.Y or Key.Z;
+        }
+
+        return keyEvent.Unicode >= 32;
     }
 
     private static void EnsureFocusMode(InputAction action)
