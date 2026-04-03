@@ -1,3 +1,4 @@
+using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
@@ -53,11 +54,21 @@ public static class MapScreenHooks
             ScreenManager.RemoveScreen(MapScreen.Current);
     }
 
+    private static int _lastAnnouncedActIndex = -1;
+    private static ulong _lastAnnouncedActFrame;
+
     public static void ActBannerCreatePostfix(ActModel act, int actIndex, NActBanner? __result)
     {
         if (__result == null) return;
         try
         {
+            // Debounce — the game may create the banner from multiple paths in the same frame
+            var frame = Engine.GetProcessFrames();
+            if (actIndex == _lastAnnouncedActIndex && frame - _lastAnnouncedActFrame < 2)
+                return;
+            _lastAnnouncedActIndex = actIndex;
+            _lastAnnouncedActFrame = frame;
+
             var actNumber = new LocString("gameplay_ui", "ACT_NUMBER");
             actNumber.Add("actNumber", actIndex + 1);
             var numberText = actNumber.GetFormattedText();
