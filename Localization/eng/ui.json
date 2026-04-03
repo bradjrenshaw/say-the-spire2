@@ -328,5 +328,8 @@
   "HELP.PREVIOUS_TAB": "Previous Tab",
   "HELP.NEXT_TAB": "Next Tab",
   "HELP.REWARDS_NAV": "Navigate rewards with directional controls. Press Select to claim a reward.",
-  "HELP.REWARDS_PROCEED": "Proceed (skipping any unclaimed rewards)"
+  "HELP.REWARDS_PROCEED": "Proceed (skipping any unclaimed rewards)",
+  "HELP.TUTORIAL_NAV": "Use left and right to navigate between pages. Press Confirm to close.",
+  "HELP.PREVIOUS_PAGE": "Previous Page",
+  "HELP.NEXT_PAGE": "Next Page"
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Nodes.Ftue;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using SayTheSpire2.Help;
 using SayTheSpire2.Localization;
@@ -24,11 +25,31 @@ public class ModalScreen : Screen
 
     public override string? ScreenName => null; // Modal text is announced separately by ModalHooks
 
-    public override List<HelpMessage> GetHelpMessages() => new()
+    public override List<HelpMessage> GetHelpMessages()
     {
-        new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.CONFIRM", "Confirm"), "ui_select", exclusive: true),
-        new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.CANCEL_GO_BACK", "Cancel / Go Back"), new[] { "ui_cancel", "mega_pause_and_back" }, exclusive: true),
-    };
+        if (_modal is NCombatRulesFtue)
+        {
+            return new()
+            {
+                new TextHelpMessage(
+                    LocalizationManager.GetOrDefault("ui", "HELP.TUTORIAL_NAV",
+                        "Use left and right to navigate between pages. Press Confirm to close."),
+                    exclusive: true),
+                new ControlHelpMessage(
+                    LocalizationManager.GetOrDefault("ui", "HELP.PREVIOUS_PAGE", "Previous Page"),
+                    "ui_left", exclusive: true),
+                new ControlHelpMessage(
+                    LocalizationManager.GetOrDefault("ui", "HELP.NEXT_PAGE", "Next Page"),
+                    "ui_right", exclusive: true),
+            };
+        }
+
+        return new()
+        {
+            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.CONFIRM", "Confirm"), "ui_select", exclusive: true),
+            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.CANCEL_GO_BACK", "Cancel / Go Back"), new[] { "ui_cancel", "mega_pause_and_back" }, exclusive: true),
+        };
+    }
 
     public ModalScreen(Node modal)
     {
