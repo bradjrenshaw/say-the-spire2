@@ -29,3 +29,4 @@ I would like to thank everyone who has tested the mod so far, the feedback has b
 
 * Rashad Naqeeb for contributing the Jaws configuration files
 * QgSama for contributing the Simplified Chinese localization.
+* Amerikrainian for various code contributions, including new map features and a number of multiplayer improvements.

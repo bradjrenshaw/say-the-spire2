@@ -8,6 +8,10 @@ The mod acts as a screenreader for Slay the Spire 2, narrating focused UI elemen
 
 A note when playing your first game: the tutorial dialogs are a little unintuitive for the moment. For the multi-page tutorials, you must use right and left to navigate the pages; navigate right of the last page to exit and return to regular gameplay.
 
+## Help
+
+If you want context-sensitive help on any screen, press f1 (keyboard) or left trigger plus back (controller). This will provide help text and available controls for the screen you're currently on.
+
 ## Buffers
 
 To access additional statistics and tooltips you can use the buffer system. There is an extra set of controller and keyboard inputs to provide information. This is generally refered to as the buffer system and is mapped to the right stick or control plus the arrow keys on keyboard by default. As you move over various UI Elements, contextual buffers will appear. These are just lists of various pieces of information about the element you're focusing on. For example, if you hover over a card, the card buffer will be automatically focused and will contain information such as the card's name, energy cost, description, etc. Use ctrl up/down (keyboard) or right stick up/down (controller) to review the contents of the currently selected buffer.
