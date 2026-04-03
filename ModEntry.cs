@@ -187,6 +187,24 @@ public static class ModEntry
         catch { }
         Localization.LocalizationManager.Initialize(language);
         Localization.Message.LocalizationResolver = Localization.LocalizationManager.Get;
+
+        // Hook language changes so localization updates when the user switches language in settings
+        if (_harmony != null)
+        {
+            var setLang = HarmonyLib.AccessTools.Method(
+                typeof(MegaCrit.Sts2.Core.Localization.LocManager), "SetLanguage");
+            if (setLang != null)
+            {
+                _harmony.Patch(setLang,
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(ModEntry), nameof(OnGameLanguageChanged)));
+                MegaCrit.Sts2.Core.Logging.Log.Info("[AccessibilityMod] LocManager.SetLanguage hook patched.");
+            }
+        }
+    }
+
+    public static void OnGameLanguageChanged(string language)
+    {
+        Localization.LocalizationManager.SetLanguage(language);
     }
 
     private static void InitializeBuffers()
