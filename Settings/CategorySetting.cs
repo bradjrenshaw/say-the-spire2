@@ -6,11 +6,13 @@ namespace SayTheSpire2.Settings;
 public class CategorySetting : Setting
 {
     private readonly List<Setting> _children = new();
+    public override bool IncludeInPath { get; }
 
     public IReadOnlyList<Setting> Children => _children;
 
-    public CategorySetting(string key, string label) : base(key, label)
+    public CategorySetting(string key, string label, bool includeInPath = true) : base(key, label)
     {
+        IncludeInPath = includeInPath;
     }
 
     public void Add(Setting child)

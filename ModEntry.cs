@@ -157,17 +157,158 @@ public static class ModEntry
 
     private static void InitializeKeybindingSettings()
     {
-        var keybindingsCategory = new Settings.CategorySetting("keybindings", "Keybindings");
+        var keybindingsCategory = new Settings.CategorySetting("keybindings", Ui("KEYBINDINGS.CATEGORY", "Keybindings"));
         Settings.ModSettings.Root.Add(keybindingsCategory);
 
         foreach (var action in InputManager.Actions)
         {
-            var bindingSetting = new Settings.BindingSetting(action);
-            keybindingsCategory.Add(bindingSetting);
+            var category = GetOrCreateKeybindingCategory(keybindingsCategory, GetKeybindingCategoryPath(action.Key));
+            var bindingSetting = new Settings.BindingSetting(action)
+            {
+                SortPriority = GetKeybindingSortPriority(action.Key),
+            };
+            category.Add(bindingSetting);
         }
 
         // Re-load to pick up any saved keybinding overrides
         Settings.ModSettings.Load();
+    }
+
+    private static Settings.CategorySetting GetOrCreateKeybindingCategory(
+        Settings.CategorySetting root,
+        params (string Key, string Label)[] path)
+    {
+        var current = root;
+        foreach (var (key, label) in path)
+        {
+            var existing = current.Get<Settings.CategorySetting>(key);
+            if (existing != null)
+            {
+                current = existing;
+                continue;
+            }
+
+            // These categories are UI-only; keeping them out of the serialized
+            // path preserves existing keybind saves while allowing nested menus.
+            var category = new Settings.CategorySetting(key, label, includeInPath: false);
+            current.Add(category);
+            current = category;
+        }
+        return current;
+    }
+
+    private static (string Key, string Label)[] GetKeybindingCategoryPath(string actionKey)
+    {
+        if (actionKey.StartsWith("mega_select_card_"))
+        {
+            return new[]
+            {
+                ("combat", Ui("KEYBINDINGS.CATEGORIES.COMBAT", "Combat")),
+                ("combatant_status", Ui("KEYBINDINGS.CATEGORIES.COMBATANT_STATUS", "Combatant Status")),
+            };
+        }
+
+        if (actionKey.StartsWith("announce_combatant_intent_"))
+        {
+            return new[]
+            {
+                ("combat", Ui("KEYBINDINGS.CATEGORIES.COMBAT", "Combat")),
+                ("combatant_intent", Ui("KEYBINDINGS.CATEGORIES.COMBATANT_INTENT", "Combatant Intent")),
+            };
+        }
+
+        return actionKey switch
+        {
+            "ui_accept" or
+            "ui_select" or
+            "ui_cancel" or
+            "ui_up" or
+            "ui_down" or
+            "ui_left" or
+            "ui_right" or
+            "mega_pause_and_back" or
+            "mega_peek" => new[]
+            {
+                ("navigation", Ui("KEYBINDINGS.CATEGORIES.NAVIGATION", "Navigation")),
+            },
+
+            "buffer_next_item" or
+            "buffer_prev_item" or
+            "buffer_next" or
+            "buffer_prev" => new[]
+            {
+                ("buffers", Ui("KEYBINDINGS.CATEGORIES.BUFFERS", "Buffers")),
+            },
+
+            "announce_gold" or
+            "announce_hp" or
+            "announce_boss" or
+            "announce_relic_counters" or
+            "mega_top_panel" or
+            "mega_view_deck_and_tab_left" or
+            "mega_view_exhaust_pile_and_tab_right" or
+            "mega_view_map" => new[]
+            {
+                ("run_information", Ui("KEYBINDINGS.CATEGORIES.RUN_INFORMATION", "Run Information")),
+            },
+
+            "announce_block" or
+            "announce_energy" or
+            "announce_powers" or
+            "announce_intents" or
+            "announce_summarized_intents" or
+            "mega_release_card" or
+            "mega_view_draw_pile" or
+            "mega_view_discard_pile" => new[]
+            {
+                ("combat", Ui("KEYBINDINGS.CATEGORIES.COMBAT", "Combat")),
+                ("general", Ui("KEYBINDINGS.CATEGORIES.GENERAL", "General")),
+            },
+
+            "map_poi_prev" or
+            "map_poi_next" or
+            "map_poi_toggle_mode" => new[]
+            {
+                ("map", Ui("KEYBINDINGS.CATEGORIES.MAP", "Map")),
+                ("points_of_interest", Ui("MAP_POI.SETTINGS.CATEGORY", "Points of Interest")),
+            },
+
+            "map_toggle_current_marker" or
+            "map_clear_all_markers" => new[]
+            {
+                ("map", Ui("KEYBINDINGS.CATEGORIES.MAP", "Map")),
+                ("markers", Ui("KEYBINDINGS.CATEGORIES.MARKERS", "Markers")),
+            },
+
+            "help" or
+            "mod_settings" or
+            "reset_bindings" => new[]
+            {
+                ("mod", Ui("KEYBINDINGS.CATEGORIES.MOD", "Mod")),
+            },
+
+            _ => new[]
+            {
+                ("mod", Ui("KEYBINDINGS.CATEGORIES.MOD", "Mod")),
+            },
+        };
+    }
+
+    private static int GetKeybindingSortPriority(string actionKey)
+    {
+        if (actionKey.StartsWith("mega_select_card_") &&
+            int.TryParse(actionKey["mega_select_card_".Length..], out var combatantStatusIndex))
+        {
+            return combatantStatusIndex;
+        }
+
+        if (actionKey.StartsWith("announce_combatant_intent_") &&
+            int.TryParse(actionKey["announce_combatant_intent_".Length..], out var combatantIntentIndex))
+        {
+            return combatantIntentIndex;
+        }
+
+        return 0;
     }
 
     private static void InitializeSpeech()

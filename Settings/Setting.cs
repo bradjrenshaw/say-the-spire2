@@ -7,6 +7,13 @@ public abstract class Setting
     public CategorySetting? Parent { get; internal set; }
 
     /// <summary>
+    /// Whether this setting's key contributes to its serialized dot-path.
+    /// UI-only grouping categories can opt out so reorganizing the menu
+    /// does not break saved settings paths.
+    /// </summary>
+    public virtual bool IncludeInPath => true;
+
+    /// <summary>
     /// Lower values sort first. Settings are sorted by priority, then alphabetically within each level.
     /// Default is 0.
     /// </summary>
@@ -22,9 +29,12 @@ public abstract class Setting
     {
         get
         {
-            if (Parent == null || Parent.IsRoot)
+            var parentPath = Parent == null || Parent.IsRoot ? string.Empty : Parent.FullPath;
+            if (!IncludeInPath)
+                return parentPath;
+            if (string.IsNullOrEmpty(parentPath))
                 return Key;
-            return $"{Parent.FullPath}.{Key}";
+            return $"{parentPath}.{Key}";
         }
     }
 

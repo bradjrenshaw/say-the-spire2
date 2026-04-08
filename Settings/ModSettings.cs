@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace SayTheSpire2.Settings;
@@ -147,7 +148,7 @@ public static class ModSettings
         {
             if (current is CategorySetting cat)
             {
-                var child = cat.GetByKey(part);
+                var child = ResolveChild(cat, part);
                 if (child == null) return null;
                 current = child;
             }
@@ -158,6 +159,25 @@ public static class ModSettings
         }
 
         return current;
+    }
+
+    private static Setting? ResolveChild(CategorySetting category, string key)
+    {
+        var direct = category.GetByKey(key);
+        if (direct != null)
+            return direct;
+
+        foreach (var virtualCategory in category.Children.OfType<CategorySetting>())
+        {
+            if (virtualCategory.IncludeInPath)
+                continue;
+
+            var found = ResolveChild(virtualCategory, key);
+            if (found != null)
+                return found;
+        }
+
+        return null;
     }
 
     private static void CollectValues(Setting setting, Dictionary<string, object?> dict)
