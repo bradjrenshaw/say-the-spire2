@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 using MegaCrit.Sts2.Core.Platform;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 
 namespace SayTheSpire2.UI.Elements;
@@ -24,19 +25,19 @@ public class ProxyMultiplayerPlayerState : ProxyElement
         catch { return null; }
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var player = GetPlayer();
-        if (player == null) return Localization.LocalizationManager.GetOrDefault("ui", "LABELS.PLAYER", "Player");
+        if (player == null) return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.PLAYER", "Player"));
 
         var name = MultiplayerHelper.GetPlayerName(player.NetId);
         var character = player.Character?.Title?.GetFormattedText();
-        return !string.IsNullOrEmpty(character) ? $"{name}, {character}" : name;
+        return !string.IsNullOrEmpty(character) ? Message.Raw($"{name}, {character}") : Message.Raw(name);
     }
 
     public override string? GetTypeKey() => null;
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var player = GetPlayer();
         if (player == null) return null;
@@ -58,7 +59,7 @@ public class ProxyMultiplayerPlayerState : ProxyElement
             parts.Add($"{pcs.Hand.Cards.Count} cards in hand");
         }
 
-        return string.Join(", ", parts);
+        return Message.Raw(string.Join(", ", parts));
     }
 
     public override string? HandleBuffers(BufferManager buffers)

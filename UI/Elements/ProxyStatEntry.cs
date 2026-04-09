@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.StatsScreen;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -8,19 +9,19 @@ public class ProxyStatEntry : ProxyElement
 {
     public ProxyStatEntry(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
-        return OverrideLabel ?? CleanNodeName(Control!.Name);
+        return Message.Raw(OverrideLabel ?? CleanNodeName(Control!.Name));
     }
 
-    public override string? GetExtrasString()
+    public override Message? GetExtrasString()
     {
         var values = GetValues();
         return values.Count switch
         {
             0 => null,
-            1 => values[0],
-            _ => string.Join(", ", values),
+            1 => Message.Raw(values[0]),
+            _ => Message.Raw(string.Join(", ", values)),
         };
     }
 

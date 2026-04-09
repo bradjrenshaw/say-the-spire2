@@ -1,4 +1,5 @@
 using Godot;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.UI.Elements;
@@ -23,13 +24,13 @@ public class DropdownElement : UIElement
         _setting.Changed += _ => _control.Text = GetButtonText();
     }
 
-    public override string? GetLabel() => _setting.Label;
+    public override Message? GetLabel() => Message.Raw(_setting.Label);
     public override string? GetTypeKey() => "dropdown";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var selected = _setting.GetSelected();
-        return selected?.Label ?? _setting.Get();
+        return Message.Raw(selected?.Label ?? _setting.Get());
     }
 
     private string GetButtonText()

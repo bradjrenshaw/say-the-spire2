@@ -5,11 +5,11 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Runs.History;
-using MegaCrit.Sts2.Core.Runs;
-using MegaCrit.Sts2.Core.Rooms;
-using MegaCrit.Sts2.Core.Saves;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
+using MegaCrit.Sts2.Core.Rooms;
+using MegaCrit.Sts2.Core.Runs;
+using MegaCrit.Sts2.Core.Runs.History;
+using MegaCrit.Sts2.Core.Saves;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 
@@ -29,7 +29,7 @@ public class ProxyRunHistoryMapPoint : ProxyElement
     private NMapPointHistoryEntry? EntryControl => Control as NMapPointHistoryEntry;
     private RunHistoryPlayer? Player => PlayerField?.GetValue(EntryControl) as RunHistoryPlayer;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var control = EntryControl;
         var entry = EntryField?.GetValue(control) as MapPointHistoryEntry;
@@ -37,22 +37,26 @@ public class ProxyRunHistoryMapPoint : ProxyElement
             return null;
 
         var room = entry.Rooms.LastOrDefault();
-        return room == null
+        var text = room == null
             ? Ui("RUN_HISTORY.FLOOR", new { floor = control.FloorNum })
             : Ui("RUN_HISTORY.FLOOR_WITH_ROOM", new { floor = control.FloorNum, room = room.RoomType });
+        return Message.Raw(text);
     }
 
     public override string? GetTypeKey() => "button";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var questIcon = QuestIconField?.GetValue(EntryControl) as Control;
-        return questIcon?.Visible == true ? Ui("RUN_HISTORY.QUEST_COMPLETED") : null;
+        if (questIcon?.Visible == true)
+            return Message.Raw(Ui("RUN_HISTORY.QUEST_COMPLETED"));
+        return null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
-        return BuildSummary(includeRoomModel: true);
+        var text = BuildSummary(includeRoomModel: true);
+        return text != null ? Message.Raw(text) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)
@@ -63,15 +67,15 @@ public class ProxyRunHistoryMapPoint : ProxyElement
 
         uiBuffer.Clear();
 
-        var label = GetLabel();
+        var label = GetLabel()?.Resolve();
         if (!string.IsNullOrWhiteSpace(label))
             uiBuffer.Add(label);
 
-        var status = GetStatusString();
+        var status = GetStatusString()?.Resolve();
         if (!string.IsNullOrWhiteSpace(status))
             uiBuffer.Add(status);
 
-        var tooltip = GetTooltip();
+        var tooltip = GetTooltip()?.Resolve();
         if (!string.IsNullOrWhiteSpace(tooltip))
             uiBuffer.Add(tooltip);
 

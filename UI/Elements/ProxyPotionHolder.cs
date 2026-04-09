@@ -36,24 +36,25 @@ public class ProxyPotionHolder : ProxyElement
         return holder == null || !holder.HasPotion;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         if (IsEmpty())
-            return LocalizationManager.GetOrDefault("ui", "LABELS.EMPTY_POTION_SLOT", "Empty potion slot");
+            return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.EMPTY_POTION_SLOT", "Empty potion slot"));
 
         var model = GetModel();
-        return model?.Title.GetFormattedText();
+        var text = model?.Title.GetFormattedText();
+        return text != null ? Message.Raw(text) : null;
     }
 
     public override string? GetTypeKey() => "potion";
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var model = GetModel();
         if (model == null) return null;
 
         var desc = model.DynamicDescription.GetFormattedText();
-        return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
+        return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)

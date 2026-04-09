@@ -8,29 +8,32 @@ public class ProxyCardPoolFilter : ProxyElement
 {
     public ProxyCardPoolFilter(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         if (OverrideLabel != null)
-            return OverrideLabel;
+            return Message.Raw(OverrideLabel);
 
-        return Control == null ? null : FindChildText(Control) ?? CleanNodeName(Control.Name);
+        if (Control == null) return null;
+        var text = FindChildText(Control) ?? CleanNodeName(Control.Name);
+        return Message.Raw(text);
     }
 
     public override string? GetTypeKey() => "checkbox";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         if (Control is not NCardPoolFilter filter)
             return null;
 
         var key = filter.IsSelected ? "CHECKBOX.CHECKED" : "CHECKBOX.UNCHECKED";
-        return LocalizationManager.Get("ui", key);
+        var text = LocalizationManager.Get("ui", key);
+        return text != null ? Message.Raw(text) : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         if (Control is NCardPoolFilter filter && filter.Loc != null)
-            return filter.Loc.GetFormattedText();
+            return Message.Raw(filter.Loc.GetFormattedText());
 
         return null;
     }

@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Rewards;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -19,11 +20,15 @@ public class ProxyRewardButton : ProxyElement
 
     private Reward? GetReward() => (Control as NRewardButton)?.Reward;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var reward = GetReward();
-        if (reward == null) return FindChildText(Control!) ?? CleanNodeName(Control!.Name);
-        return reward.Description.GetFormattedText();
+        if (reward == null)
+        {
+            var text = FindChildText(Control!) ?? CleanNodeName(Control!.Name);
+            return Message.Raw(text);
+        }
+        return Message.Raw(reward.Description.GetFormattedText());
     }
 
     public override string? GetTypeKey() => GetReward() switch
@@ -34,13 +39,13 @@ public class ProxyRewardButton : ProxyElement
         _ => "button",
     };
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var inner = GetInnerProxy();
         return inner?.GetTooltip();
     }
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var inner = GetInnerProxy();
         return inner?.GetStatusString();

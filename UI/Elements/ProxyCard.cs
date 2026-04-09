@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -7,8 +8,8 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
-using MegaCrit.Sts2.addons.mega_text;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.UI.Elements;
@@ -76,10 +77,10 @@ public class ProxyCard : ProxyElement
         return string.IsNullOrWhiteSpace(text) ? null : StripBbcode(text);
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var model = GetDisplayedCardModel();
-        if (model == null) return Control != null ? CleanNodeName(Control.Name) : null;
+        if (model == null) return Control != null ? Message.Raw(CleanNodeName(Control.Name)) : null;
         var title = model.Title;
         var modifiers = new System.Collections.Generic.List<string>();
         var enchantTitle = model.Enchantment?.Title?.GetFormattedText();
@@ -87,8 +88,8 @@ public class ProxyCard : ProxyElement
         var afflictionTitle = model.Affliction?.Title?.GetFormattedText();
         if (!string.IsNullOrEmpty(afflictionTitle)) modifiers.Add(afflictionTitle);
         if (modifiers.Count > 0)
-            return $"{title} ({string.Join(", ", modifiers)})";
-        return title;
+            return Message.Raw($"{title} ({string.Join(", ", modifiers)})");
+        return Message.Raw(title);
     }
 
     public override string? GetTypeKey() => "card";
@@ -100,7 +101,7 @@ public class ProxyCard : ProxyElement
         return model.Type.ToString().ToLower();
     }
 
-    public override string? GetExtrasString()
+    public override Message? GetExtrasString()
     {
         var model = GetDisplayedCardModel();
         if (model == null) return null;
@@ -129,10 +130,10 @@ public class ProxyCard : ProxyElement
             parts.Add(verbose ? $"{starCost} stars" : $"{starCost}");
         }
 
-        return parts.Count > 0 ? string.Join(", ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(", ", parts)) : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var model = GetDisplayedCardModel();
         if (model == null) return null;
@@ -141,7 +142,7 @@ public class ProxyCard : ProxyElement
         {
             var desc = model.GetDescriptionForPile(PileType.None);
             if (!string.IsNullOrEmpty(desc))
-                return StripBbcode(desc);
+                return Message.Raw(StripBbcode(desc));
         }
         catch (Exception e) { Log.Error($"[AccessibilityMod] Card tooltip description failed: {e.Message}"); }
 

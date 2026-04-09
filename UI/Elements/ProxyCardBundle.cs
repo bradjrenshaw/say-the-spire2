@@ -23,10 +23,10 @@ public class ProxyCardBundle : ProxyElement
         return null;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var bundle = FindBundle();
-        if (bundle == null) return LocalizationManager.GetOrDefault("ui", "LABELS.CARD_PACK", "Card Pack");
+        if (bundle == null) return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.CARD_PACK", "Card Pack"));
 
         // Determine position among siblings
         var parent = bundle.GetParent();
@@ -56,8 +56,8 @@ public class ProxyCardBundle : ProxyElement
         var cards = cardNames.Count > 0 ? string.Join(", ", cardNames) : "empty";
 
         if (total > 1)
-            return $"Pack {index} of {total}: {cards}";
-        return $"Pack: {cards}";
+            return Message.Raw($"Pack {index} of {total}: {cards}");
+        return Message.Raw($"Pack: {cards}");
     }
 
     public override string? GetTypeKey() => "card";

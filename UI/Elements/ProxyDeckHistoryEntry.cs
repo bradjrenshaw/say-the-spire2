@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.UI.Elements;
@@ -23,11 +24,11 @@ public class ProxyDeckHistoryEntry : ProxyElement
     private CardModel? Card => Entry?.Card;
     private int Amount => AmountField?.GetValue(Entry) as int? ?? 1;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var model = Card;
         if (model == null)
-            return Control != null ? CleanNodeName(Control.Name) : null;
+            return Control != null ? Message.Raw(CleanNodeName(Control.Name)) : null;
 
         var title = model.Title;
         var modifiers = new List<string>();
@@ -40,7 +41,7 @@ public class ProxyDeckHistoryEntry : ProxyElement
         if (modifiers.Count > 0)
             title = $"{title} ({string.Join(", ", modifiers)})";
 
-        return Amount > 1 ? $"{Amount}x {title}" : title;
+        return Amount > 1 ? Message.Raw($"{Amount}x {title}") : Message.Raw(title);
     }
 
     public override string? GetTypeKey() => "card";
@@ -51,7 +52,7 @@ public class ProxyDeckHistoryEntry : ProxyElement
         return model?.Type.ToString().ToLower();
     }
 
-    public override string? GetExtrasString()
+    public override Message? GetExtrasString()
     {
         var model = Card;
         if (model == null)
@@ -78,17 +79,17 @@ public class ProxyDeckHistoryEntry : ProxyElement
             parts.Add(verbose ? $"{starCost} stars" : $"{starCost}");
         }
 
-        return parts.Count > 0 ? string.Join(", ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(", ", parts)) : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var model = Card;
         if (model == null)
             return null;
 
         var desc = model.GetDescriptionForPile(PileType.None);
-        return string.IsNullOrEmpty(desc) ? null : StripBbcode(desc);
+        return string.IsNullOrEmpty(desc) ? null : Message.Raw(StripBbcode(desc));
     }
 
     public override string? HandleBuffers(BufferManager buffers)

@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
@@ -44,16 +45,16 @@ public class ProxyCreature : ProxyElement
 
     private Creature? GetEntity() => FindCreature()?.Entity;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var entity = GetEntity();
-        if (entity == null) return CleanNodeName(Control.Name);
-        return MultiplayerHelper.GetCreatureName(entity);
+        if (entity == null) return Message.Raw(CleanNodeName(Control.Name));
+        return Message.Raw(MultiplayerHelper.GetCreatureName(entity));
     }
 
     public override string? GetTypeKey() => "creature";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var entity = GetEntity();
         if (entity == null) return null;
@@ -76,7 +77,7 @@ public class ProxyCreature : ProxyElement
         if (!intentFirst && !string.IsNullOrEmpty(intentSummary))
             parts.Add(intentSummary);
 
-        return string.Join(", ", parts);
+        return Message.Raw(string.Join(", ", parts));
     }
 
     public override string? HandleBuffers(BufferManager buffers)
@@ -215,8 +216,8 @@ public class ProxyCreature : ProxyElement
     {
         var proxy = ProxyCard.FromModel(card);
         var parts = new List<string>();
-        var label = proxy.GetLabel();
-        var extras = proxy.GetExtrasString();
+        var label = proxy.GetLabel()?.Resolve();
+        var extras = proxy.GetExtrasString()?.Resolve();
         var subtype = proxy.GetSubtypeKey();
 
         if (!string.IsNullOrWhiteSpace(label))
@@ -233,8 +234,8 @@ public class ProxyCreature : ProxyElement
     {
         var proxy = ProxyRelicHolder.FromModel(relic);
         var parts = new List<string>();
-        var label = proxy.GetLabel();
-        var status = proxy.GetStatusString();
+        var label = proxy.GetLabel()?.Resolve();
+        var status = proxy.GetStatusString()?.Resolve();
 
         if (!string.IsNullOrWhiteSpace(label))
             parts.Add(label);
@@ -246,7 +247,7 @@ public class ProxyCreature : ProxyElement
 
     private static string GetPotionIntentSummary(PotionModel potion)
     {
-        return ProxyPotionHolder.FromModel(potion).GetLabel() ?? potion.Title.GetFormattedText();
+        return ProxyPotionHolder.FromModel(potion).GetLabel()?.Resolve() ?? potion.Title.GetFormattedText();
     }
 
     private static string GetPowerIntentSummary(PowerModel power)

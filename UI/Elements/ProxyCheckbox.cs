@@ -9,19 +9,21 @@ public class ProxyCheckbox : ProxyElement
 {
     public ProxyCheckbox(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
-        return OverrideLabel ?? FindChildText(Control) ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name);
+        var text = OverrideLabel ?? FindChildText(Control) ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name);
+        return Message.Raw(text);
     }
 
     public override string? GetTypeKey() => "checkbox";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         if (Control is NTickbox tickbox)
         {
             var key = tickbox.IsTicked ? "CHECKBOX.CHECKED" : "CHECKBOX.UNCHECKED";
-            return LocalizationManager.Get("ui", key);
+            var text = LocalizationManager.Get("ui", key);
+            return text != null ? Message.Raw(text) : null;
         }
         return null;
     }
@@ -41,7 +43,7 @@ public class ProxyCheckbox : ProxyElement
     private void OnToggled(NTickbox tickbox)
     {
         var status = GetStatusString();
-        if (!string.IsNullOrEmpty(status))
-            SpeechManager.Output(Message.Raw(status));
+        if (status != null)
+            SpeechManager.Output(status);
     }
 }

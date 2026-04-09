@@ -27,9 +27,9 @@ public class SliderElement : UIElement
         };
     }
 
-    public override string? GetLabel() => _setting.Label;
+    public override Message? GetLabel() => Message.Raw(_setting.Label);
     public override string? GetTypeKey() => "slider";
-    public override string? GetStatusString() => _setting.Get().ToString();
+    public override Message? GetStatusString() => Message.Raw(_setting.Get().ToString());
 
     public void Increment()
     {

@@ -178,8 +178,8 @@ public static class FocusHooks
         if (element is { IsFocused: true })
         {
             var status = element.GetStatusString();
-            if (!string.IsNullOrEmpty(status))
-                SpeechManager.Output(Message.Raw(status));
+            if (status != null)
+                SpeechManager.Output(status);
         }
     }
 

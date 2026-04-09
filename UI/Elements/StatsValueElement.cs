@@ -1,23 +1,24 @@
 using System;
 using System.Collections.Generic;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
 public sealed class StatsValueElement : UIElement
 {
-    private readonly Func<string?> _label;
+    private readonly Func<Message?> _label;
     private readonly Func<IReadOnlyList<string>> _values;
     private int _valueIndex;
     private bool _suppressLabelForCurrentAnnouncement;
 
-    public StatsValueElement(Func<string?> label, Func<IReadOnlyList<string>> values)
+    public StatsValueElement(Func<Message?> label, Func<IReadOnlyList<string>> values)
     {
         _label = label;
         _values = values;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         if (_suppressLabelForCurrentAnnouncement)
             return null;
@@ -25,7 +26,7 @@ public sealed class StatsValueElement : UIElement
         return _label();
     }
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var values = GetNormalizedValues();
         if (values.Count == 0)
@@ -34,7 +35,7 @@ public sealed class StatsValueElement : UIElement
         if (_valueIndex >= values.Count)
             _valueIndex = values.Count - 1;
 
-        return values[_valueIndex];
+        return Message.Raw(values[_valueIndex]);
     }
 
     public bool MoveValue(int delta)
@@ -58,10 +59,10 @@ public sealed class StatsValueElement : UIElement
         if (uiBuffer != null)
         {
             uiBuffer.Clear();
-            var label = GetLabel();
+            var label = GetLabel()?.Resolve();
             if (!string.IsNullOrEmpty(label))
                 uiBuffer.Add(label);
-            var status = GetStatusString();
+            var status = GetStatusString()?.Resolve();
             if (!string.IsNullOrEmpty(status))
                 uiBuffer.Add(status);
             buffers.EnableBuffer("ui", true);

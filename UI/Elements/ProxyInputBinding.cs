@@ -4,6 +4,7 @@ using System.Reflection;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -37,21 +38,22 @@ public class ProxyInputBinding : ProxyElement
 
     public ProxyInputBinding(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var labelNode = Control.GetNodeOrNull("%InputLabel");
         if (labelNode != null)
         {
             var text = FindChildText(labelNode);
-            if (text != null) return text;
+            if (text != null) return Message.Raw(text);
         }
 
-        return OverrideLabel ?? CleanNodeName(Control.Name);
+        var fallback = OverrideLabel ?? CleanNodeName(Control.Name);
+        return Message.Raw(fallback);
     }
 
     public override string? GetTypeKey() => "keybind";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var entry = Control as NInputSettingsEntry;
         var inputName = entry?.InputName;
@@ -81,7 +83,7 @@ public class ProxyInputBinding : ProxyElement
         else if (!isKeyboardRemappable && isControllerRemappable)
             parts.Add("controller only");
 
-        return parts.Count > 0 ? string.Join(", ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(", ", parts)) : null;
     }
 
     public static string GetControllerButtonName(string actionStr)

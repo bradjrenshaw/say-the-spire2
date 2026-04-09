@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.CustomRun;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -13,25 +14,25 @@ public class ProxyCharacterButton : ProxyElement
 
     private NCharacterSelectButton? Button => Control as NCharacterSelectButton;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var button = Button;
-        if (button == null) return CleanNodeName(Control.Name);
+        if (button == null) return Message.Raw(CleanNodeName(Control.Name));
 
-        if (button.IsRandom) return SayTheSpire2.Localization.LocalizationManager.GetOrDefault("ui", "LABELS.RANDOM", "Random");
+        if (button.IsRandom) return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.RANDOM", "Random"));
 
         var character = button.Character;
-        if (character == null) return CleanNodeName(Control.Name);
+        if (character == null) return Message.Raw(CleanNodeName(Control.Name));
 
         if (button.IsLocked)
-            return new LocString("main_menu_ui", "CHARACTER_SELECT.locked.title").GetFormattedText();
+            return Message.Raw(new LocString("main_menu_ui", "CHARACTER_SELECT.locked.title").GetFormattedText());
 
-        return new LocString("characters", character.CharacterSelectTitle).GetFormattedText();
+        return Message.Raw(new LocString("characters", character.CharacterSelectTitle).GetFormattedText());
     }
 
     public override string? GetTypeKey() => null;
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var button = Button;
         if (button == null) return null;
@@ -40,7 +41,7 @@ public class ProxyCharacterButton : ProxyElement
         if (character == null) return null;
 
         if (button.IsLocked)
-            return SayTheSpire2.Localization.LocalizationManager.GetOrDefault("ui", "LABELS.LOCKED", "Locked");
+            return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.LOCKED", "Locked"));
 
         if (button.IsRandom) return null;
 
@@ -50,10 +51,10 @@ public class ProxyCharacterButton : ProxyElement
         if (remoteCount > 0)
             status += $", Selected by {remoteCount} other {(remoteCount == 1 ? "player" : "players")}";
 
-        return status;
+        return Message.Raw(status);
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var button = Button;
         if (button == null) return null;
@@ -64,7 +65,7 @@ public class ProxyCharacterButton : ProxyElement
         if (button.IsLocked)
         {
             var unlockText = character.GetUnlockText().GetFormattedText();
-            return !string.IsNullOrEmpty(unlockText) ? unlockText : null;
+            return !string.IsNullOrEmpty(unlockText) ? Message.Raw(unlockText) : null;
         }
 
         var parts = new System.Collections.Generic.List<string>();
@@ -80,7 +81,7 @@ public class ProxyCharacterButton : ProxyElement
         if (ascension != null)
             parts.Add(ascension);
 
-        return parts.Count > 0 ? string.Join(". ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(". ", parts)) : null;
     }
 
     private static string? GetAscensionText(NCharacterSelectButton button)

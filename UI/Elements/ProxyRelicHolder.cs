@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -38,16 +39,16 @@ public class ProxyRelicHolder : ProxyElement
         return null;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var model = GetModel();
-        if (model == null) return Control != null ? CleanNodeName(Control.Name) : null;
-        return model.Title.GetFormattedText();
+        if (model == null) return Control != null ? Message.Raw(CleanNodeName(Control.Name)) : null;
+        return Message.Raw(model.Title.GetFormattedText());
     }
 
     public override string? GetTypeKey() => "relic";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var model = GetModel();
         if (model == null) return null;
@@ -60,16 +61,16 @@ public class ProxyRelicHolder : ProxyElement
         if (model.Status == RelicStatus.Disabled)
             parts.Add("Disabled");
 
-        return parts.Count > 0 ? string.Join(", ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(", ", parts)) : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var model = GetModel();
         if (model == null) return null;
 
         var desc = model.DynamicDescription.GetFormattedText();
-        return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
+        return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)

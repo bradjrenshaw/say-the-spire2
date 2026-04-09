@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.RestSite;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -9,22 +10,22 @@ public class ProxyRestSiteButton : ProxyElement
 
     private NRestSiteButton? Button => Control as NRestSiteButton;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var option = Button?.Option;
-        if (option == null) return CleanNodeName(Control.Name);
+        if (option == null) return Message.Raw(CleanNodeName(Control.Name));
 
-        return option.Title.GetFormattedText();
+        return Message.Raw(option.Title.GetFormattedText());
     }
 
     public override string? GetTypeKey() => "button";
 
-    public override string? GetExtrasString()
+    public override Message? GetExtrasString()
     {
         var option = Button?.Option;
         if (option == null) return null;
 
         var desc = option.Description.GetFormattedText();
-        return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
+        return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
     }
 }

@@ -14,21 +14,21 @@ public class ProxyCrystalSphereCell : ProxyElement
 
     private CrystalSphereCell? Entity => Cell?.Entity;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var entity = Entity;
         if (entity == null) return null;
 
         if (entity.IsHidden)
-            return LocalizationManager.GetOrDefault("ui", "LABELS.HIDDEN", "Hidden");
+            return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.HIDDEN", "Hidden"));
 
         var item = entity.Item;
         if (item == null)
-            return LocalizationManager.GetOrDefault("ui", "LABELS.EMPTY", "Empty");
+            return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.EMPTY", "Empty"));
 
         var itemLabel = GetItemLabel(item);
         var rangeStr = GetItemRangeString(item);
-        return rangeStr != null ? $"{itemLabel} {rangeStr}" : itemLabel;
+        return rangeStr != null ? Message.Raw($"{itemLabel} {rangeStr}") : Message.Raw(itemLabel);
     }
 
     private static string GetItemLabel(CrystalSphereItem item)

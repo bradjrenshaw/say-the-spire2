@@ -41,16 +41,16 @@ public class ProxyMerchantSlot : ProxyElement
         return _innerProxy;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var inner = GetInnerProxy();
         if (inner != null) return inner.GetLabel();
 
         var entry = GetEntry();
         if (entry is MerchantCardRemovalEntry)
-            return LocalizationManager.GetOrDefault("ui", "LABELS.CARD_REMOVAL", "Card Removal");
+            return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.CARD_REMOVAL", "Card Removal"));
 
-        return CleanNodeName(Control!.Name);
+        return Message.Raw(CleanNodeName(Control!.Name));
     }
 
     public override string? GetTypeKey()
@@ -66,22 +66,22 @@ public class ProxyMerchantSlot : ProxyElement
         return GetInnerProxy()?.GetSubtypeKey();
     }
 
-    public override string? GetExtrasString()
+    public override Message? GetExtrasString()
     {
         return GetInnerProxy()?.GetExtrasString();
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         return GetInnerProxy()?.GetTooltip();
     }
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var entry = GetEntry();
         if (entry == null) return null;
 
-        if (!entry.IsStocked) return LocalizationManager.GetOrDefault("ui", "LABELS.SOLD_OUT", "Sold out");
+        if (!entry.IsStocked) return Message.Raw(LocalizationManager.GetOrDefault("ui", "LABELS.SOLD_OUT", "Sold out"));
 
         var parts = new System.Collections.Generic.List<string>();
         parts.Add($"{entry.Cost} gold");
@@ -92,7 +92,7 @@ public class ProxyMerchantSlot : ProxyElement
         if (entry is MerchantCardEntry cardEntry && cardEntry.IsOnSale)
             parts.Add("On sale");
 
-        return string.Join(", ", parts);
+        return Message.Raw(string.Join(", ", parts));
     }
 
     public override string? HandleBuffers(BufferManager buffers)

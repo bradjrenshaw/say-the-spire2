@@ -1,4 +1,5 @@
 using System;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -32,11 +33,11 @@ public class ActionElement : UIElement
 
     public override bool IsVisible => _isVisible?.Invoke() ?? true;
 
-    public override string? GetLabel() => _label();
-    public override string? GetExtrasString() => _extras?.Invoke();
+    public override Message? GetLabel() { var v = _label(); return v != null ? Message.Raw(v) : null; }
+    public override Message? GetExtrasString() { var v = _extras?.Invoke(); return v != null ? Message.Raw(v) : null; }
     public override string? GetTypeKey() => _typeKey?.Invoke();
-    public override string? GetStatusString() => _status?.Invoke();
-    public override string? GetTooltip() => _tooltip?.Invoke();
+    public override Message? GetStatusString() { var v = _status?.Invoke(); return v != null ? Message.Raw(v) : null; }
+    public override Message? GetTooltip() { var v = _tooltip?.Invoke(); return v != null ? Message.Raw(v) : null; }
 
     public bool Activate()
     {

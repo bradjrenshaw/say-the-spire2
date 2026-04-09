@@ -4,6 +4,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Orbs;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -13,30 +14,30 @@ public class ProxyOrb : ProxyElement
 
     private NOrb? Orb => Control as NOrb;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var model = Orb?.Model;
         if (model == null)
         {
             var tip = OrbModel.EmptySlotHoverTipHoverTip;
-            return tip.Title;
+            return Message.Raw(tip.Title);
         }
-        return model.Title.GetFormattedText();
+        return Message.Raw(model.Title.GetFormattedText());
     }
 
     public override string? GetTypeKey() => "orb";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var model = Orb?.Model;
         if (model == null)
         {
             var tip = OrbModel.EmptySlotHoverTipHoverTip;
             var desc = tip.Description;
-            return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
+            return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
         }
 
-        return $"Passive {model.PassiveVal:0}, Evoke {model.EvokeVal:0}";
+        return Message.Raw($"Passive {model.PassiveVal:0}, Evoke {model.EvokeVal:0}");
     }
 
     public override string? HandleBuffers(BufferManager buffers)

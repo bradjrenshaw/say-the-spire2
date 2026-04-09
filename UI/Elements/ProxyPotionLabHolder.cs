@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.PotionLab;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -27,42 +28,44 @@ public class ProxyPotionLabHolder : ProxyElement
             : ModelVisibility.None;
     }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var model = Model;
         if (model == null)
             return null;
 
         return GetVisibility() == ModelVisibility.Visible
-            ? model.Title.GetFormattedText()
-            : "Unknown potion";
+            ? Message.Raw(model.Title.GetFormattedText())
+            : Message.Raw("Unknown potion");
     }
 
     public override string? GetTypeKey() => "potion";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
-        return GetVisibility() switch
+        var text = GetVisibility() switch
         {
             ModelVisibility.Locked => "Locked",
             ModelVisibility.NotSeen => "Undiscovered",
-            _ => null,
+            _ => (string?)null,
         };
+        return text != null ? Message.Raw(text) : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var model = Model;
         if (model == null)
             return null;
 
-        return GetVisibility() switch
+        var text = GetVisibility() switch
         {
             ModelVisibility.Visible => StripBbcode(model.DynamicDescription.GetFormattedText()),
             ModelVisibility.NotSeen => new LocString("main_menu_ui", "POTION_LAB_COLLECTION.unknown.description").GetFormattedText(),
             ModelVisibility.Locked => new LocString("main_menu_ui", "POTION_LAB_COLLECTION.locked.description").GetFormattedText(),
-            _ => null,
+            _ => (string?)null,
         };
+        return text != null ? Message.Raw(text) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)

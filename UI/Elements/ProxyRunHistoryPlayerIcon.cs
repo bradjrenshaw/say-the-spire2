@@ -23,18 +23,18 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
 
     private NRunHistoryPlayerIcon? Icon => Control as NRunHistoryPlayerIcon;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var icon = Icon;
         if (icon == null)
             return null;
 
-        return ModelDb.GetById<CharacterModel>(icon.Player.Character).Title.GetFormattedText();
+        return Message.Raw(ModelDb.GetById<CharacterModel>(icon.Player.Character).Title.GetFormattedText());
     }
 
     public override string? GetTypeKey() => "button";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var icon = Icon;
         if (icon == null)
@@ -49,7 +49,7 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
         if (achievementLock?.Visible == true)
             parts.Add(Ui("RUN_HISTORY.ACHIEVEMENTS_LOCKED"));
 
-        return parts.Count > 0 ? string.Join(", ", parts) : null;
+        return parts.Count > 0 ? Message.Raw(string.Join(", ", parts)) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)
@@ -60,11 +60,11 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
 
         uiBuffer.Clear();
 
-        var label = GetLabel();
+        var label = GetLabel()?.Resolve();
         if (!string.IsNullOrWhiteSpace(label))
             uiBuffer.Add(label);
 
-        var status = GetStatusString();
+        var status = GetStatusString()?.Resolve();
         if (!string.IsNullOrWhiteSpace(status))
             uiBuffer.Add(status);
 

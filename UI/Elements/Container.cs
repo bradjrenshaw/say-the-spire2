@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -11,7 +12,7 @@ public abstract class Container : UIElement
     public bool AnnounceName { get; set; } = true;
     public bool AnnouncePosition { get; set; } = true;
 
-    public override string? GetLabel() => ContainerLabel;
+    public override Message? GetLabel() => ContainerLabel != null ? Message.Raw(ContainerLabel) : null;
 
     public void Add(UIElement child)
     {

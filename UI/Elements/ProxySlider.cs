@@ -1,6 +1,7 @@
 using System.Reflection;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 
 namespace SayTheSpire2.UI.Elements;
@@ -12,14 +13,15 @@ public class ProxySlider : ProxyElement
 
     public ProxySlider(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
-        return OverrideLabel ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name);
+        var text = OverrideLabel ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name);
+        return Message.Raw(text);
     }
 
     public override string? GetTypeKey() => "slider";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         if (Control is NSettingsSlider)
         {
@@ -27,7 +29,7 @@ public class ProxySlider : ProxyElement
             if (valueLabel != null)
             {
                 var text = FindChildText(valueLabel);
-                if (text != null) return text;
+                if (text != null) return Message.Raw(text);
             }
         }
         return null;
@@ -50,8 +52,8 @@ public class ProxySlider : ProxyElement
     private void OnValueChanged(double value)
     {
         var status = GetStatusString();
-        if (!string.IsNullOrEmpty(status))
-            SpeechManager.Output(Localization.Message.Raw(status));
+        if (status != null)
+            SpeechManager.Output(status);
     }
 
     private Range? GetInnerSlider()

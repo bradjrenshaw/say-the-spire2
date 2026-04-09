@@ -41,11 +41,11 @@ public class ProxyTopBar : ProxyElement
         };
     }
 
-    public override string? GetLabel()
+    public override SayTheSpire2.Localization.Message? GetLabel()
     {
         try
         {
-            return _type switch
+            var text = _type switch
             {
                 TopBarType.Hp => GetHpLabel(),
                 TopBarType.Gold => GetGoldLabel(),
@@ -54,19 +54,20 @@ public class ProxyTopBar : ProxyElement
                 TopBarType.Boss => GetBossLabel(),
                 _ => CleanNodeName(Control.Name)
             };
+            return text != null ? SayTheSpire2.Localization.Message.Raw(text) : null;
         }
         catch
         {
-            return CleanNodeName(Control.Name);
+            return SayTheSpire2.Localization.Message.Raw(CleanNodeName(Control.Name));
         }
     }
 
-    public override string? GetTooltip()
+    public override SayTheSpire2.Localization.Message? GetTooltip()
     {
         try
         {
             var (_, tipDesc) = GetFormattedTooltip();
-            return !string.IsNullOrEmpty(tipDesc) ? StripBbcode(tipDesc) : null;
+            return !string.IsNullOrEmpty(tipDesc) ? SayTheSpire2.Localization.Message.Raw(StripBbcode(tipDesc)) : null;
         }
         catch
         {
@@ -81,7 +82,7 @@ public class ProxyTopBar : ProxyElement
 
         uiBuffer.Clear();
 
-        var label = GetLabel();
+        var label = GetLabel()?.Resolve();
         if (!string.IsNullOrEmpty(label))
             uiBuffer.Add(label);
 

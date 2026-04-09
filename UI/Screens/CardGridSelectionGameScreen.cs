@@ -83,11 +83,11 @@ public class CardGridSelectionGameScreen : GameScreen
                             {
                                 var model = cardHolder.CardModel;
                                 if (model != null && selectedSet.Contains(model))
-                                    extras.Add("Selected");
+                                    extras.Add(Localization.Message.Raw("Selected"));
                             };
                             proxy.CollectPostExtras += extras =>
                             {
-                                extras.Add($"{selectedSet.Count} selected");
+                                extras.Add(Localization.Message.Raw($"{selectedSet.Count} selected"));
                             };
                         }
                         gridContainer.Add(proxy, col, row);

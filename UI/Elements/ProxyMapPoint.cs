@@ -1,5 +1,6 @@
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Map;
 using SayTheSpire2.UI.Screens;
 
@@ -13,17 +14,18 @@ public class ProxyMapPoint : ProxyElement
 
     private NMapPoint? MapPointNode => Control as NMapPoint;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var mp = MapPointNode;
-        if (mp?.Point == null) return CleanNodeName(Control.Name);
-        return MapScreen.Current?.DescribePoint(mp.Point, includeChoicePrefix: false)
+        if (mp?.Point == null) return Message.Raw(CleanNodeName(Control.Name));
+        var text = MapScreen.Current?.DescribePoint(mp.Point, includeChoicePrefix: false)
             ?? MapNode.GetPointDisplayName(mp.Point);
+        return Message.Raw(text);
     }
 
     public override string? GetTypeKey() => null;
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         return null;
     }

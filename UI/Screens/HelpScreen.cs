@@ -202,7 +202,7 @@ public class HelpScreen : Screen
     {
         var label = new Label
         {
-            Text = element.GetLabel() ?? "",
+            Text = element.GetLabel()?.Resolve() ?? "",
             AutowrapMode = TextServer.AutowrapMode.Word,
         };
         label.AddThemeFontSizeOverride("font_size", 16);

@@ -622,7 +622,7 @@ public class CardLibraryGameScreen : GameScreen
             if (current.Value)
                 continue;
 
-            var label = GetElement(control)?.GetLabel();
+            var label = GetElement(control)?.GetLabel()?.Resolve();
             var uncheckedText = LocalizationManager.Get("ui", "CHECKBOX.UNCHECKED");
             if (!string.IsNullOrWhiteSpace(label) && !string.IsNullOrWhiteSpace(uncheckedText))
                 changes.Add($"{label}, {uncheckedText}");

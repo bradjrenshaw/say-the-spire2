@@ -7,23 +7,23 @@ public class ProxyTextInput : ProxyElement
 {
     public ProxyTextInput(Control control) : base(control) { }
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
-        return OverrideLabel ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name);
+        return Message.Raw(OverrideLabel ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name));
     }
 
     public override string? GetTypeKey() => "textbox";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         if (Control is not LineEdit lineEdit)
             return null;
 
         var text = string.IsNullOrWhiteSpace(lineEdit.Text) ? lineEdit.PlaceholderText : lineEdit.Text;
         if (string.IsNullOrWhiteSpace(text))
-            return lineEdit.Editable ? null : Ui("TEXTBOX.READ_ONLY");
+            return lineEdit.Editable ? null : Message.Raw(Ui("TEXTBOX.READ_ONLY"));
 
-        return lineEdit.Editable ? text : $"{text}, {Ui("TEXTBOX.READ_ONLY")}";
+        return lineEdit.Editable ? Message.Raw(text) : Message.Raw($"{text}, {Ui("TEXTBOX.READ_ONLY")}");
     }
 
     protected override void OnFocus()

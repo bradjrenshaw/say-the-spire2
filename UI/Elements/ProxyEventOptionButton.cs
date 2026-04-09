@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using SayTheSpire2.Buffers;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -14,39 +15,39 @@ public class ProxyEventOptionButton : ProxyElement
 
     private NEventOptionButton? Button => Control as NEventOptionButton;
 
-    public override string? GetLabel()
+    public override Message? GetLabel()
     {
         var option = Button?.Option;
-        if (option == null) return CleanNodeName(Control.Name);
+        if (option == null) return Message.Raw(CleanNodeName(Control.Name));
 
         var title = option.Title?.GetFormattedText();
         if (!string.IsNullOrEmpty(title))
-            return StripBbcode(title);
+            return Message.Raw(StripBbcode(title));
 
         var desc = option.Description?.GetFormattedText();
         if (!string.IsNullOrEmpty(desc))
-            return StripBbcode(desc);
+            return Message.Raw(StripBbcode(desc));
 
-        return CleanNodeName(Control.Name);
+        return Message.Raw(CleanNodeName(Control.Name));
     }
 
     public override string? GetTypeKey() => "button";
 
-    public override string? GetStatusString()
+    public override Message? GetStatusString()
     {
         var option = Button?.Option;
         if (option == null) return null;
 
-        return option.IsLocked ? "Locked" : null;
+        return option.IsLocked ? Message.Raw("Locked") : null;
     }
 
-    public override string? GetTooltip()
+    public override Message? GetTooltip()
     {
         var option = Button?.Option;
         if (option == null) return null;
 
         var desc = option.Description?.GetFormattedText();
-        return !string.IsNullOrEmpty(desc) ? StripBbcode(desc) : null;
+        return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
     }
 
     public override string? HandleBuffers(BufferManager buffers)

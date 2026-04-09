@@ -1,5 +1,6 @@
 using System;
 using Godot;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -21,7 +22,7 @@ public class ButtonElement : UIElement
         };
     }
 
-    public override string? GetLabel() => _label;
+    public override Message? GetLabel() => Message.Raw(_label);
     public override string? GetTypeKey() => "button";
 
     public void Activate()
