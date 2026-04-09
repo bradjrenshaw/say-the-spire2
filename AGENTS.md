@@ -21,9 +21,15 @@ This file contains review rules and checklists for AI agents working on this cod
 - [ ] New controls that don't extend `NClickableControl` need explicit `FocusEntered` signal connections (see `NSelectedHandCardHolder`, `NMerchantSlot`, `NCrystalSphereCell` patterns).
 - [ ] Disabled controls: verify `SetEnabledPostfix` keeps them focusable and `RefreshFocusPostfix`'s `HasFocus()` fallback announces them.
 
-### Speech
+### Speech & Messages
 - [ ] No `SpeechManager.Output` call uses `interrupt: true`.
 - [ ] Focus-related announcements go through `UIManager.Update()`, not direct `SpeechManager.Output` calls.
+- [ ] All user-facing text uses `Message.Localized("ui", "KEY", new { ... })` with keys in `eng/ui.json`. Never use `Message.Raw()` with hardcoded English.
+- [ ] `Message.Raw()` is only for game-provided text (card names, creature names, `LocString.GetFormattedText()` results, `Title.GetFormattedText()`, etc.).
+- [ ] Never wrap a `LocalizationManager.GetOrDefault()` result in `Message.Raw()` — use `Message.Localized()` directly instead.
+- [ ] UIElement methods (`GetLabel`, `GetStatusString`, `GetTooltip`, `GetExtrasString`) return `Message?`, not `string?`. Call `.Resolve()` only at final output boundaries (buffer `Add`, speech output, visual labels).
+- [ ] Event `GetMessage()` returns `Message?`. Use `Message.Localized()` for the format template, `Message.Raw()` only for game-provided names within it.
+- [ ] New localization keys follow the naming convention: `SECTION.KEY_NAME` (e.g., `EVENT.CARD_PLAYED`, `RESOURCE.HP`, `LABELS.LOCKED`).
 
 ### Harmony Patches
 - [ ] Manual patching via `harmony.Patch()`, not `PatchAll`.
@@ -56,8 +62,24 @@ This file contains review rules and checklists for AI agents working on this cod
 
 ### Proxy Elements
 - [ ] `ProxyFactory.Create` handles the new control type, or the caller provides a pre-resolved proxy.
-- [ ] `GetLabel()`, `GetStatusString()`, `GetTooltip()` handle null gracefully (the control or its children may not exist).
+- [ ] `GetLabel()`, `GetStatusString()`, `GetTooltip()` return `Message?` and handle null gracefully (the control or its children may not exist).
+- [ ] Game-provided text (titles, descriptions) wrapped in `Message.Raw()`. Mod-generated labels/formats use `Message.Localized()`.
 - [ ] Star costs use `GetStarCostWithModifiers()` not `CurrentStarCost` (to reflect Void Form and similar modifiers).
+- [ ] Resource formats (HP, gold, energy, block, stars) use the `RESOURCE.*` localization keys, not inline format strings.
+
+### Help System
+- [ ] New screens implement `GetHelpMessages()` with relevant text tips and control help.
+- [ ] Help text messages use `LocalizationManager.GetOrDefault()` with keys from `ui.json`, not hardcoded English.
+- [ ] Control descriptions in `ControlHelpMessage` use localized strings.
+- [ ] Screen-specific messages are marked `exclusive: true` so they don't leak into child screens.
+- [ ] Multi-action controls (e.g., "Select Combatant 1-12") use the `params string[]` constructor with all action keys.
+- [ ] Modal screens (`ModalScreen`) provide appropriate help — generic confirm/cancel for dialogs, page navigation for tutorials.
+
+### Screens & Modals
+- [ ] New game screens that use `NOverlayStack` are registered in `OverlayHooks` push/remove.
+- [ ] Screens with dynamic content use state token polling in `OnUpdate()` to rebuild when content changes.
+- [ ] `ModalScreen` auto-removes when the modal node is freed (safety check in `OnUpdate`).
+- [ ] `ClaimAllActions()` is used for overlay screens that should block all input (help, modals).
 
 ### Installer (Rust)
 - [ ] Version comparison uses `semver` crate, handles both `v` and `V` prefixes.

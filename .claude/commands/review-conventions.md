@@ -16,8 +16,14 @@ You are the **convention enforcer** on a 3-agent code review team. Focus exclusi
 - New non-NClickableControl types use FocusEntered signal connections.
 - Disabled controls handled via SetEnabledPostfix + HasFocus fallback.
 
-### Speech Rules (if touching SpeechManager calls)
+### Speech & Message Rules (if touching SpeechManager calls, Message usage, or UI element methods)
 - No `interrupt: true` parameter on any Output/Speak call.
+- `Message.Raw()` only for game-provided text (card names, creature names, LocString results). Never for mod-generated English.
+- `Message.Localized("ui", "KEY", new { ... })` for all mod-generated text. Keys in `Localization/eng/ui.json`.
+- Never wrap `LocalizationManager.GetOrDefault()` in `Message.Raw()` — use `Message.Localized()` directly.
+- UIElement `GetLabel`/`GetStatusString`/`GetTooltip`/`GetExtrasString` return `Message?`, not `string?`.
+- Event `GetMessage()` returns `Message?`. Format templates are localization keys.
+- `.Resolve()` called only at output boundaries (buffer Add, visual labels), not in intermediate composition.
 
 ### Harmony Rules (if adding/modifying patches)
 - Manual patching, not PatchAll.
@@ -30,6 +36,7 @@ You are the **convention enforcer** on a 3-agent code review team. Focus exclusi
 - Registered in EventRegistry.RegisterDefaults().
 - Source creature set when applicable.
 - hasSourceFilter and Allow* flags match game's visual feedback.
+- GetMessage() returns Message.Localized with keys from ui.json, not hardcoded format strings.
 
 ### Multiplayer Rules (if touching multiplayer code)
 - Gated behind IsMultiplayer().

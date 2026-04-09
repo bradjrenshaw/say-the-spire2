@@ -27,6 +27,23 @@ You are performing a comprehensive audit of the entire codebase, not just a diff
 - Do similar subsystems use different patterns for the same problem? (e.g., some screens use GameScreen, others don't; some hooks use PatchIfFound, others inline the patching)
 - Are there older files that haven't been updated to use newer patterns?
 
+### Localization & Message Usage
+
+**Message.Raw() misuse:**
+- Scan for `Message.Raw()` calls containing hardcoded English text (not game-provided). These should be `Message.Localized()`.
+- Scan for `Message.Raw(LocalizationManager.GetOrDefault(...))` — redundant pattern, should be `Message.Localized()` directly.
+- Check that all Event `GetMessage()` implementations use `Message.Localized()` for format templates.
+
+**Missing localization keys:**
+- Scan for strings passed to `buffer.Add()`, `SpeechManager.Output()`, or proxy return values that contain English words but don't use localization.
+- Check that help message descriptions (TextHelpMessage, ControlHelpMessage) use localized strings.
+- Verify new UI strings added by PRs are localized.
+
+**Return type compliance:**
+- UIElement `GetLabel`/`GetStatusString`/`GetTooltip`/`GetExtrasString` must return `Message?`, not `string?`.
+- Event `GetMessage()` must return `Message?`, not `string?`.
+- Container `GetPositionString()` must return `Message?`.
+
 ### Code Reuse
 
 **Duplicated logic across files:**
@@ -56,6 +73,11 @@ You are performing a comprehensive audit of the entire codebase, not just a diff
 - List all game screen types (from decompiled source) and whether the mod has a corresponding GameScreen wrapper.
 - Are there screens that should have wrappers but don't?
 - Are there screen wrappers that are doing too much (should delegate to separate classes)?
+
+**Help system coverage:**
+- List all screens and whether they implement `GetHelpMessages()`.
+- Are there screens with non-obvious controls that lack help messages?
+- Are all help text/control descriptions localized?
 
 **Hook organization:**
 - Are all hooks in the right file? (FocusHooks for focus, ScreenHooks for screens, EventHooks for events, etc.)

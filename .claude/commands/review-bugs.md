@@ -29,6 +29,11 @@ You are the **bug hunter** on a 3-agent code review team. Focus exclusively on c
 - Are deferred callbacks or signal connections creating stale closures over captured variables?
 - Could the game destroy a Godot object between when we capture it and when we use it? Check for `GodotObject.IsInstanceValid`.
 
+### Message / Localization
+- Is `Message.Raw()` used with hardcoded English text? Should be `Message.Localized()`.
+- Are localization keys referenced in code actually present in `Localization/eng/ui.json`?
+- Is `.Resolve()` called too early (in composition) or too late (missing at output boundary)?
+
 ### Edge Cases
 - What happens if the player is in singleplayer? In multiplayer with 1 player? With 4 players?
 - What happens if the control/element is null, destroyed, or not yet in the scene tree?
