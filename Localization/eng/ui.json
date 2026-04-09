@@ -282,6 +282,8 @@
   "EVENT.HAND_DISCARDED": "Hand discarded",
   "EVENT.CARDS_DRAWN": "{count} cards drawn",
   "EVENT.CARD_DRAWN": "{card} drawn",
+  "EVENT.CARD_DISCARDED": "{card} discarded",
+  "EVENT.CARD_ADDED_TO_DRAW": "{card} added to draw pile",
   "EVENT.CARDS_EXHAUSTED": "{count} cards exhausted",
   "EVENT.CARD_EXHAUSTED": "{card} exhausted",
   "EVENT.CARDS_SHUFFLED": "Discard pile shuffled into draw pile",
