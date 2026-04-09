@@ -43,7 +43,7 @@ public class CardLibraryGameScreen : GameScreen
             _columnCount = columnCount > 0 ? columnCount : 1;
         }
 
-        public override string? GetPositionString(UIElement child)
+        public override Localization.Message? GetPositionString(UIElement child)
         {
             if (!_holders.TryGetValue(child, out var holder))
                 return null;
@@ -57,7 +57,11 @@ public class CardLibraryGameScreen : GameScreen
             if (index < 0)
                 return null;
 
-            return $"{(index % _columnCount) + 1}, {(index / _columnCount) + 1}";
+            return Localization.Message.Localized("ui", "POSITIONS.GRID", new
+            {
+                column = (index % _columnCount) + 1,
+                row = (index / _columnCount) + 1
+            });
         }
     }
 

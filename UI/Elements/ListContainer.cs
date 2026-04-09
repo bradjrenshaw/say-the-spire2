@@ -1,8 +1,10 @@
+using SayTheSpire2.Localization;
+
 namespace SayTheSpire2.UI.Elements;
 
 public class ListContainer : Container
 {
-    public override string? GetPositionString(UIElement child)
+    public override Message? GetPositionString(UIElement child)
     {
         int position = 0;
         int total = 0;
@@ -14,6 +16,6 @@ public class ListContainer : Container
                 position = total;
         }
         if (position == 0) return null;
-        return $"{position} of {total}";
+        return Message.Localized("ui", "POSITIONS.LIST", new { position, total });
     }
 }

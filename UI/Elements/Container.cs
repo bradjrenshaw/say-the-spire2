@@ -45,5 +45,5 @@ public abstract class Container : UIElement
             child.Update();
     }
 
-    public abstract string? GetPositionString(UIElement child);
+    public abstract Message? GetPositionString(UIElement child);
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -25,9 +26,9 @@ public class GridContainer : Container
         MaxY = 0;
     }
 
-    public override string? GetPositionString(UIElement child)
+    public override Message? GetPositionString(UIElement child)
     {
         if (!_positions.TryGetValue(child, out var pos)) return null;
-        return $"{pos.x + 1}, {pos.y + 1}";
+        return Message.Localized("ui", "POSITIONS.GRID", new { row = pos.y + 1, column = pos.x + 1 });
     }
 }

@@ -75,7 +75,8 @@ public static class UIManager
         }
 
         // Build announcement via path diffing
-        var text = BuildFocusAnnouncement(element);
+        var message = BuildFocusAnnouncement(element);
+        var text = message?.Resolve();
 
         // Only announce if something changed (text or control reference)
         var controlChanged = _currentControl != null && _currentControl != _lastAnnouncedControl;
@@ -91,7 +92,7 @@ public static class UIManager
         _lastAnnouncedElement = element;
 
         Log.Info($"[AccessibilityMod] Focus: {element.GetType().Name} -> \"{text}\"");
-        SpeechManager.Output(Message.Raw(text));
+        SpeechManager.Output(message!);
 
         // Update buffers
         var buffers = BufferManager.Instance;
@@ -103,18 +104,18 @@ public static class UIManager
         element.Focus();
     }
 
-    private static string? BuildFocusAnnouncement(UIElement element)
+    private static Message? BuildFocusAnnouncement(UIElement element)
     {
         // If the element is in a container hierarchy, use path diffing
         if (element.Parent != null)
         {
             var announcement = _focusContext.BuildAnnouncement(element);
-            if (!string.IsNullOrEmpty(announcement))
+            if (announcement != null)
                 return announcement;
         }
 
-        // Fall back to the element's own focus string
-        return element.GetFocusString();
+        // Fall back to the element's own focus message
+        return element.GetFocusMessage();
     }
 
     private static UIElement ResolveElement(Control control)
