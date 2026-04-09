@@ -31,8 +31,8 @@ public class OrbEvent : GameEvent
 
     public override Message? GetMessage() => _type switch
     {
-        OrbEventType.Channeled => Message.Raw($"Channeled {_orbName}"),
-        OrbEventType.Evoked => Message.Raw($"Evoked {_orbName}"),
+        OrbEventType.Channeled => Message.Localized("ui", "EVENT.ORB_CHANNELED", new { orb = _orbName }),
+        OrbEventType.Evoked => Message.Localized("ui", "EVENT.ORB_EVOKED", new { orb = _orbName }),
         _ => null,
     };
 

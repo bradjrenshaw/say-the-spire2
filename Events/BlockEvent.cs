@@ -32,15 +32,15 @@ public class BlockEvent : GameEvent
         int delta = _newBlock - _oldBlock;
         bool verbose = ModSettings.GetValue<bool>("events.block.verbose_totals");
         if (delta > 0)
-            return Message.Raw(verbose
-                ? $"{_creatureName} gained {delta} Block ({_newBlock} total)"
-                : $"{_creatureName} gained {delta} Block");
+            return verbose
+                ? Message.Localized("ui", "EVENT.BLOCK_GAINED", new { creature = _creatureName, amount = delta, total = _newBlock })
+                : Message.Localized("ui", "EVENT.BLOCK_GAINED_NO_TOTAL", new { creature = _creatureName, amount = delta });
         if (delta < 0 && _newBlock == 0)
-            return Message.Raw($"{_creatureName} lost all Block");
+            return Message.Localized("ui", "EVENT.BLOCK_LOST_ALL", new { creature = _creatureName });
         if (delta < 0)
-            return Message.Raw(verbose
-                ? $"{_creatureName} lost {-delta} Block ({_newBlock} remaining)"
-                : $"{_creatureName} lost {-delta} Block");
+            return verbose
+                ? Message.Localized("ui", "EVENT.BLOCK_LOST", new { creature = _creatureName, amount = -delta, remaining = _newBlock })
+                : Message.Localized("ui", "EVENT.BLOCK_LOST_NO_TOTAL", new { creature = _creatureName, amount = -delta });
         return null;
     }
 

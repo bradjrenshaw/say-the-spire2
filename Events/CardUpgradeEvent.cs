@@ -15,5 +15,5 @@ public class CardUpgradeEvent : GameEvent
         _cardName = cardName;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_cardName} upgraded");
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.CARD_UPGRADE", new { card = _cardName });
 }

@@ -7,14 +7,16 @@ namespace SayTheSpire2.Events;
 [EventSettings("map_vote", "Map Vote", hasSourceFilter: true, allowEnemies: false)]
 public class MapVoteEvent : GameEvent
 {
-    private readonly string _message;
+    private readonly string _playerName;
+    private readonly string _nodeName;
 
-    public MapVoteEvent(string message, Creature? source = null)
+    public MapVoteEvent(string playerName, string nodeName, Creature? source = null)
     {
         Source = source;
-        _message = message;
+        _playerName = playerName;
+        _nodeName = nodeName;
     }
 
-    public override Message? GetMessage() => Message.Raw(_message);
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.MAP_VOTE", new { player = _playerName, node = _nodeName });
     public override bool ShouldAddToBuffer() => false;
 }

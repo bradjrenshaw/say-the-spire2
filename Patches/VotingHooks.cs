@@ -61,7 +61,7 @@ public static class VotingHooks
             var playerName = MultiplayerHelper.GetPlayerName(player);
             var point = ResolveMapPoint(__instance, newLocation.Value.coord);
             var nodeName = GetMapPointName(point);
-            EventDispatcher.Enqueue(new MapVoteEvent($"{playerName} voted for {nodeName}", player.Creature));
+            EventDispatcher.Enqueue(new MapVoteEvent(playerName, nodeName, player.Creature));
         }
         catch (Exception e)
         {
@@ -79,7 +79,7 @@ public static class VotingHooks
             // Local player's creature as source
             Creature? localCreature = null;
             try { localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature; } catch (Exception e) { Log.Error($"[AccessibilityMod] Local creature lookup failed: {e.Message}"); }
-            EventDispatcher.Enqueue(new MapVoteEvent($"Voted for {nodeName}", localCreature));
+            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName, localCreature));
         }
         catch (Exception e)
         {
@@ -93,7 +93,7 @@ public static class VotingHooks
         {
             var point = ResolveMapPoint(__instance, coord);
             var nodeName = GetMapPointName(point);
-            EventDispatcher.Enqueue(new MapVoteEvent($"Traveling to {nodeName}"));
+            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName));
         }
         catch (Exception e)
         {
@@ -127,7 +127,7 @@ public static class VotingHooks
 
             var playerName = MultiplayerHelper.GetPlayerName(player);
             var title = optionTitle ?? $"option {voteIndex.Value + 1}";
-            EventDispatcher.Enqueue(new EventVoteEvent($"{playerName} voted for {title}", player.Creature));
+            EventDispatcher.Enqueue(new EventVoteEvent(playerName, title, player.Creature));
         }
         catch (Exception e)
         {
@@ -141,7 +141,7 @@ public static class VotingHooks
         {
             var title = option.Title?.GetFormattedText();
             if (!string.IsNullOrEmpty(title))
-                EventDispatcher.Enqueue(new EventVoteEvent($"{title} chosen"));
+                EventDispatcher.Enqueue(new EventVoteEvent("", title));
         }
         catch (Exception e)
         {

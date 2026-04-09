@@ -15,5 +15,5 @@ public class CardObtainedEvent : GameEvent
         _cardName = cardName;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_cardName} obtained");
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.CARD_OBTAINED", new { card = _cardName });
 }

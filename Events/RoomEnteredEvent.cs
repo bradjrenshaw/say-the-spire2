@@ -29,13 +29,13 @@ public class RoomEnteredEvent : GameEvent
     {
         return _roomType switch
         {
-            RoomType.Monster => Message.Raw("Combat"),
-            RoomType.Elite => Message.Raw("Elite combat"),
-            RoomType.Boss => Message.Raw("Boss combat"),
-            RoomType.Treasure => Message.Raw("Treasure chest"),
-            RoomType.Shop => Message.Raw("Shop"),
-            RoomType.Event => Message.Raw("Event"),
-            RoomType.RestSite => Message.Raw("Rest site"),
+            RoomType.Monster => Message.Localized("ui", "EVENT.ROOM_MONSTER"),
+            RoomType.Elite => Message.Localized("ui", "EVENT.ROOM_ELITE"),
+            RoomType.Boss => Message.Localized("ui", "EVENT.ROOM_BOSS"),
+            RoomType.Treasure => Message.Localized("ui", "EVENT.ROOM_TREASURE"),
+            RoomType.Shop => Message.Localized("ui", "EVENT.ROOM_SHOP"),
+            RoomType.Event => Message.Localized("ui", "EVENT.ROOM_EVENT"),
+            RoomType.RestSite => Message.Localized("ui", "EVENT.ROOM_REST"),
             _ => null,
         };
     }

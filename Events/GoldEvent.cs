@@ -29,13 +29,13 @@ public class GoldEvent : GameEvent
         int delta = _newGold - _oldGold;
         bool showTotals = ModSettings.GetValue<bool>("events.gold.verbose_totals");
         if (delta > 0)
-            return Message.Raw(showTotals
-                ? $"Gained {delta} gold ({_newGold} total)"
-                : $"Gained {delta} gold");
+            return showTotals
+                ? Message.Localized("ui", "EVENT.GOLD_GAINED", new { amount = delta, total = _newGold })
+                : Message.Localized("ui", "EVENT.GOLD_GAINED_NO_TOTAL", new { amount = delta });
         if (delta < 0)
-            return Message.Raw(showTotals
-                ? $"Lost {-delta} gold ({_newGold} remaining)"
-                : $"Lost {-delta} gold");
+            return showTotals
+                ? Message.Localized("ui", "EVENT.GOLD_LOST", new { amount = -delta, remaining = _newGold })
+                : Message.Localized("ui", "EVENT.GOLD_LOST_NO_TOTAL", new { amount = -delta });
         return null;
     }
 

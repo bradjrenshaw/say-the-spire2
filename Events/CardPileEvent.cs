@@ -35,12 +35,12 @@ public class CardPileEvent : GameEvent
 
     public override Message? GetMessage() => _type switch
     {
-        CardPileEventType.Drew => Message.Raw($"Drew {_cardName}"),
-        CardPileEventType.Discarded => Message.Raw($"{_cardName} added to discard"),
-        CardPileEventType.Exhausted => Message.Raw($"{_cardName} exhausted"),
-        CardPileEventType.AddedToDraw => Message.Raw($"{_cardName} added to draw"),
-        CardPileEventType.HandDiscarded => Message.Raw("Hand discarded"),
-        CardPileEventType.DeckShuffled => Message.Raw("Deck shuffled"),
+        CardPileEventType.Drew => Message.Localized("ui", "EVENT.CARD_DRAWN", new { card = _cardName }),
+        CardPileEventType.Discarded => Message.Localized("ui", "EVENT.CARD_DISCARDED", new { card = _cardName }),
+        CardPileEventType.Exhausted => Message.Localized("ui", "EVENT.CARD_EXHAUSTED", new { card = _cardName }),
+        CardPileEventType.AddedToDraw => Message.Localized("ui", "EVENT.CARD_ADDED_TO_DRAW", new { card = _cardName }),
+        CardPileEventType.HandDiscarded => Message.Localized("ui", "EVENT.HAND_DISCARDED"),
+        CardPileEventType.DeckShuffled => Message.Localized("ui", "EVENT.CARDS_SHUFFLED"),
         _ => null,
     };
 

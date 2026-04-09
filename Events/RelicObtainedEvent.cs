@@ -15,5 +15,5 @@ public class RelicObtainedEvent : GameEvent
         _relicName = relicName;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_relicName} obtained");
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.RELIC_OBTAINED", new { relic = _relicName });
 }

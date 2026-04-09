@@ -7,6 +7,8 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using SayTheSpire2.Events;
+using SayTheSpire2.Multiplayer;
+using SayTheSpire2.UI.Elements;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.Patches;
@@ -70,7 +72,10 @@ public static class CombatNavigationHooks
         try
         {
             if (__instance.IsMonster && __instance.Monster != null && !__instance.Monster.SpawnedThisTurn)
-                EventDispatcher.Enqueue(new EnemyMoveEvent(__instance));
+            {
+                var intentSummary = ProxyCreature.GetIntentSummary(__instance, includePrefix: false) ?? "";
+                EventDispatcher.Enqueue(new EnemyMoveEvent(__instance, intentSummary));
+            }
         }
         catch (System.Exception e)
         {

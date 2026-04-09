@@ -19,5 +19,5 @@ public class CardPlayedEvent : GameEvent
         _cardName = cardName;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_playerName} played {_cardName}");
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.CARD_PLAYED", new { player = _playerName, card = _cardName });
 }

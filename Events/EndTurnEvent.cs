@@ -20,6 +20,8 @@ public class EndTurnEvent : GameEvent
     }
 
     public override Message? GetMessage() =>
-        Message.Raw(_ready ? $"{_playerName} ended their turn" : $"{_playerName} cancelled end turn");
+        _ready
+            ? Message.Localized("ui", "EVENT.END_TURN_READY", new { player = _playerName })
+            : Message.Localized("ui", "EVENT.END_TURN_CANCEL", new { player = _playerName });
     public override bool ShouldAddToBuffer() => false;
 }

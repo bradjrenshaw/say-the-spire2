@@ -32,10 +32,10 @@ public class PowerEvent : GameEvent
     {
         return _eventType switch
         {
-            PowerEventType.Increased when _hasStacks && _amount > 0 => Message.Raw($"{_creatureName} gained {_amount} {_powerName}"),
-            PowerEventType.Increased => Message.Raw($"{_creatureName} gained {_powerName}"),
-            PowerEventType.Decreased => Message.Raw($"{_creatureName} {_powerName} decreased"),
-            PowerEventType.Removed => Message.Raw($"{_creatureName} lost {_powerName}"),
+            PowerEventType.Increased when _hasStacks && _amount > 0 => Message.Localized("ui", "EVENT.POWER_GAINED", new { creature = _creatureName, amount = _amount, power = _powerName }),
+            PowerEventType.Increased => Message.Localized("ui", "EVENT.POWER_GAINED_NO_AMOUNT", new { creature = _creatureName, power = _powerName }),
+            PowerEventType.Decreased => Message.Localized("ui", "EVENT.POWER_DECREASED", new { creature = _creatureName, power = _powerName }),
+            PowerEventType.Removed => Message.Localized("ui", "EVENT.POWER_LOST", new { creature = _creatureName, power = _powerName }),
             _ => null
         };
     }

@@ -9,12 +9,16 @@ namespace SayTheSpire2.Events;
 public class DeathEvent : GameEvent
 {
     private readonly string _creatureName;
+    private readonly int? _remainingEnemies;
 
-    public DeathEvent(Creature creature)
+    public DeathEvent(Creature creature, int? remainingEnemies = null)
     {
         Source = creature;
         _creatureName = MultiplayerHelper.GetCreatureName(creature);
+        _remainingEnemies = remainingEnemies;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_creatureName} died");
+    public override Message? GetMessage() => _remainingEnemies.HasValue
+        ? Message.Localized("ui", "EVENT.DEATH_ENEMY_REMAINING", new { creature = _creatureName, remaining = _remainingEnemies.Value })
+        : Message.Localized("ui", "EVENT.DEATH", new { creature = _creatureName });
 }

@@ -21,11 +21,7 @@ public class TurnEvent : GameEvent
     public override Message? GetMessage()
     {
         if (_isStart)
-        {
-            return Message.Raw(_side == CombatSide.Player
-                ? $"Your turn, round {_round}"
-                : "Enemy turn");
-        }
-        return null;
+            return Message.Localized("ui", "EVENT.TURN_START", new { turn = _round });
+        return Message.Localized("ui", "EVENT.TURN_END", new { turn = _round });
     }
 }

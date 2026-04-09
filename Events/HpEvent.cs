@@ -30,9 +30,9 @@ public class HpEvent : GameEvent
     {
         int delta = _newHp - _oldHp;
         if (delta < 0)
-            return Message.Raw($"{_creatureName} {-delta} damage");
+            return Message.Localized("ui", "EVENT.HP_DAMAGE", new { creature = _creatureName, amount = -delta });
         if (delta > 0)
-            return Message.Raw($"{_creatureName} healed {delta}");
+            return Message.Localized("ui", "EVENT.HP_HEALED", new { creature = _creatureName, amount = delta });
         return null;
     }
 

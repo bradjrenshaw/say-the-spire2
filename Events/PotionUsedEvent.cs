@@ -19,5 +19,5 @@ public class PotionUsedEvent : GameEvent
         _potionName = potionName;
     }
 
-    public override Message? GetMessage() => Message.Raw($"{_playerName} used {_potionName}");
+    public override Message? GetMessage() => Message.Localized("ui", "EVENT.POTION_USED", new { player = _playerName, potion = _potionName });
 }
