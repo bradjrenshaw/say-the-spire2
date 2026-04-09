@@ -8,10 +8,10 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Events;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
+using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
-using MegaCrit.Sts2.Core.Platform;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
 using SayTheSpire2.Localization;
@@ -45,9 +45,11 @@ public static class VotingHooks
         // Event voting: shared option chosen (result)
         HarmonyHelper.PatchIfFound(harmony, typeof(NEventLayout), "BeforeSharedOptionChosen",
             typeof(VotingHooks), nameof(SharedOptionChosenPrefix), "Event BeforeSharedOptionChosen", isPrefix: true);
-    }
 
-    // --- Map voting hooks ---
+        // Shared relic voting: player vote changed
+        HarmonyHelper.PatchIfFound(harmony, typeof(TreasureRoomRelicSynchronizer), "OnPicked",
+            typeof(VotingHooks), nameof(RelicVotePickedPrefix), "Treasure Room Relic OnPicked", isPrefix: true);
+    }
 
     public static void MapVoteChangedPostfix(NMapScreen __instance, Player player, MapVote? oldLocation, MapVote? newLocation)
     {
@@ -55,7 +57,6 @@ public static class VotingHooks
         {
             if (!MultiplayerHelper.IsMultiplayer()) return;
             if (MultiplayerHelper.IsLocalPlayer(player)) return;
-
             if (newLocation == null) return;
 
             var playerName = MultiplayerHelper.GetPlayerName(player);
@@ -76,10 +77,17 @@ public static class VotingHooks
             if (!MultiplayerHelper.IsMultiplayer()) return;
 
             var nodeName = GetMapPointName(point);
-            // Local player's creature as source
             Creature? localCreature = null;
-            try { localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature; } catch (Exception e) { Log.Error($"[AccessibilityMod] Local creature lookup failed: {e.Message}"); }
-            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName, localCreature));
+            try
+            {
+                localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[AccessibilityMod] Local creature lookup failed: {e.Message}");
+            }
+
+            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName, localCreature, MapVoteEvent.VoteKind.LocalVote));
         }
         catch (Exception e)
         {
@@ -95,7 +103,7 @@ public static class VotingHooks
 
             var point = ResolveMapPoint(__instance, coord);
             var nodeName = GetMapPointName(point);
-            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName));
+            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName, kind: MapVoteEvent.VoteKind.Travel));
         }
         catch (Exception e)
         {
@@ -103,7 +111,43 @@ public static class VotingHooks
         }
     }
 
-    // --- Event voting hooks ---
+    public static void RelicVotePickedPrefix(TreasureRoomRelicSynchronizer __instance, Player player, int? index)
+    {
+        try
+        {
+            if (!MultiplayerHelper.IsMultiplayer()) return;
+
+            if (index.HasValue)
+            {
+                var title = GetRelicVoteTitle(__instance, index.Value);
+                if (string.IsNullOrWhiteSpace(title))
+                    return;
+
+                if (MultiplayerHelper.IsLocalPlayer(player))
+                {
+                    EventDispatcher.Enqueue(new MapVoteEvent("", title, player.Creature, MapVoteEvent.VoteKind.LocalVote));
+                }
+                else
+                {
+                    EventDispatcher.Enqueue(new MapVoteEvent(MultiplayerHelper.GetPlayerName(player), title, player.Creature));
+                }
+                return;
+            }
+
+            if (MultiplayerHelper.IsLocalPlayer(player))
+            {
+                EventDispatcher.Enqueue(new MapVoteEvent("", "", player.Creature, MapVoteEvent.VoteKind.LocalSkip));
+            }
+            else
+            {
+                EventDispatcher.Enqueue(new MapVoteEvent(MultiplayerHelper.GetPlayerName(player), "", player.Creature, MapVoteEvent.VoteKind.RemoteSkip));
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[AccessibilityMod] RelicVotePicked error: {e.Message}");
+        }
+    }
 
     public static void EventVoteChangedPostfix(NEventLayout __instance, Player player)
     {
@@ -151,8 +195,6 @@ public static class VotingHooks
         }
     }
 
-    // --- Helpers ---
-
     private static NMapPoint? ResolveMapPoint(NMapScreen screen, MapCoord coord)
     {
         if (MapPointDictField == null) return null;
@@ -170,4 +212,13 @@ public static class VotingHooks
         return $"{name} {coords}";
     }
 
+    private static string? GetRelicVoteTitle(TreasureRoomRelicSynchronizer synchronizer, int index)
+    {
+        var relics = synchronizer.CurrentRelics;
+        if (relics == null || index < 0 || index >= relics.Count)
+            return null;
+
+        RelicModel relic = relics[index];
+        return relic.Title.GetFormattedText();
+    }
 }

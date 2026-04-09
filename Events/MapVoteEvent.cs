@@ -7,16 +7,54 @@ namespace SayTheSpire2.Events;
 [EventSettings("map_vote", "Map Vote", hasSourceFilter: true, allowEnemies: false)]
 public class MapVoteEvent : GameEvent
 {
-    private readonly string _playerName;
-    private readonly string _nodeName;
+    public enum VoteKind
+    {
+        RemoteVote,
+        LocalVote,
+        Travel,
+        RemoteSkip,
+        LocalSkip,
+    }
 
-    public MapVoteEvent(string playerName, string nodeName, Creature? source = null)
+    private readonly string _playerName;
+    private readonly string _targetName;
+    private readonly VoteKind _kind;
+
+    public MapVoteEvent(string playerName, string targetName, Creature? source = null,
+        VoteKind kind = VoteKind.RemoteVote)
     {
         Source = source;
         _playerName = playerName;
-        _nodeName = nodeName;
+        _targetName = targetName;
+        _kind = kind;
     }
 
-    public override Message? GetMessage() => Message.Localized("ui", "EVENT.MAP_VOTE", new { player = _playerName, node = _nodeName });
+    public override Message? GetMessage() => _kind switch
+    {
+        VoteKind.RemoteVote => Message.Localized("ui", "EVENT.MAP_VOTE", new
+        {
+            player = _playerName,
+            node = _targetName
+        }),
+        VoteKind.LocalVote => Message.Localized("ui", "EVENT.MAP_VOTE_LOCAL", new
+        {
+            node = _targetName
+        }),
+        VoteKind.Travel => Message.Localized("ui", "EVENT.MAP_TRAVEL", new
+        {
+            node = _targetName
+        }),
+        VoteKind.RemoteSkip => Message.Localized("ui", "EVENT.MAP_VOTE_SKIP", new
+        {
+            player = _playerName
+        }),
+        VoteKind.LocalSkip => Message.Localized("ui", "EVENT.MAP_VOTE_SKIP_LOCAL"),
+        _ => Message.Localized("ui", "EVENT.MAP_VOTE", new
+        {
+            player = _playerName,
+            node = _targetName
+        })
+    };
+
     public override bool ShouldAddToBuffer() => false;
 }

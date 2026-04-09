@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Multiplayer;
 
 namespace SayTheSpire2.Map;
 
@@ -38,6 +41,10 @@ public static class MapNodeAnnouncementFormatter
         var guidance = BuildMarkerGuidance(node, handler, rowNodes);
         if (guidance.Count > 0)
             announcement = $"{announcement}, {string.Join(", ", guidance)}";
+
+        var voteSummary = BuildVoteSummary(node);
+        if (!string.IsNullOrEmpty(voteSummary))
+            announcement = $"{announcement}, {voteSummary}";
 
         if (includeChoicePrefix && rowNodes.Count > 1)
             announcement = $"{GetChoiceText()}, {announcement}";
@@ -113,6 +120,48 @@ public static class MapNodeAnnouncementFormatter
         }
 
         return guidance;
+    }
+
+    private static string? BuildVoteSummary(MapNode node)
+    {
+        if (!MultiplayerHelper.IsMultiplayer())
+            return null;
+
+        IReadOnlyList<MegaCrit.Sts2.Core.Entities.Players.Player>? players;
+        try
+        {
+            players = RunManager.Instance.DebugOnlyGetState()?.Players;
+        }
+        catch (System.Exception e)
+        {
+            Log.Info($"[AccessibilityMod] Failed to read map vote players: {e.Message}");
+            return null;
+        }
+
+        if (players == null || players.Count == 0)
+            return null;
+
+        var voters = new List<string>();
+        foreach (var player in players)
+        {
+            try
+            {
+                var vote = RunManager.Instance.MapSelectionSynchronizer.GetVote(player);
+                if (vote?.coord.Equals(node.Point.coord) == true)
+                    voters.Add(MultiplayerHelper.GetPlayerName(player));
+            }
+            catch (System.Exception e)
+            {
+                Log.Info($"[AccessibilityMod] Failed to read map vote for {player.NetId}: {e.Message}");
+            }
+        }
+
+        return voters.Count > 0
+            ? Message.Localized("ui", "EVENT.VOTED_FOR_BY", new
+            {
+                players = string.Join(", ", voters)
+            }).Resolve()
+            : null;
     }
 
     private static HashSet<MegaCrit.Sts2.Core.Map.MapCoord> GetReachableMarkedCoords(MapNode start,
