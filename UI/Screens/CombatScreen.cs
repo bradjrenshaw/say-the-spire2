@@ -525,72 +525,16 @@ public class CombatScreen : Screen
             var combatRoom = NCombatRoom.Instance;
             if (combatRoom == null) return;
 
-            // -- Collect all rows --
+            var (potionHolders, relicNodes, orbNodes, hand) = CollectFocusRows(combatRoom);
 
-            // Potions row
-            var potionHolders = new List<Control>();
-            var potionCtrl = NRun.Instance?.GlobalUi?.TopBar?.PotionContainer;
-            if (potionCtrl != null)
-            {
-                var holdersParent = potionCtrl.GetNodeOrNull("MarginContainer/PotionHolders");
-                if (holdersParent != null)
-                {
-                    foreach (var child in holdersParent.GetChildren())
-                    {
-                        if (child is Control c)
-                            potionHolders.Add(c);
-                    }
-                }
-            }
-
-            // Relics row
-            var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
-
-            // Orbs row — collect all orb Controls from the orb container
-            var orbNodes = new List<Control>();
-            foreach (var c in combatRoom.CreatureNodes)
-            {
-                if (c != null && c.Entity.IsPlayer && c.OrbManager != null
-                    && MegaCrit.Sts2.Core.Context.LocalContext.IsMe(c.Entity))
-                {
-                    var defaultOwner = c.OrbManager.DefaultFocusOwner;
-                    if (defaultOwner != null && defaultOwner != c.Hitbox)
-                    {
-                        foreach (var child in c.OrbManager.GetChildren())
-                        {
-                            foreach (var orb in child.GetChildren())
-                            {
-                                if (orb is Control orbCtrl)
-                                    orbNodes.Add(orbCtrl);
-                            }
-                        }
-                    }
-                    break;
-                }
-            }
             bool hasOrbs = orbNodes.Count > 0;
-            // Save focus target before reversing (game focuses rightmost orb first)
             NodePath? firstOrbPath = hasOrbs ? orbNodes[0].GetPath() : null;
 
-            // Hand row
-            var hand = combatRoom.Ui?.Hand;
-
-            // -- Sync containers for position announcements (always, even during targeting) --
-            SyncContainer(_potionContainer, potionHolders);
-            SyncContainer(_relicContainer, relicNodes?.OfType<Control>());
-            orbNodes.Reverse();
-            SyncContainer(_orbContainer, orbNodes);
-            SyncContainer(_creatureContainer,
-                combatRoom.CreatureNodes
-                    .Where(c => c != null && (!_isTargeting
-                        || (c.Hitbox != null && c.Hitbox.FocusMode != Control.FocusModeEnum.None)))
-                    .OfType<Control>());
-            SyncContainer(_handContainer, hand?.ActiveHolders?.OfType<Control>());
-
-            // -- Wire focus navigation --
+            SyncAllContainers(combatRoom, potionHolders, relicNodes, orbNodes, hand);
 
             if (_isTargeting)
             {
+                // During targeting, lock creatures to their own row
                 foreach (var creature in combatRoom.CreatureNodes)
                 {
                     if (creature?.Hitbox == null) continue;
@@ -601,87 +545,157 @@ public class CombatScreen : Screen
                 return;
             }
 
-            // NodePaths for row linking
-            NodePath? firstRelicPath = null;
-            if (relicNodes != null && relicNodes.Count > 0)
-            {
-                var first = relicNodes[0];
-                if (GodotObject.IsInstanceValid(first))
-                    firstRelicPath = first.GetPath();
-            }
-
-            var firstCreature = combatRoom.CreatureNodes
-                .FirstOrDefault(c => c != null && c.Hitbox != null);
-            NodePath? firstCreaturePath = firstCreature?.Hitbox?.GetPath();
-
-            NodePath? firstHandPath = null;
-            if (hand != null)
-            {
-                var firstHolder = hand.ActiveHolders.FirstOrDefault();
-                if (firstHolder != null)
-                    firstHandPath = firstHolder.GetPath();
-            }
-
-            // Relics: ↑ = (leave alone, game links to potions), ↓ = orbs or creatures
-            // Left/right wraps around
-            NodePath? relicDown = hasOrbs ? firstOrbPath : firstCreaturePath;
-            if (relicNodes != null && relicNodes.Count > 0)
-            {
-                var firstValid = relicNodes.FirstOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
-                var lastValid = relicNodes.LastOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
-                NodePath? firstPath = firstValid?.GetPath();
-                NodePath? lastPath = lastValid?.GetPath();
-
-                foreach (var relic in relicNodes)
-                {
-                    if (relic == null || !GodotObject.IsInstanceValid(relic)) continue;
-                    if (relicDown != null)
-                        relic.FocusNeighborBottom = relicDown;
-                    if (relic == firstValid && lastPath != null)
-                        relic.FocusNeighborLeft = lastPath;
-                    if (relic == lastValid && firstPath != null)
-                        relic.FocusNeighborRight = firstPath;
-                }
-            }
-
-            // Orbs: ↑ = relics, ↓ = creatures
-            if (hasOrbs)
-            {
-                foreach (var orb in orbNodes)
-                {
-                    if (firstRelicPath != null)
-                        orb.FocusNeighborTop = firstRelicPath;
-                    if (firstCreaturePath != null)
-                        orb.FocusNeighborBottom = firstCreaturePath;
-                }
-            }
-
-            // Creatures: ↑ = orbs or relics, ↓ = hand
-            NodePath? creatureUp = hasOrbs ? firstOrbPath : firstRelicPath;
-            foreach (var creature in combatRoom.CreatureNodes)
-            {
-                if (creature?.Hitbox == null) continue;
-                var hitbox = creature.Hitbox;
-                hitbox.FocusMode = Control.FocusModeEnum.All;
-                if (creatureUp != null)
-                    hitbox.FocusNeighborTop = creatureUp;
-                if (firstHandPath != null)
-                    hitbox.FocusNeighborBottom = firstHandPath;
-            }
-
-            // Hand: ↑ = creatures
-            if (hand != null && firstCreaturePath != null)
-            {
-                foreach (var holder in hand.ActiveHolders)
-                {
-                    if (holder != null)
-                        holder.FocusNeighborTop = firstCreaturePath;
-                }
-            }
+            WireFocusNeighbors(combatRoom, relicNodes, orbNodes, hand, hasOrbs, firstOrbPath);
         }
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] UpdateFocusNavigation failed: {e.Message}");
+        }
+    }
+
+    private static (List<Control> potions, List<Control>? relics, List<Control> orbs, NPlayerHand? hand)
+        CollectFocusRows(NCombatRoom combatRoom)
+    {
+        // Potions
+        var potionHolders = new List<Control>();
+        var potionCtrl = NRun.Instance?.GlobalUi?.TopBar?.PotionContainer;
+        if (potionCtrl != null)
+        {
+            var holdersParent = potionCtrl.GetNodeOrNull("MarginContainer/PotionHolders");
+            if (holdersParent != null)
+            {
+                foreach (var child in holdersParent.GetChildren())
+                {
+                    if (child is Control c)
+                        potionHolders.Add(c);
+                }
+            }
+        }
+
+        // Relics
+        var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.OfType<Control>().ToList();
+
+        // Orbs — collect from local player's orb manager
+        var orbNodes = new List<Control>();
+        foreach (var c in combatRoom.CreatureNodes)
+        {
+            if (c != null && c.Entity.IsPlayer && c.OrbManager != null
+                && MegaCrit.Sts2.Core.Context.LocalContext.IsMe(c.Entity))
+            {
+                var defaultOwner = c.OrbManager.DefaultFocusOwner;
+                if (defaultOwner != null && defaultOwner != c.Hitbox)
+                {
+                    foreach (var child in c.OrbManager.GetChildren())
+                    {
+                        foreach (var orb in child.GetChildren())
+                        {
+                            if (orb is Control orbCtrl)
+                                orbNodes.Add(orbCtrl);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+
+        return (potionHolders, relicNodes, orbNodes, combatRoom.Ui?.Hand);
+    }
+
+    private void SyncAllContainers(NCombatRoom combatRoom,
+        List<Control> potionHolders, List<Control>? relicNodes,
+        List<Control> orbNodes, NPlayerHand? hand)
+    {
+        SyncContainer(_potionContainer, potionHolders);
+        SyncContainer(_relicContainer, relicNodes);
+        orbNodes.Reverse();
+        SyncContainer(_orbContainer, orbNodes);
+        SyncContainer(_creatureContainer,
+            combatRoom.CreatureNodes
+                .Where(c => c != null && (!_isTargeting
+                    || (c.Hitbox != null && c.Hitbox.FocusMode != Control.FocusModeEnum.None)))
+                .OfType<Control>());
+        SyncContainer(_handContainer, hand?.ActiveHolders?.OfType<Control>());
+    }
+
+    private static void WireFocusNeighbors(NCombatRoom combatRoom,
+        List<Control>? relicNodes, List<Control> orbNodes,
+        NPlayerHand? hand, bool hasOrbs, NodePath? firstOrbPath)
+    {
+        // Resolve first-element paths for each row
+        NodePath? firstRelicPath = null;
+        if (relicNodes != null && relicNodes.Count > 0)
+        {
+            var first = relicNodes[0];
+            if (GodotObject.IsInstanceValid(first))
+                firstRelicPath = first.GetPath();
+        }
+
+        var firstCreature = combatRoom.CreatureNodes
+            .FirstOrDefault(c => c != null && c.Hitbox != null);
+        NodePath? firstCreaturePath = firstCreature?.Hitbox?.GetPath();
+
+        NodePath? firstHandPath = null;
+        if (hand != null)
+        {
+            var firstHolder = hand.ActiveHolders.FirstOrDefault();
+            if (firstHolder != null)
+                firstHandPath = firstHolder.GetPath();
+        }
+
+        // Relics: ↑ = (game links to potions), ↓ = orbs or creatures, left/right wraps
+        NodePath? relicDown = hasOrbs ? firstOrbPath : firstCreaturePath;
+        if (relicNodes != null && relicNodes.Count > 0)
+        {
+            var firstValid = relicNodes.FirstOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
+            var lastValid = relicNodes.LastOrDefault(r => r != null && GodotObject.IsInstanceValid(r));
+            NodePath? firstPath = firstValid?.GetPath();
+            NodePath? lastPath = lastValid?.GetPath();
+
+            foreach (var relic in relicNodes)
+            {
+                if (relic == null || !GodotObject.IsInstanceValid(relic)) continue;
+                if (relicDown != null)
+                    relic.FocusNeighborBottom = relicDown;
+                if (relic == firstValid && lastPath != null)
+                    relic.FocusNeighborLeft = lastPath;
+                if (relic == lastValid && firstPath != null)
+                    relic.FocusNeighborRight = firstPath;
+            }
+        }
+
+        // Orbs: ↑ = relics, ↓ = creatures
+        if (hasOrbs)
+        {
+            foreach (var orb in orbNodes)
+            {
+                if (firstRelicPath != null)
+                    orb.FocusNeighborTop = firstRelicPath;
+                if (firstCreaturePath != null)
+                    orb.FocusNeighborBottom = firstCreaturePath;
+            }
+        }
+
+        // Creatures: ↑ = orbs or relics, ↓ = hand
+        NodePath? creatureUp = hasOrbs ? firstOrbPath : firstRelicPath;
+        foreach (var creature in combatRoom.CreatureNodes)
+        {
+            if (creature?.Hitbox == null) continue;
+            var hitbox = creature.Hitbox;
+            hitbox.FocusMode = Control.FocusModeEnum.All;
+            if (creatureUp != null)
+                hitbox.FocusNeighborTop = creatureUp;
+            if (firstHandPath != null)
+                hitbox.FocusNeighborBottom = firstHandPath;
+        }
+
+        // Hand: ↑ = creatures
+        if (hand != null && firstCreaturePath != null)
+        {
+            foreach (var holder in hand.ActiveHolders)
+            {
+                if (holder != null)
+                    holder.FocusNeighborTop = firstCreaturePath;
+            }
         }
     }
 

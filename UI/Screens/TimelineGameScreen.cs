@@ -112,60 +112,13 @@ public class TimelineGameScreen : GameScreen
         {
             var parts = new List<string>();
 
-            // Try %Banner (relics, cards, potions screens)
-            var banner = instance.GetNodeOrNull("%Banner");
-            if (banner != null)
-            {
-                var bannerText = ProxyElement.FindChildTextPublic(banner);
-                if (!string.IsNullOrEmpty(bannerText))
-                    parts.Add(bannerText);
-            }
+            TryAddChildText(parts, instance, "%Banner");
+            TryAddRichText(parts, instance, "%ExplanationText");
+            TryAddRichText(parts, instance, "%Label");
+            TryAddRichText(parts, instance, "%InfoLabel");
+            TryAddRichText(parts, instance, "%TopLabel");
+            TryAddRichText(parts, instance, "%BottomLabel");
 
-            // Try %ExplanationText (relics, cards, potions screens)
-            var explanation = instance.GetNodeOrNull("%ExplanationText");
-            if (explanation is RichTextLabel explRtl)
-            {
-                var text = ProxyElement.StripBbcode(explRtl.Text);
-                if (!string.IsNullOrEmpty(text))
-                    parts.Add(text);
-            }
-
-            // Try %Label (misc screen)
-            var label = instance.GetNodeOrNull("%Label");
-            if (label is RichTextLabel labelRtl)
-            {
-                var text = ProxyElement.StripBbcode(labelRtl.Text);
-                if (!string.IsNullOrEmpty(text))
-                    parts.Add(text);
-            }
-
-            // Try %InfoLabel (epoch screen)
-            var infoLabel = instance.GetNodeOrNull("%InfoLabel");
-            if (infoLabel is RichTextLabel infoRtl)
-            {
-                var text = ProxyElement.StripBbcode(infoRtl.Text);
-                if (!string.IsNullOrEmpty(text))
-                    parts.Add(text);
-            }
-
-            // Try %TopLabel and %BottomLabel (character unlock screen)
-            var topLabel = instance.GetNodeOrNull("%TopLabel");
-            if (topLabel is RichTextLabel topRtl)
-            {
-                var text = ProxyElement.StripBbcode(topRtl.Text);
-                if (!string.IsNullOrEmpty(text))
-                    parts.Add(text);
-            }
-
-            var bottomLabel = instance.GetNodeOrNull("%BottomLabel");
-            if (bottomLabel is RichTextLabel bottomRtl)
-            {
-                var text = ProxyElement.StripBbcode(bottomRtl.Text);
-                if (!string.IsNullOrEmpty(text))
-                    parts.Add(text);
-            }
-
-            // Read unlocked item names via reflection
             var itemNames = GetUnlockedItemNames(instance);
             if (itemNames != null)
                 parts.Add(itemNames);
@@ -181,6 +134,24 @@ public class TimelineGameScreen : GameScreen
         {
             Log.Error($"[AccessibilityMod] Unlock screen error: {ex.Message}");
         }
+    }
+
+    private static void TryAddChildText(List<string> parts, Node parent, string nodePath)
+    {
+        var node = parent.GetNodeOrNull(nodePath);
+        if (node == null) return;
+        var text = ProxyElement.FindChildTextPublic(node);
+        if (!string.IsNullOrEmpty(text))
+            parts.Add(text);
+    }
+
+    private static void TryAddRichText(List<string> parts, Node parent, string nodePath)
+    {
+        var node = parent.GetNodeOrNull(nodePath);
+        if (node is not RichTextLabel rtl) return;
+        var text = ProxyElement.StripBbcode(rtl.Text);
+        if (!string.IsNullOrEmpty(text))
+            parts.Add(text);
     }
 
     private List<(NEraColumn era, List<NEpochSlot> slots)>? GetSortedColumns()
@@ -289,56 +260,11 @@ public class TimelineGameScreen : GameScreen
             var type = instance.GetType();
             var names = new List<string>();
 
-            // Try _cards field (NUnlockCardsScreen)
-            var cardsField = type.GetField("_cards", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (cardsField?.GetValue(instance) is System.Collections.IEnumerable cards)
-            {
-                foreach (var card in cards)
-                {
-                    var title = card?.GetType().GetProperty("Title")?.GetValue(card)?.ToString();
-                    if (!string.IsNullOrEmpty(title))
-                        names.Add(title);
-                }
-            }
-
-            // Try _relics field (NUnlockRelicsScreen)
-            var relicsField = type.GetField("_relics", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (relicsField?.GetValue(instance) is System.Collections.IEnumerable relics)
-            {
-                foreach (var relic in relics)
-                {
-                    var title = relic?.GetType().GetProperty("Title")?.GetValue(relic);
-                    var text = title?.GetType().GetMethod("GetFormattedText")?.Invoke(title, null)?.ToString();
-                    if (!string.IsNullOrEmpty(text))
-                        names.Add(text);
-                }
-            }
-
-            // Try _potions field (NUnlockPotionsScreen)
-            var potionsField = type.GetField("_potions", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (potionsField?.GetValue(instance) is System.Collections.IEnumerable potions)
-            {
-                foreach (var potion in potions)
-                {
-                    var title = potion?.GetType().GetProperty("Title")?.GetValue(potion);
-                    var text = title?.GetType().GetMethod("GetFormattedText")?.Invoke(title, null)?.ToString();
-                    if (!string.IsNullOrEmpty(text))
-                        names.Add(text);
-                }
-            }
-
-            // Try _unlockedEpochs field (NUnlockEpochScreen)
-            var epochsField = type.GetField("_unlockedEpochs", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (epochsField?.GetValue(instance) is System.Collections.IEnumerable epochs)
-            {
-                foreach (var epoch in epochs)
-                {
-                    var title = epoch?.GetType().GetProperty("Title")?.GetValue(epoch);
-                    var text = title?.GetType().GetMethod("GetFormattedText")?.Invoke(title, null)?.ToString();
-                    if (!string.IsNullOrEmpty(text))
-                        names.Add(text);
-                }
-            }
+            // Cards use Title.ToString() directly; relics/potions/epochs use Title.GetFormattedText()
+            CollectTitles(names, type, instance, "_cards", useFormattedText: false);
+            CollectTitles(names, type, instance, "_relics", useFormattedText: true);
+            CollectTitles(names, type, instance, "_potions", useFormattedText: true);
+            CollectTitles(names, type, instance, "_unlockedEpochs", useFormattedText: true);
 
             return names.Count > 0 ? string.Join(", ", names) : null;
         }
@@ -346,6 +272,26 @@ public class TimelineGameScreen : GameScreen
         {
             Log.Error($"[AccessibilityMod] Failed to read unlock items: {ex.Message}");
             return null;
+        }
+    }
+
+    private static void CollectTitles(List<string> names, System.Type type, object instance,
+        string fieldName, bool useFormattedText)
+    {
+        var field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+        if (field?.GetValue(instance) is not System.Collections.IEnumerable items) return;
+
+        foreach (var item in items)
+        {
+            var titleProp = item?.GetType().GetProperty("Title")?.GetValue(item);
+            if (titleProp == null) continue;
+
+            string? text = useFormattedText
+                ? titleProp.GetType().GetMethod("GetFormattedText")?.Invoke(titleProp, null)?.ToString()
+                : titleProp.ToString();
+
+            if (!string.IsNullOrEmpty(text))
+                names.Add(text);
         }
     }
 }
