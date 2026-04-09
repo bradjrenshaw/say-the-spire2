@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Events.Custom.CrystalSphereEvent;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
+using SayTheSpire2.Help;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
 using SayTheSpire2.UI;
@@ -40,6 +41,18 @@ public class CrystalSphereGameScreen : Screen
     private int _lastDivinationCount;
 
     public override string? ScreenName => LocalizationManager.GetOrDefault("ui", "SCREENS.CRYSTAL_SPHERE", "Crystal Sphere");
+
+    public override System.Collections.Generic.List<HelpMessage> GetHelpMessages() => new()
+    {
+        new TextHelpMessage(
+            LocalizationManager.GetOrDefault("ui", "HELP.CRYSTAL_SPHERE_NAV",
+                "Navigate the grid with directional controls. Press Select to divine a cell. Use Tab Left and Tab Right to switch between Big (3x3) and Small (1x1) divination tools."),
+            exclusive: true),
+        new TextHelpMessage(
+            LocalizationManager.GetOrDefault("ui", "HELP.CRYSTAL_SPHERE_DIVINATIONS",
+                "Divination count is announced automatically when it changes."),
+            exclusive: true),
+    };
 
     public CrystalSphereGameScreen(NCrystalSphereScreen screen)
     {

@@ -4,6 +4,7 @@ using Godot;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using SayTheSpire2.Help;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Elements;
 
@@ -35,6 +36,14 @@ public class HandSelectGameScreen : GameScreen
     private readonly HashSet<NCardHolder> _connectedSelectedHolders = new();
 
     public override string? ScreenName => _containerLabel;
+
+    public override List<HelpMessage> GetHelpMessages() => new()
+    {
+        new TextHelpMessage(
+            LocalizationManager.GetOrDefault("ui", "HELP.HAND_SELECT_NAV",
+                "Left and right move through cards. Up and down move between your hand and the selected row. Press Select to move a card between hand and selected."),
+            exclusive: true),
+    };
 
     public HandSelectGameScreen(NPlayerHand hand, string label)
     {

@@ -476,5 +476,8 @@
   "HELP.REWARDS_PROCEED": "Proceed (skipping any unclaimed rewards)",
   "HELP.TUTORIAL_NAV": "Use left and right to navigate between pages. Press Confirm to close.",
   "HELP.PREVIOUS_PAGE": "Previous Page",
-  "HELP.NEXT_PAGE": "Next Page"
+  "HELP.NEXT_PAGE": "Next Page",
+  "HELP.CRYSTAL_SPHERE_NAV": "Navigate the grid with directional controls. Press Select to divine a cell. Use Tab Left and Tab Right to switch between Big (3x3) and Small (1x1) divination tools.",
+  "HELP.CRYSTAL_SPHERE_DIVINATIONS": "Divination count is announced automatically when it changes.",
+  "HELP.HAND_SELECT_NAV": "Left and right move through cards. Up and down move between your hand and the selected row. Press Select to move a card between hand and selected."
 }
