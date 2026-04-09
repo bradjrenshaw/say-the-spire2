@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.sts2.Core.Nodes.TopBar;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
@@ -16,15 +17,15 @@ public class ProxyTopBar : ProxyElement
     private enum TopBarType { Hp, Gold, Room, Floor, Boss }
 
     private static readonly FieldInfo? HpPlayerField =
-        typeof(NTopBarHp).GetField("_player", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTopBarHp), "_player");
     private static readonly FieldInfo? GoldPlayerField =
-        typeof(NTopBarGold).GetField("_player", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTopBarGold), "_player");
     private static readonly FieldInfo? RoomRunStateField =
-        typeof(NTopBarRoomIcon).GetField("_runState", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTopBarRoomIcon), "_runState");
     private static readonly FieldInfo? FloorRunStateField =
-        typeof(NTopBarFloorIcon).GetField("_runState", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTopBarFloorIcon), "_runState");
     private static readonly FieldInfo? BossRunStateField =
-        typeof(NTopBarBossIcon).GetField("_runState", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTopBarBossIcon), "_runState");
 
     private readonly TopBarType _type;
 

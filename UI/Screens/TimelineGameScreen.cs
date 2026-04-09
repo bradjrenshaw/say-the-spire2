@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Nodes.Screens.Timeline.UnlockScreens;
@@ -23,7 +24,7 @@ public class TimelineGameScreen : GameScreen
     private readonly NTimelineScreen _screen;
 
     private static readonly FieldInfo? EpochSlotContainerField =
-        typeof(NTimelineScreen).GetField("_epochSlotContainer", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NTimelineScreen), "_epochSlotContainer");
 
     public override List<HelpMessage> GetHelpMessages() => new()
     {

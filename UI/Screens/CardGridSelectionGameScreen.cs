@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
@@ -21,7 +22,7 @@ public class CardGridSelectionGameScreen : GameScreen
 
 
     private static readonly FieldInfo? SelectedCardsField =
-        typeof(NSimpleCardSelectScreen).GetField("_selectedCards", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NSimpleCardSelectScreen), "_selectedCards");
 
     private HashSet<CardModel>? _selectedCards;
 

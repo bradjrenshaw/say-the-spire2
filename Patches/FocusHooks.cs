@@ -22,10 +22,10 @@ namespace SayTheSpire2.Patches;
 public static class FocusHooks
 {
     private static readonly PropertyInfo IsFocusedProp =
-        typeof(NClickableControl).GetProperty("IsFocused", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        AccessTools.Property(typeof(NClickableControl), "IsFocused")!;
 
     private static readonly FieldInfo? MerchantLabelField =
-        typeof(NMerchantDialogue).GetField("_label", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NMerchantDialogue), "_label");
 
     public static void Initialize(Harmony harmony)
     {

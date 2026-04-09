@@ -1,5 +1,6 @@
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
@@ -17,10 +18,10 @@ public class GameOverScreen : GameScreen
     public override string? ScreenName => null; // Announced via banner instead
 
     private static readonly FieldInfo? ScoreField =
-        typeof(NGameOverScreen).GetField("_score", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NGameOverScreen), "_score");
 
     private static readonly FieldInfo? EncounterQuoteField =
-        typeof(NGameOverScreen).GetField("_encounterQuote", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NGameOverScreen), "_encounterQuote");
 
     protected override void BuildRegistry()
     {

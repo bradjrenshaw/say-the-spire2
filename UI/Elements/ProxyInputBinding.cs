@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using SayTheSpire2.Localization;
@@ -11,7 +12,7 @@ namespace SayTheSpire2.UI.Elements;
 public class ProxyInputBinding : ProxyElement
 {
     private static readonly FieldInfo ControllerInputMapField =
-        typeof(NInputManager).GetField("_controllerInputMap", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        AccessTools.Field(typeof(NInputManager), "_controllerInputMap")!;
 
     private static readonly Dictionary<string, string> ControllerButtonNames = new()
     {

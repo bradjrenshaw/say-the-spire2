@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -123,7 +124,7 @@ public class ProxyCreature : ProxyElement
     }
 
     private static readonly PropertyInfo? IntentTitleProp =
-        typeof(AbstractIntent).GetProperty("IntentTitle", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Property(typeof(AbstractIntent), "IntentTitle");
 
     /// <summary>
     /// Gets the game's localized intent title (e.g. from "intents" table).

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
@@ -14,7 +15,7 @@ namespace SayTheSpire2.UI.Elements;
 public class ProxyRewardButton : ProxyElement
 {
     private static readonly FieldInfo? RelicField =
-        typeof(RelicReward).GetField("_relic", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(RelicReward), "_relic");
 
     public ProxyRewardButton(Control control) : base(control) { }
 

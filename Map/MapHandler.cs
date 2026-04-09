@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
@@ -11,11 +12,11 @@ namespace SayTheSpire2.Map;
 public class MapHandler
 {
     private static readonly FieldInfo? MapField =
-        typeof(NMapScreen).GetField("_map", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NMapScreen), "_map");
     private static readonly FieldInfo? RunStateField =
-        typeof(NMapScreen).GetField("_runState", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NMapScreen), "_runState");
     private static readonly FieldInfo? MapPointDictField =
-        typeof(NMapScreen).GetField("_mapPointDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NMapScreen), "_mapPointDictionary");
 
     private readonly Dictionary<MapPoint, MapNode> _nodeMap = new();
     private readonly List<MapEdge> _edges = new();

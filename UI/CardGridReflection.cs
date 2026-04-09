@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 
 namespace SayTheSpire2.UI;
@@ -12,10 +13,10 @@ namespace SayTheSpire2.UI;
 public static class CardGridReflection
 {
     public static readonly FieldInfo? CardRowsField =
-        typeof(NCardGrid).GetField("_cardRows", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+        AccessTools.Field(typeof(NCardGrid), "_cardRows");
 
     public static readonly PropertyInfo? ColumnsProperty =
-        typeof(NCardGrid).GetProperty("Columns", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+        AccessTools.Property(typeof(NCardGrid), "Columns");
 
     public static List<List<Control>>? GetCardRows(NCardGrid grid)
     {

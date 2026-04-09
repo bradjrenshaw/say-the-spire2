@@ -15,13 +15,13 @@ namespace SayTheSpire2.Patches;
 public static class InputRebindHooks
 {
     private static readonly FieldInfo ListeningEntryField =
-        typeof(NInputSettingsPanel).GetField("_listeningEntry", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        AccessTools.Field(typeof(NInputSettingsPanel), "_listeningEntry")!;
 
     private static readonly FieldInfo KeyboardInputMapField =
-        typeof(NInputManager).GetField("_keyboardInputMap", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        AccessTools.Field(typeof(NInputManager), "_keyboardInputMap")!;
 
     private static readonly FieldInfo ControllerInputMapField =
-        typeof(NInputManager).GetField("_controllerInputMap", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        AccessTools.Field(typeof(NInputManager), "_controllerInputMap")!;
 
     // Track state for detecting successful rebinds
     private static NInputSettingsEntry? _previousListeningEntry;

@@ -57,10 +57,10 @@ public static class InputManager
     private static NControllerManager? _controllerManager;
 
     private static readonly FieldInfo? ListeningEntryField =
-        typeof(NInputSettingsPanel).GetField("_listeningEntry", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NInputSettingsPanel), "_listeningEntry");
 
     private static readonly PropertyInfo IsUsingControllerProp =
-        typeof(NControllerManager).GetProperty("IsUsingController", BindingFlags.Instance | BindingFlags.Public)!;
+        AccessTools.Property(typeof(NControllerManager), "IsUsingController")!;
 
     private static readonly FieldInfo? LastMouseField =
         AccessTools.Field(typeof(NControllerManager), "_lastMousePosition");

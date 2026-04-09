@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
@@ -158,7 +158,7 @@ public class SettingsGameScreen : GameScreen
     {
         var label = FindLabelInParent(positioner);
 
-        var field = typeof(NDropdownPositioner).GetField("_dropdownNode", BindingFlags.Instance | BindingFlags.NonPublic);
+        var field = AccessTools.Field(typeof(NDropdownPositioner), "_dropdownNode");
         var dropdownNode = field?.GetValue(positioner) as Control;
 
         var proxy = new ProxyDropdown(dropdownNode ?? (Control)positioner);

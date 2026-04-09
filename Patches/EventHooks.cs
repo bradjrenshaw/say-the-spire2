@@ -24,13 +24,13 @@ namespace SayTheSpire2.Patches;
 public static class EventHooks
 {
     private static readonly FieldInfo? TitleField =
-        typeof(NEventLayout).GetField("_title", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NEventLayout), "_title");
 
     private static readonly FieldInfo? DialogueContainerField =
-        typeof(NAncientEventLayout).GetField("_dialogueContainer", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NAncientEventLayout), "_dialogueContainer");
 
     private static readonly FieldInfo? EventField =
-        typeof(NEventLayout).GetField("_event", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NEventLayout), "_event");
 
     public static void Initialize(Harmony harmony)
     {

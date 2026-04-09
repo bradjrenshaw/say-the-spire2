@@ -1,5 +1,6 @@
 using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
@@ -9,7 +10,7 @@ namespace SayTheSpire2.UI.Elements;
 public class ProxySlider : ProxyElement
 {
     private static readonly FieldInfo? SliderField =
-        typeof(NSettingsSlider).GetField("_slider", BindingFlags.Instance | BindingFlags.NonPublic);
+        AccessTools.Field(typeof(NSettingsSlider), "_slider");
 
     public ProxySlider(Control control) : base(control) { }
 
