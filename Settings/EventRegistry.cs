@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using SayTheSpire2.Events;
+using MegaCrit.Sts2.Core.Logging;
 
 namespace SayTheSpire2.Settings;
 
@@ -80,26 +82,20 @@ public static class EventRegistry
 
     public static void RegisterDefaults()
     {
-        Register(typeof(BlockEvent));
-        Register(typeof(CardPileEvent));
-        Register(typeof(CardStolenEvent));
-        Register(typeof(GoldEvent));
-        Register(typeof(DeathEvent));
-        Register(typeof(DialogueEvent));
-        Register(typeof(EnemyMoveEvent));
-        Register(typeof(HpEvent));
-        Register(typeof(PowerEvent));
-        Register(typeof(TurnEvent));
-        Register(typeof(CardUpgradeEvent));
-        Register(typeof(CardObtainedEvent));
-        Register(typeof(RelicObtainedEvent));
-        Register(typeof(PotionObtainedEvent));
-        Register(typeof(OrbEvent));
-        Register(typeof(RoomEnteredEvent));
-        Register(typeof(CardPlayedEvent));
-        Register(typeof(PotionUsedEvent));
-        Register(typeof(EndTurnEvent));
-        Register(typeof(MapVoteEvent));
-        Register(typeof(EventVoteEvent));
+        var eventTypes = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => t.GetCustomAttribute<EventSettingsAttribute>() != null);
+
+        foreach (var type in eventTypes)
+        {
+            try
+            {
+                Register(type);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"[AccessibilityMod] Failed to register event type {type.Name}: {e.Message}");
+            }
+        }
     }
 }
