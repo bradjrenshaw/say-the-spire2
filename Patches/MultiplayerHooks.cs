@@ -23,14 +23,14 @@ public static class MultiplayerHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(ActChangeSynchronizer), "OnPlayerReady",
-            nameof(ActPlayerReadyPostfix), "Act OnPlayerReady");
-        PatchIfFound(harmony, typeof(NRewardsScreen), "HideWaitingForPlayersScreen",
-            nameof(HideWaitingPostfix), "Rewards HideWaitingForPlayers");
-        PatchIfFound(harmony, typeof(NRewardsScreen), "OnProceedButtonPressed",
-            nameof(ProceedButtonPostfix), "Rewards OnProceedButtonPressed");
-        PatchIfFound(harmony, typeof(NMultiplayerTimeoutOverlay), "UpdateLoop",
-            nameof(TimeoutUpdatePostfix), "Timeout UpdateLoop");
+        HarmonyHelper.PatchIfFound(harmony, typeof(ActChangeSynchronizer), "OnPlayerReady",
+            typeof(MultiplayerHooks), nameof(ActPlayerReadyPostfix), "Act OnPlayerReady");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NRewardsScreen), "HideWaitingForPlayersScreen",
+            typeof(MultiplayerHooks), nameof(HideWaitingPostfix), "Rewards HideWaitingForPlayers");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NRewardsScreen), "OnProceedButtonPressed",
+            typeof(MultiplayerHooks), nameof(ProceedButtonPostfix), "Rewards OnProceedButtonPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerTimeoutOverlay), "UpdateLoop",
+            typeof(MultiplayerHooks), nameof(TimeoutUpdatePostfix), "Timeout UpdateLoop");
     }
 
     public static void ActPlayerReadyPostfix(Player player)
@@ -98,9 +98,4 @@ public static class MultiplayerHooks
         }
     }
 
-    private static void PatchIfFound(Harmony harmony, Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(MultiplayerHooks), handlerName, label, isPrefix);
-    }
 }

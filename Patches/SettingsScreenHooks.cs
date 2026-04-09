@@ -8,16 +8,10 @@ public static class SettingsScreenHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuOpened",
-            nameof(SettingsOpenedPostfix), "Settings OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuClosed",
-            nameof(SettingsClosedPostfix), "Settings OnSubmenuClosed");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(SettingsScreenHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuOpened",
+            typeof(SettingsScreenHooks), nameof(SettingsOpenedPostfix), "Settings OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NSettingsScreen), "OnSubmenuClosed",
+            typeof(SettingsScreenHooks), nameof(SettingsClosedPostfix), "Settings OnSubmenuClosed");
     }
 
     public static void SettingsOpenedPostfix(NSettingsScreen __instance)

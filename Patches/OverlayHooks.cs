@@ -24,10 +24,10 @@ public static class OverlayHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NOverlayStack), "Push",
-            nameof(OverlayPushPostfix), "Overlay Push");
-        PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
-            nameof(OverlayRemovePostfix), "Overlay Remove");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NOverlayStack), "Push",
+            typeof(OverlayHooks), nameof(OverlayPushPostfix), "Overlay Push");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
+            typeof(OverlayHooks), nameof(OverlayRemovePostfix), "Overlay Remove");
 
         // Targeting focus (foul potion in shop)
         var startTargeting = AccessTools.Method(typeof(NTargetManager), "StartTargeting",
@@ -40,22 +40,16 @@ public static class OverlayHooks
         }
 
         // Multiplayer expanded player state (capstone screen)
-        PatchIfFound(harmony, typeof(NMultiplayerPlayerExpandedState), "AfterCapstoneOpened",
-            nameof(PlayerExpandedOpenedPostfix), "PlayerExpanded AfterCapstoneOpened");
-        PatchIfFound(harmony, typeof(NMultiplayerPlayerExpandedState), "AfterCapstoneClosed",
-            nameof(PlayerExpandedClosedPostfix), "PlayerExpanded AfterCapstoneClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerPlayerExpandedState), "AfterCapstoneOpened",
+            typeof(OverlayHooks), nameof(PlayerExpandedOpenedPostfix), "PlayerExpanded AfterCapstoneOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerPlayerExpandedState), "AfterCapstoneClosed",
+            typeof(OverlayHooks), nameof(PlayerExpandedClosedPostfix), "PlayerExpanded AfterCapstoneClosed");
 
         // Bundle preview focus setup
-        PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "OnBundleClicked",
-            nameof(BundlePreviewPostfix), "Bundle preview focus");
-        PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "CancelSelection",
-            nameof(BundleCancelPostfix), "Bundle cancel focus");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(OverlayHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "OnBundleClicked",
+            typeof(OverlayHooks), nameof(BundlePreviewPostfix), "Bundle preview focus");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NChooseABundleSelectionScreen), "CancelSelection",
+            typeof(OverlayHooks), nameof(BundleCancelPostfix), "Bundle cancel focus");
     }
 
     public static void OverlayPushPostfix(IOverlayScreen screen)

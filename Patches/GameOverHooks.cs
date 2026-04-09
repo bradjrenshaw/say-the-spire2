@@ -8,18 +8,12 @@ public static class GameOverHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NGameOverScreen), "InitializeBannerAndQuote",
-            nameof(GameOverBannerPostfix), "GameOver banner");
-        PatchIfFound(harmony, typeof(NGameOverScreen), "AddBadge",
-            nameof(AddBadgePostfix), "GameOver AddBadge");
-        PatchIfFound(harmony, typeof(NGameOverScreen), "AnimateScoreBar",
-            nameof(AnimateScoreBarPrefix), "GameOver AnimateScoreBar", isPrefix: true);
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(GameOverHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "InitializeBannerAndQuote",
+            typeof(GameOverHooks), nameof(GameOverBannerPostfix), "GameOver banner");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "AddBadge",
+            typeof(GameOverHooks), nameof(AddBadgePostfix), "GameOver AddBadge");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "AnimateScoreBar",
+            typeof(GameOverHooks), nameof(AnimateScoreBarPrefix), "GameOver AnimateScoreBar", isPrefix: true);
     }
 
     public static void GameOverBannerPostfix(NGameOverScreen __instance)

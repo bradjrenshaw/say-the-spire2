@@ -9,18 +9,12 @@ public static class RunLifecycleHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(RunManager), "Launch",
-            nameof(RunLaunchPostfix), "Run Launch");
-        PatchIfFound(harmony, typeof(RunManager), "OnEnded",
-            nameof(RunEndedPostfix), "Run OnEnded");
-        PatchIfFound(harmony, typeof(RunManager), "CleanUp",
-            nameof(RunCleanUpPrefix), "Run CleanUp", isPrefix: true);
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(RunLifecycleHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(RunManager), "Launch",
+            typeof(RunLifecycleHooks), nameof(RunLaunchPostfix), "Run Launch");
+        HarmonyHelper.PatchIfFound(harmony, typeof(RunManager), "OnEnded",
+            typeof(RunLifecycleHooks), nameof(RunEndedPostfix), "Run OnEnded");
+        HarmonyHelper.PatchIfFound(harmony, typeof(RunManager), "CleanUp",
+            typeof(RunLifecycleHooks), nameof(RunCleanUpPrefix), "Run CleanUp", isPrefix: true);
     }
 
     public static void RunLaunchPostfix(RunState __result)

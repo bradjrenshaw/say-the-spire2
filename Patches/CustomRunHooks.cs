@@ -10,57 +10,51 @@ public static class CustomRunHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "OnSubmenuOpened",
-            nameof(CustomRunOpenedPostfix), "CustomRun OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "OnSubmenuClosed",
-            nameof(CustomRunClosedPostfix), "CustomRun OnSubmenuClosed");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "CleanUpLobby",
-            nameof(CustomRunClosedPostfix), "CustomRun CleanUpLobby");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "PlayerConnected",
-            nameof(CustomRunPlayerConnectedPostfix), "CustomRun PlayerConnected");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "PlayerChanged",
-            nameof(CustomRunPlayerChangedPostfix), "CustomRun PlayerChanged");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "RemotePlayerDisconnected",
-            nameof(CustomRunPlayerDisconnectedPostfix), "CustomRun RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "LocalPlayerDisconnected",
-            nameof(CustomRunLocalDisconnectedPostfix), "CustomRun LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "AscensionChanged",
-            nameof(CustomRunStateChangedPostfix), "CustomRun AscensionChanged");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "SeedChanged",
-            nameof(CustomRunStateChangedPostfix), "CustomRun SeedChanged");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "ModifiersChanged",
-            nameof(CustomRunStateChangedPostfix), "CustomRun ModifiersChanged");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "OnEmbarkPressed",
-            nameof(CustomRunStateChangedPostfix), "CustomRun OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NCustomRunScreen), "OnUnreadyPressed",
-            nameof(CustomRunStateChangedPostfix), "CustomRun OnUnreadyPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "OnSubmenuOpened",
+            typeof(CustomRunHooks), nameof(CustomRunOpenedPostfix), "CustomRun OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "OnSubmenuClosed",
+            typeof(CustomRunHooks), nameof(CustomRunClosedPostfix), "CustomRun OnSubmenuClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "CleanUpLobby",
+            typeof(CustomRunHooks), nameof(CustomRunClosedPostfix), "CustomRun CleanUpLobby");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "PlayerConnected",
+            typeof(CustomRunHooks), nameof(CustomRunPlayerConnectedPostfix), "CustomRun PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "PlayerChanged",
+            typeof(CustomRunHooks), nameof(CustomRunPlayerChangedPostfix), "CustomRun PlayerChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "RemotePlayerDisconnected",
+            typeof(CustomRunHooks), nameof(CustomRunPlayerDisconnectedPostfix), "CustomRun RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "LocalPlayerDisconnected",
+            typeof(CustomRunHooks), nameof(CustomRunLocalDisconnectedPostfix), "CustomRun LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "AscensionChanged",
+            typeof(CustomRunHooks), nameof(CustomRunStateChangedPostfix), "CustomRun AscensionChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "SeedChanged",
+            typeof(CustomRunHooks), nameof(CustomRunStateChangedPostfix), "CustomRun SeedChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "ModifiersChanged",
+            typeof(CustomRunHooks), nameof(CustomRunStateChangedPostfix), "CustomRun ModifiersChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "OnEmbarkPressed",
+            typeof(CustomRunHooks), nameof(CustomRunStateChangedPostfix), "CustomRun OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunScreen), "OnUnreadyPressed",
+            typeof(CustomRunHooks), nameof(CustomRunStateChangedPostfix), "CustomRun OnUnreadyPressed");
 
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnSubmenuOpened",
-            nameof(CustomRunLoadOpenedPostfix), "CustomRunLoad OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnSubmenuClosed",
-            nameof(CustomRunLoadClosedPostfix), "CustomRunLoad OnSubmenuClosed");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "CleanUpLobby",
-            nameof(CustomRunLoadClosedPostfix), "CustomRunLoad CleanUpLobby");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "PlayerConnected",
-            nameof(CustomRunLoadPlayerConnectedPostfix), "CustomRunLoad PlayerConnected");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "PlayerReadyChanged",
-            nameof(CustomRunLoadPlayerReadyChangedPostfix), "CustomRunLoad PlayerReadyChanged");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "RemotePlayerDisconnected",
-            nameof(CustomRunLoadPlayerDisconnectedPostfix), "CustomRunLoad RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "LocalPlayerDisconnected",
-            nameof(CustomRunLoadLocalDisconnectedPostfix), "CustomRunLoad LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "BeginRun",
-            nameof(CustomRunLoadStateChangedPostfix), "CustomRunLoad BeginRun");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnEmbarkPressed",
-            nameof(CustomRunLoadEmbarkPostfix), "CustomRunLoad OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnUnreadyPressed",
-            nameof(CustomRunLoadUnreadyPostfix), "CustomRunLoad OnUnreadyPressed");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(CustomRunHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnSubmenuOpened",
+            typeof(CustomRunHooks), nameof(CustomRunLoadOpenedPostfix), "CustomRunLoad OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnSubmenuClosed",
+            typeof(CustomRunHooks), nameof(CustomRunLoadClosedPostfix), "CustomRunLoad OnSubmenuClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "CleanUpLobby",
+            typeof(CustomRunHooks), nameof(CustomRunLoadClosedPostfix), "CustomRunLoad CleanUpLobby");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "PlayerConnected",
+            typeof(CustomRunHooks), nameof(CustomRunLoadPlayerConnectedPostfix), "CustomRunLoad PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "PlayerReadyChanged",
+            typeof(CustomRunHooks), nameof(CustomRunLoadPlayerReadyChangedPostfix), "CustomRunLoad PlayerReadyChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "RemotePlayerDisconnected",
+            typeof(CustomRunHooks), nameof(CustomRunLoadPlayerDisconnectedPostfix), "CustomRunLoad RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "LocalPlayerDisconnected",
+            typeof(CustomRunHooks), nameof(CustomRunLoadLocalDisconnectedPostfix), "CustomRunLoad LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "BeginRun",
+            typeof(CustomRunHooks), nameof(CustomRunLoadStateChangedPostfix), "CustomRunLoad BeginRun");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnEmbarkPressed",
+            typeof(CustomRunHooks), nameof(CustomRunLoadEmbarkPostfix), "CustomRunLoad OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCustomRunLoadScreen), "OnUnreadyPressed",
+            typeof(CustomRunHooks), nameof(CustomRunLoadUnreadyPostfix), "CustomRunLoad OnUnreadyPressed");
     }
 
     public static void CustomRunOpenedPostfix(NCustomRunScreen __instance)

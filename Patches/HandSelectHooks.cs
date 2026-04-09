@@ -12,16 +12,10 @@ public static class HandSelectHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NPlayerHand), "SelectCards",
-            nameof(SelectCardsPostfix), "Hand SelectCards");
-        PatchIfFound(harmony, typeof(NPlayerHand), "AfterCardsSelected",
-            nameof(HandSelectClosedPostfix), "Hand AfterCardsSelected");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(HandSelectHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NPlayerHand), "SelectCards",
+            typeof(HandSelectHooks), nameof(SelectCardsPostfix), "Hand SelectCards");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NPlayerHand), "AfterCardsSelected",
+            typeof(HandSelectHooks), nameof(HandSelectClosedPostfix), "Hand AfterCardsSelected");
     }
 
     public static void SelectCardsPostfix(NPlayerHand __instance, CardSelectorPrefs prefs)

@@ -36,4 +36,5 @@ public static class HarmonyHelper
             Log.Error($"[AccessibilityMod] {label} patch FAILED: {e.Message}");
         }
     }
+
 }

@@ -27,24 +27,24 @@ public static class VotingHooks
     public static void Initialize(Harmony harmony)
     {
         // Map voting: remote player vote changed
-        PatchIfFound(harmony, typeof(NMapScreen), "OnPlayerVoteChanged",
-            nameof(MapVoteChangedPostfix), "Map OnPlayerVoteChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "OnPlayerVoteChanged",
+            typeof(VotingHooks), nameof(MapVoteChangedPostfix), "Map OnPlayerVoteChanged");
 
         // Map voting: local player selected a point
-        PatchIfFound(harmony, typeof(NMapScreen), "OnMapPointSelectedLocally",
-            nameof(MapPointSelectedLocallyPostfix), "Map OnMapPointSelectedLocally");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "OnMapPointSelectedLocally",
+            typeof(VotingHooks), nameof(MapPointSelectedLocallyPostfix), "Map OnMapPointSelectedLocally");
 
         // Map voting: travel begins (destination chosen)
-        PatchIfFound(harmony, typeof(NMapScreen), "TravelToMapCoord",
-            nameof(TravelToMapCoordPrefix), "Map TravelToMapCoord", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "TravelToMapCoord",
+            typeof(VotingHooks), nameof(TravelToMapCoordPrefix), "Map TravelToMapCoord", isPrefix: true);
 
         // Event voting: player vote changed (shared events)
-        PatchIfFound(harmony, typeof(NEventLayout), "OnPlayerVoteChanged",
-            nameof(EventVoteChangedPostfix), "Event OnPlayerVoteChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEventLayout), "OnPlayerVoteChanged",
+            typeof(VotingHooks), nameof(EventVoteChangedPostfix), "Event OnPlayerVoteChanged");
 
         // Event voting: shared option chosen (result)
-        PatchIfFound(harmony, typeof(NEventLayout), "BeforeSharedOptionChosen",
-            nameof(SharedOptionChosenPrefix), "Event BeforeSharedOptionChosen", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEventLayout), "BeforeSharedOptionChosen",
+            typeof(VotingHooks), nameof(SharedOptionChosenPrefix), "Event BeforeSharedOptionChosen", isPrefix: true);
     }
 
     // --- Map voting hooks ---
@@ -168,9 +168,4 @@ public static class VotingHooks
         return $"{name} {coords}";
     }
 
-    private static void PatchIfFound(Harmony harmony, Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(VotingHooks), handlerName, label, isPrefix);
-    }
 }

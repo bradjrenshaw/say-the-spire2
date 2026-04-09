@@ -10,24 +10,18 @@ public static class TimelineHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NTimelineScreen), "EnableInput",
-            nameof(TimelineEnableInputPostfix), "Timeline EnableInput");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NTimelineScreen), "EnableInput",
+            typeof(TimelineHooks), nameof(TimelineEnableInputPostfix), "Timeline EnableInput");
 
-        PatchIfFound(harmony, typeof(NUnlockScreen), "Open",
-            nameof(UnlockScreenOpenPostfix), "Unlock screen Open");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NUnlockScreen), "Open",
+            typeof(TimelineHooks), nameof(UnlockScreenOpenPostfix), "Unlock screen Open");
 
-        PatchIfFound(harmony, typeof(NEpochInspectScreen), "Open",
-            nameof(EpochInspectOpenPostfix), "Epoch inspect Open");
-        PatchIfFound(harmony, typeof(NEpochInspectScreen), "OpenViaPaginator",
-            nameof(EpochPaginatePostfix), "Epoch paginate");
-        PatchIfFound(harmony, typeof(NEpochInspectScreen), "Close",
-            nameof(EpochInspectClosedPostfix), "Epoch inspect Close");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(TimelineHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEpochInspectScreen), "Open",
+            typeof(TimelineHooks), nameof(EpochInspectOpenPostfix), "Epoch inspect Open");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEpochInspectScreen), "OpenViaPaginator",
+            typeof(TimelineHooks), nameof(EpochPaginatePostfix), "Epoch paginate");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEpochInspectScreen), "Close",
+            typeof(TimelineHooks), nameof(EpochInspectClosedPostfix), "Epoch inspect Close");
     }
 
     public static void TimelineEnableInputPostfix()

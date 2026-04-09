@@ -10,49 +10,43 @@ public static class DailyRunHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "OnSubmenuOpened",
-            nameof(DailyRunOpenedPostfix), "DailyRun OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "OnSubmenuClosed",
-            nameof(DailyRunClosedPostfix), "DailyRun OnSubmenuClosed");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "CleanUpLobby",
-            nameof(DailyRunClosedPostfix), "DailyRun CleanUpLobby");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "PlayerConnected",
-            nameof(DailyRunPlayerConnectedPostfix), "DailyRun PlayerConnected");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "PlayerChanged",
-            nameof(DailyRunPlayerChangedPostfix), "DailyRun PlayerChanged");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "RemotePlayerDisconnected",
-            nameof(DailyRunPlayerDisconnectedPostfix), "DailyRun RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "LocalPlayerDisconnected",
-            nameof(DailyRunLocalDisconnectedPostfix), "DailyRun LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "OnEmbarkPressed",
-            nameof(DailyRunEmbarkPostfix), "DailyRun OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NDailyRunScreen), "OnUnreadyPressed",
-            nameof(DailyRunUnreadyPostfix), "DailyRun OnUnreadyPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "OnSubmenuOpened",
+            typeof(DailyRunHooks), nameof(DailyRunOpenedPostfix), "DailyRun OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "OnSubmenuClosed",
+            typeof(DailyRunHooks), nameof(DailyRunClosedPostfix), "DailyRun OnSubmenuClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "CleanUpLobby",
+            typeof(DailyRunHooks), nameof(DailyRunClosedPostfix), "DailyRun CleanUpLobby");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "PlayerConnected",
+            typeof(DailyRunHooks), nameof(DailyRunPlayerConnectedPostfix), "DailyRun PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "PlayerChanged",
+            typeof(DailyRunHooks), nameof(DailyRunPlayerChangedPostfix), "DailyRun PlayerChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "RemotePlayerDisconnected",
+            typeof(DailyRunHooks), nameof(DailyRunPlayerDisconnectedPostfix), "DailyRun RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "LocalPlayerDisconnected",
+            typeof(DailyRunHooks), nameof(DailyRunLocalDisconnectedPostfix), "DailyRun LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "OnEmbarkPressed",
+            typeof(DailyRunHooks), nameof(DailyRunEmbarkPostfix), "DailyRun OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunScreen), "OnUnreadyPressed",
+            typeof(DailyRunHooks), nameof(DailyRunUnreadyPostfix), "DailyRun OnUnreadyPressed");
 
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnSubmenuOpened",
-            nameof(DailyRunLoadOpenedPostfix), "DailyRunLoad OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnSubmenuClosed",
-            nameof(DailyRunLoadClosedPostfix), "DailyRunLoad OnSubmenuClosed");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "CleanUpLobby",
-            nameof(DailyRunLoadClosedPostfix), "DailyRunLoad CleanUpLobby");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "PlayerConnected",
-            nameof(DailyRunLoadPlayerConnectedPostfix), "DailyRunLoad PlayerConnected");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "PlayerReadyChanged",
-            nameof(DailyRunLoadPlayerReadyChangedPostfix), "DailyRunLoad PlayerReadyChanged");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "RemotePlayerDisconnected",
-            nameof(DailyRunLoadPlayerDisconnectedPostfix), "DailyRunLoad RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "LocalPlayerDisconnected",
-            nameof(DailyRunLoadLocalDisconnectedPostfix), "DailyRunLoad LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnEmbarkPressed",
-            nameof(DailyRunLoadEmbarkPostfix), "DailyRunLoad OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnUnreadyPressed",
-            nameof(DailyRunLoadUnreadyPostfix), "DailyRunLoad OnUnreadyPressed");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(DailyRunHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnSubmenuOpened",
+            typeof(DailyRunHooks), nameof(DailyRunLoadOpenedPostfix), "DailyRunLoad OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnSubmenuClosed",
+            typeof(DailyRunHooks), nameof(DailyRunLoadClosedPostfix), "DailyRunLoad OnSubmenuClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "CleanUpLobby",
+            typeof(DailyRunHooks), nameof(DailyRunLoadClosedPostfix), "DailyRunLoad CleanUpLobby");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "PlayerConnected",
+            typeof(DailyRunHooks), nameof(DailyRunLoadPlayerConnectedPostfix), "DailyRunLoad PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "PlayerReadyChanged",
+            typeof(DailyRunHooks), nameof(DailyRunLoadPlayerReadyChangedPostfix), "DailyRunLoad PlayerReadyChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "RemotePlayerDisconnected",
+            typeof(DailyRunHooks), nameof(DailyRunLoadPlayerDisconnectedPostfix), "DailyRunLoad RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "LocalPlayerDisconnected",
+            typeof(DailyRunHooks), nameof(DailyRunLoadLocalDisconnectedPostfix), "DailyRunLoad LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnEmbarkPressed",
+            typeof(DailyRunHooks), nameof(DailyRunLoadEmbarkPostfix), "DailyRunLoad OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDailyRunLoadScreen), "OnUnreadyPressed",
+            typeof(DailyRunHooks), nameof(DailyRunLoadUnreadyPostfix), "DailyRunLoad OnUnreadyPressed");
     }
 
     public static void DailyRunOpenedPostfix(NDailyRunScreen __instance)

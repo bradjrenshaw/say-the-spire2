@@ -609,7 +609,9 @@ public static class InputManager
             var windowPos = DisplayServer.WindowGetPosition();
             var localMouse = new Vector2(mousePos.X - windowPos.X, mousePos.Y - windowPos.Y);
             LastMouseField?.SetValue(_controllerManager, localMouse);
-            viewport.WarpMouse(Vector2.One * -1000f);
+            // Warp mouse offscreen so it doesn't interfere with controller-style focus navigation
+            const float MouseHideOffset = -1000f;
+            viewport.WarpMouse(Vector2.One * MouseHideOffset);
         }
 
         ActiveScreenContext.Instance.FocusOnDefaultControl();

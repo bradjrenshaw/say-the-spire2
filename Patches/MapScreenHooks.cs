@@ -18,18 +18,12 @@ public static class MapScreenHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NMapScreen), "Open",
-            nameof(MapScreenOpenPostfix), "MapScreen Open");
-        PatchIfFound(harmony, typeof(NMapScreen), "Close",
-            nameof(MapScreenClosePostfix), "MapScreen Close");
-        PatchIfFound(harmony, typeof(NActBanner), "Create",
-            nameof(ActBannerCreatePostfix), "ActBanner Create");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(MapScreenHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "Open",
+            typeof(MapScreenHooks), nameof(MapScreenOpenPostfix), "MapScreen Open");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "Close",
+            typeof(MapScreenHooks), nameof(MapScreenClosePostfix), "MapScreen Close");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NActBanner), "Create",
+            typeof(MapScreenHooks), nameof(ActBannerCreatePostfix), "ActBanner Create");
     }
 
     public static void MapScreenOpenPostfix()

@@ -35,54 +35,48 @@ public static class EventHooks
     public static void Initialize(Harmony harmony)
     {
         // Event descriptions and dialogue
-        PatchIfFound(harmony, typeof(NEventLayout), "SetDescription",
-            nameof(SetDescriptionPostfix), "Event SetDescription");
-        PatchIfFound(harmony, typeof(NAncientEventLayout), "InitializeVisuals",
-            nameof(AncientInitializeVisualsPostfix), "Ancient InitializeVisuals");
-        PatchIfFound(harmony, typeof(NAncientEventLayout), "SetDialogueLineAndAnimate",
-            nameof(SetDialogueLinePostfix), "Ancient dialogue line");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NEventLayout), "SetDescription",
+            typeof(EventHooks), nameof(SetDescriptionPostfix), "Event SetDescription");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NAncientEventLayout), "InitializeVisuals",
+            typeof(EventHooks), nameof(AncientInitializeVisualsPostfix), "Ancient InitializeVisuals");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NAncientEventLayout), "SetDialogueLineAndAnimate",
+            typeof(EventHooks), nameof(SetDialogueLinePostfix), "Ancient dialogue line");
 
         // Card events
-        PatchIfFound(harmony, typeof(SwipePower), "Steal",
-            nameof(CardStolenPostfix), "SwipePower.Steal");
-        PatchIfFound(harmony, typeof(CardCmd), "Upgrade",
-            nameof(CardUpgradeCombatPostfix), "CardCmd.Upgrade (combat)",
+        HarmonyHelper.PatchIfFound(harmony, typeof(SwipePower), "Steal",
+            typeof(EventHooks), nameof(CardStolenPostfix), "SwipePower.Steal");
+        HarmonyHelper.PatchIfFound(harmony, typeof(CardCmd), "Upgrade",
+            typeof(EventHooks), nameof(CardUpgradeCombatPostfix), "CardCmd.Upgrade (combat)",
             parameterTypes: new[] { typeof(IEnumerable<CardModel>), typeof(CardPreviewStyle) });
-        PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardUpgradeVfx), "Create",
-            nameof(CardUpgradeVfxPostfix), "NCardUpgradeVfx.Create");
-        PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardSmithVfx), "Create",
-            nameof(CardSmithVfxPostfix), "NCardSmithVfx.Create",
+        HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardUpgradeVfx), "Create",
+            typeof(EventHooks), nameof(CardUpgradeVfxPostfix), "NCardUpgradeVfx.Create");
+        HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardSmithVfx), "Create",
+            typeof(EventHooks), nameof(CardSmithVfxPostfix), "NCardSmithVfx.Create",
             parameterTypes: new[] { typeof(IEnumerable<CardModel>), typeof(bool) });
-        PatchIfFound(harmony, typeof(CardModel), "SpendResources",
-            nameof(CardPlayedPrefix), "CardModel.SpendResources", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(CardModel), "SpendResources",
+            typeof(EventHooks), nameof(CardPlayedPrefix), "CardModel.SpendResources", isPrefix: true);
 
         // Orb events
-        PatchIfFound(harmony, typeof(Hook), "AfterOrbChanneled",
-            nameof(OrbChanneledPostfix), "Hook.AfterOrbChanneled");
-        PatchIfFound(harmony, typeof(Hook), "AfterOrbEvoked",
-            nameof(OrbEvokedPostfix), "Hook.AfterOrbEvoked");
+        HarmonyHelper.PatchIfFound(harmony, typeof(Hook), "AfterOrbChanneled",
+            typeof(EventHooks), nameof(OrbChanneledPostfix), "Hook.AfterOrbChanneled");
+        HarmonyHelper.PatchIfFound(harmony, typeof(Hook), "AfterOrbEvoked",
+            typeof(EventHooks), nameof(OrbEvokedPostfix), "Hook.AfterOrbEvoked");
 
         // Potion used
-        PatchIfFound(harmony, typeof(PotionModel), "OnUseWrapper",
-            nameof(PotionUsedPrefix), "PotionModel.OnUseWrapper", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(PotionModel), "OnUseWrapper",
+            typeof(EventHooks), nameof(PotionUsedPrefix), "PotionModel.OnUseWrapper", isPrefix: true);
 
         // Gold changes
-        PatchIfFound(harmony, typeof(PlayerCmd), "GainGold",
-            nameof(GainGoldPostfix), "PlayerCmd.GainGold");
-        PatchIfFound(harmony, typeof(PlayerCmd), "LoseGold",
-            nameof(LoseGoldPostfix), "PlayerCmd.LoseGold");
+        HarmonyHelper.PatchIfFound(harmony, typeof(PlayerCmd), "GainGold",
+            typeof(EventHooks), nameof(GainGoldPostfix), "PlayerCmd.GainGold");
+        HarmonyHelper.PatchIfFound(harmony, typeof(PlayerCmd), "LoseGold",
+            typeof(EventHooks), nameof(LoseGoldPostfix), "PlayerCmd.LoseGold");
 
         // Treasure and rooms
-        PatchIfFound(harmony, typeof(NTreasureRoomRelicCollection), "InitializeRelics",
-            nameof(InitializeRelicsPostfix), "NTreasureRoomRelicCollection.InitializeRelics");
-        PatchIfFound(harmony, typeof(Hook), "AfterRoomEntered",
-            nameof(RoomEnteredPostfix), "Hook.AfterRoomEntered");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false, System.Type[]? parameterTypes = null)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(EventHooks), handlerName, label, isPrefix, parameterTypes);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NTreasureRoomRelicCollection), "InitializeRelics",
+            typeof(EventHooks), nameof(InitializeRelicsPostfix), "NTreasureRoomRelicCollection.InitializeRelics");
+        HarmonyHelper.PatchIfFound(harmony, typeof(Hook), "AfterRoomEntered",
+            typeof(EventHooks), nameof(RoomEnteredPostfix), "Hook.AfterRoomEntered");
     }
 
     public static void CardUpgradeCombatPostfix(IEnumerable<CardModel> cards)

@@ -8,20 +8,14 @@ public static class CardPileHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NCardPileScreen), "ShowScreen",
-            nameof(CardPileShowPostfix), "CardPile ShowScreen");
-        PatchIfFound(harmony, typeof(NCardPileScreen), "AfterCapstoneClosed",
-            nameof(CardPileClosedPostfix), "CardPile AfterCapstoneClosed");
-        PatchIfFound(harmony, typeof(NDeckViewScreen), "ShowScreen",
-            nameof(DeckViewShowPostfix), "DeckView ShowScreen");
-        PatchIfFound(harmony, typeof(NDeckViewScreen), "AfterCapstoneClosed",
-            nameof(DeckViewClosedPostfix), "DeckView AfterCapstoneClosed");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(CardPileHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCardPileScreen), "ShowScreen",
+            typeof(CardPileHooks), nameof(CardPileShowPostfix), "CardPile ShowScreen");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCardPileScreen), "AfterCapstoneClosed",
+            typeof(CardPileHooks), nameof(CardPileClosedPostfix), "CardPile AfterCapstoneClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDeckViewScreen), "ShowScreen",
+            typeof(CardPileHooks), nameof(DeckViewShowPostfix), "DeckView ShowScreen");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NDeckViewScreen), "AfterCapstoneClosed",
+            typeof(CardPileHooks), nameof(DeckViewClosedPostfix), "DeckView AfterCapstoneClosed");
     }
 
     public static void CardPileShowPostfix(NCardPileScreen __result)

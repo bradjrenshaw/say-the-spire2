@@ -13,20 +13,14 @@ public static class RestSiteHooks
 {
     public static void Initialize(Harmony harmony)
     {
-        PatchIfFound(harmony, typeof(NRestSiteRoom), "_Ready",
-            nameof(RestSiteReadyPostfix), "RestSite _Ready");
-        PatchIfFound(harmony, typeof(NRestSiteRoom), "_ExitTree",
-            nameof(RestSiteExitPostfix), "RestSite _ExitTree");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NRestSiteRoom), "_Ready",
+            typeof(RestSiteHooks), nameof(RestSiteReadyPostfix), "RestSite _Ready");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NRestSiteRoom), "_ExitTree",
+            typeof(RestSiteHooks), nameof(RestSiteExitPostfix), "RestSite _ExitTree");
 
         // Mend targeting — rest site characters are plain Controls, not NClickableControl
-        PatchIfFound(harmony, typeof(NRestSiteCharacter), "OnFocus",
-            nameof(RestSiteCharacterFocusPostfix), "RestSiteCharacter OnFocus");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(RestSiteHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NRestSiteCharacter), "OnFocus",
+            typeof(RestSiteHooks), nameof(RestSiteCharacterFocusPostfix), "RestSiteCharacter OnFocus");
     }
 
     public static void RestSiteReadyPostfix(NRestSiteRoom __instance)

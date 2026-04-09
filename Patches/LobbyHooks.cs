@@ -19,46 +19,40 @@ public static class LobbyHooks
     public static void Initialize(Harmony harmony)
     {
         // Character select hooks
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuOpened",
-            nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuClosed",
-            nameof(CharacterSelectClosedPostfix), "CharacterSelect OnSubmenuClosed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuOpened",
+            typeof(LobbyHooks), nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuClosed",
+            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), "CharacterSelect OnSubmenuClosed");
         // CleanUpLobby is called when a run starts (bypasses OnSubmenuClosed)
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "CleanUpLobby",
-            nameof(CharacterSelectClosedPostfix), "CharacterSelect CleanUpLobby");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "CleanUpLobby",
+            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), "CharacterSelect CleanUpLobby");
 
         // Multiplayer lobby hooks (IStartRunLobbyListener on NCharacterSelectScreen)
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerConnected",
-            nameof(LobbyPlayerConnectedPostfix), "Lobby PlayerConnected");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerChanged",
-            nameof(LobbyPlayerChangedPostfix), "Lobby PlayerChanged");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "RemotePlayerDisconnected",
-            nameof(LobbyPlayerDisconnectedPostfix), "Lobby RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "LocalPlayerDisconnected",
-            nameof(LobbyLocalDisconnectedPostfix), "Lobby LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnEmbarkPressed",
-            nameof(LobbyEmbarkPostfix), "Lobby OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnUnreadyPressed",
-            nameof(LobbyUnreadyPostfix), "Lobby OnUnreadyPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerConnected",
+            typeof(LobbyHooks), nameof(LobbyPlayerConnectedPostfix), "Lobby PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerChanged",
+            typeof(LobbyHooks), nameof(LobbyPlayerChangedPostfix), "Lobby PlayerChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "RemotePlayerDisconnected",
+            typeof(LobbyHooks), nameof(LobbyPlayerDisconnectedPostfix), "Lobby RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "LocalPlayerDisconnected",
+            typeof(LobbyHooks), nameof(LobbyLocalDisconnectedPostfix), "Lobby LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnEmbarkPressed",
+            typeof(LobbyHooks), nameof(LobbyEmbarkPostfix), "Lobby OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnUnreadyPressed",
+            typeof(LobbyHooks), nameof(LobbyUnreadyPostfix), "Lobby OnUnreadyPressed");
 
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerConnected",
-            nameof(LoadLobbyPlayerConnectedPostfix), "LoadLobby PlayerConnected");
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerReadyChanged",
-            nameof(LoadLobbyPlayerReadyChangedPostfix), "LoadLobby PlayerReadyChanged");
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "RemotePlayerDisconnected",
-            nameof(LoadLobbyPlayerDisconnectedPostfix), "LoadLobby RemotePlayerDisconnected");
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "LocalPlayerDisconnected",
-            nameof(LoadLobbyLocalDisconnectedPostfix), "LoadLobby LocalPlayerDisconnected");
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "OnEmbarkPressed",
-            nameof(LoadLobbyEmbarkPostfix), "LoadLobby OnEmbarkPressed");
-        PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "OnUnreadyPressed",
-            nameof(LoadLobbyUnreadyPostfix), "LoadLobby OnUnreadyPressed");
-    }
-
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(LobbyHooks), handlerName, label, isPrefix);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerConnected",
+            typeof(LobbyHooks), nameof(LoadLobbyPlayerConnectedPostfix), "LoadLobby PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerReadyChanged",
+            typeof(LobbyHooks), nameof(LoadLobbyPlayerReadyChangedPostfix), "LoadLobby PlayerReadyChanged");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "RemotePlayerDisconnected",
+            typeof(LobbyHooks), nameof(LoadLobbyPlayerDisconnectedPostfix), "LoadLobby RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "LocalPlayerDisconnected",
+            typeof(LobbyHooks), nameof(LoadLobbyLocalDisconnectedPostfix), "LoadLobby LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "OnEmbarkPressed",
+            typeof(LobbyHooks), nameof(LoadLobbyEmbarkPostfix), "LoadLobby OnEmbarkPressed");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "OnUnreadyPressed",
+            typeof(LobbyHooks), nameof(LoadLobbyUnreadyPostfix), "LoadLobby OnUnreadyPressed");
     }
 
     public static void CharacterSelectOpenedPostfix(NCharacterSelectScreen __instance)

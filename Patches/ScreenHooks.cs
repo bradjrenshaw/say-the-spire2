@@ -18,11 +18,5 @@ public static class ScreenHooks
         }
     }
 
-    private static void PatchIfFound(Harmony harmony, System.Type type, string methodName,
-        string handlerName, string label, bool isPrefix = false)
-    {
-        HarmonyHelper.PatchIfFound(harmony, type, methodName, typeof(ScreenHooks), handlerName, label, isPrefix);
-    }
-
     public static void UpdatePostfix() => ScreenManager.OnGameScreenChanged();
 }
