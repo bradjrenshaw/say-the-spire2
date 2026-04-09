@@ -42,15 +42,21 @@ All mod log lines are prefixed with `[AccessibilityMod]`.
 - `UI/Screens/HelpScreen.cs` - F1 help overlay with browsable controls list
 - `UI/Screens/ModalScreen.cs` - Screen wrapper for game modal dialogs
 - `UI/Screens/RewardsGameScreen.cs` - Post-combat rewards screen with position info
+- `UI/Screens/GameScreen.cs` - Base class for static-layout screens. Provides shared utilities: `ConnectFocusSignal`, `Activate`, `IsUsable`, `IsVisible`, `GetButtonStatus`, and `_connectedControls` field
+- `UI/CardGridReflection.cs` - Centralized reflection for `NCardGrid._cardRows` and `.Columns`
+- `Multiplayer/MultiplayerHelper.cs` - Shared multiplayer utilities: `GetPlayerName`, `GetCreatureName`, `GetPlayerDisplayName`, `IsMultiplayer`, `IsLocalPlayer`
+- `UI/ResourceHelper.cs` - Centralized energy/stars resource string formatting
+- `Patches/HarmonyHelper.cs` - `PatchIfFound()` with method validation, try/catch, and optional `parameterTypes`
 
 ### Critical Technical Details
 
 **Harmony patching rules in this codebase:**
-- Use MANUAL patching (`harmony.Patch()`) not attribute-based `PatchAll` - PatchAll silently skips failures
+- Use MANUAL patching via `HarmonyHelper.PatchIfFound()` — it validates the method exists, logs success/failure, and catches patch exceptions. Call it directly with `typeof(HandlerClass)`: `HarmonyHelper.PatchIfFound(harmony, typeof(Target), "Method", typeof(MyHooks), nameof(MyPostfix), "Label")`
+- Do NOT use attribute-based `PatchAll` — it silently skips failures
+- Do NOT create local `PatchIfFound` wrapper methods in hook files — call `HarmonyHelper.PatchIfFound` directly
 - Never patch virtual methods on base classes (overrides won't be intercepted). Patch non-virtual chokepoints instead
 - Example: patch `RefreshFocus` (private, non-virtual) not `OnFocus` (protected, virtual)
-- Private methods: use `AccessTools.Method(typeof(Class), "MethodName")` to find them
-- Protected properties: use `typeof(Class).GetProperty("Name", BindingFlags.Instance | BindingFlags.NonPublic)`
+- All reflection lookups use `AccessTools.Field/Property/Method` (not `typeof().GetField` with `BindingFlags`)
 
 **Assembly loading:**
 - Game's AssemblyLoadContext only resolves sts2 and 0Harmony
@@ -104,6 +110,8 @@ These rules were discovered through bugs. Check against them before making chang
 
 **Events:**
 - Events with creature sources use `HasSourceFilter` on their `EventSettingsAttribute`. The `AllowCurrentPlayer/AllowOtherPlayers/AllowEnemies` flags control which sources the game provides visual feedback for — disallowed sources are silently dropped.
+- Event types are auto-discovered via assembly scanning for `[EventSettings]` attribute — no manual registration needed in `EventRegistry.RegisterDefaults()`.
+- Events can add custom sub-settings by implementing a static `RegisterSettings(CategorySetting)` method (see `TurnEvent`, `EnemyMoveEvent`).
 - Power decreased to 0: skip the Decreased event (check `power.Amount > 0`), let the Removed event handle it.
 - Non-stacking powers (`StackType != Counter`) should not show numeric amounts (-1 is misleading).
 
@@ -121,10 +129,15 @@ These rules were discovered through bugs. Check against them before making chang
 - State token polling rebuilds when rewards change (e.g., after claiming one).
 - `ProxyRewardButton.GetTypeKey()` returns "potion"/"relic"/"card" based on reward type. Delegates tooltip/status to inner proxies.
 
+**Error handling:**
+- Never use empty `catch { }` blocks. Every catch must log the exception with `Log.Error` or `Log.Info`.
+- Fallback-style catches (e.g., try a modifier, fall back to base value) should log at `Log.Info` level.
+- Errors indicating broken functionality should log at `Log.Error` level.
+
 **Multiplayer:**
-- All multiplayer event hooks must gate on `IsMultiplayer()` to avoid firing in singleplayer.
+- All multiplayer event hooks must gate on `IsMultiplayer()` to avoid firing in singleplayer. This includes voting hooks (`TravelToMapCoord`, `MapPointSelectedLocally`, etc.).
 - Local player checks: use `LocalContext.IsMe(creature)` or `player.NetId == LocalContext.NetId`.
-- Player names: `PlatformUtil.GetPlayerName(platform, netId)` with try/catch fallback.
+- Player names: use `MultiplayerHelper.GetPlayerDisplayName(player)` for the creature-first-then-netid pattern. Use `GetPlayerName`/`GetCreatureName` for specific needs.
 - The `affects_gameplay: false` manifest field prevents the mod from blocking multiplayer connections.
 
 **Harmony patching (additional):**
@@ -156,7 +169,7 @@ These private fields/properties are accessed via reflection. A game update renam
 - `NTreasureRoomRelicCollection._isEmptyChest` — empty chest detection
 
 **Combat:**
-- `NCardGrid._cardRows`, `.Columns` — card grid layout (centralized in `CardGridReflection.cs`)
+- `NCardGrid._cardRows`, `.Columns` — card grid layout (use `CardGridReflection.cs`, not local declarations)
 - `NSimpleCardSelectScreen._selectedCards` — selected cards in grid selection
 - `AbstractIntent.IntentTitle` (property) — creature intent name
 - `NChooseABundleSelectionScreen._bundlePreviewCards`, `._bundleRow` — bundle preview focus wiring

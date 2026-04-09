@@ -14,6 +14,10 @@ This file contains review rules and checklists for AI agents working on this cod
 
 ## Code Review Checklist
 
+### Error Handling
+- [ ] Every `catch` block logs the exception — never use empty `catch { }`. Use `Log.Error` for broken functionality, `Log.Info` for expected fallbacks.
+- [ ] All multiplayer hooks gate on `IsMultiplayer()` to avoid firing in singleplayer.
+
 ### Focus System
 - [ ] `SetFocusedControl`/`SetFocusedElement` only store state. No speech output, no buffer updates.
 - [ ] `UIManager.Update()` is the only place focus announcements happen.
@@ -32,14 +36,15 @@ This file contains review rules and checklists for AI agents working on this cod
 - [ ] New localization keys follow the naming convention: `SECTION.KEY_NAME` (e.g., `EVENT.CARD_PLAYED`, `RESOURCE.HP`, `LABELS.LOCKED`).
 
 ### Harmony Patches
-- [ ] Manual patching via `harmony.Patch()`, not `PatchAll`.
+- [ ] Use `HarmonyHelper.PatchIfFound()` directly — do NOT create local wrapper methods. Do NOT use `PatchAll`.
 - [ ] Target method is non-virtual and declared on the target type (not inherited from a base class).
-- [ ] Patch has error logging (try/catch in the postfix/prefix, or `PatchIfFound` pattern with log on failure).
+- [ ] Patch has error logging (try/catch in the postfix/prefix). `HarmonyHelper.PatchIfFound` handles method-not-found and patch-failure logging automatically.
 - [ ] New patches are registered in the appropriate `Initialize(Harmony)` method, not scattered.
 - [ ] `NCardHolder` subclass hooks: only patch those that override `OnFocus`. Check the decompiled source first.
+- [ ] All reflection lookups use `AccessTools.Field/Property/Method`, not `typeof().GetField` with `BindingFlags`.
 
 ### Events
-- [ ] New event classes have `[EventSettings]` attribute and are registered in `EventRegistry.RegisterDefaults()`.
+- [ ] New event classes have `[EventSettings]` attribute. They are auto-discovered — do NOT add manual `Register()` calls to `EventRegistry.RegisterDefaults()`.
 - [ ] Events with creature sources set `Source = creature` in constructor and use `hasSourceFilter: true`.
 - [ ] `AllowCurrentPlayer`/`AllowOtherPlayers`/`AllowEnemies` flags match what the game visually shows to other players. Don't announce information the game doesn't display.
 - [ ] Power events: Decreased handler skips when `power.Amount <= 0` (Removed event handles it).
