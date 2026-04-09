@@ -1,6 +1,7 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.Models;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
@@ -27,14 +28,14 @@ public class PowerEvent : GameEvent
         _hasStacks = power.StackType == PowerStackType.Counter;
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         return _eventType switch
         {
-            PowerEventType.Increased when _hasStacks && _amount > 0 => $"{_creatureName} gained {_amount} {_powerName}",
-            PowerEventType.Increased => $"{_creatureName} gained {_powerName}",
-            PowerEventType.Decreased => $"{_creatureName} {_powerName} decreased",
-            PowerEventType.Removed => $"{_creatureName} lost {_powerName}",
+            PowerEventType.Increased when _hasStacks && _amount > 0 => Message.Raw($"{_creatureName} gained {_amount} {_powerName}"),
+            PowerEventType.Increased => Message.Raw($"{_creatureName} gained {_powerName}"),
+            PowerEventType.Decreased => Message.Raw($"{_creatureName} {_powerName} decreased"),
+            PowerEventType.Removed => Message.Raw($"{_creatureName} lost {_powerName}"),
             _ => null
         };
     }

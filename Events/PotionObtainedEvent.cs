@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -14,5 +15,5 @@ public class PotionObtainedEvent : GameEvent
         _potionName = potionName;
     }
 
-    public override string? GetMessage() => $"{_potionName} obtained";
+    public override Message? GetMessage() => Message.Raw($"{_potionName} obtained");
 }

@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Rooms;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -24,17 +25,17 @@ public class RoomEnteredEvent : GameEvent
         category.Add(new BoolSetting("announce_rest_site", "Announce Rest Site", true));
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         return _roomType switch
         {
-            RoomType.Monster => "Combat",
-            RoomType.Elite => "Elite combat",
-            RoomType.Boss => "Boss combat",
-            RoomType.Treasure => "Treasure chest",
-            RoomType.Shop => "Shop",
-            RoomType.Event => "Event",
-            RoomType.RestSite => "Rest site",
+            RoomType.Monster => Message.Raw("Combat"),
+            RoomType.Elite => Message.Raw("Elite combat"),
+            RoomType.Boss => Message.Raw("Boss combat"),
+            RoomType.Treasure => Message.Raw("Treasure chest"),
+            RoomType.Shop => Message.Raw("Shop"),
+            RoomType.Event => Message.Raw("Event"),
+            RoomType.RestSite => Message.Raw("Rest site"),
             _ => null,
         };
     }

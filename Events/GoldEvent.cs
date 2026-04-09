@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -23,18 +24,18 @@ public class GoldEvent : GameEvent
         category.Add(new BoolSetting("verbose_totals", "Include Gold Totals", true));
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         int delta = _newGold - _oldGold;
         bool showTotals = ModSettings.GetValue<bool>("events.gold.verbose_totals");
         if (delta > 0)
-            return showTotals
+            return Message.Raw(showTotals
                 ? $"Gained {delta} gold ({_newGold} total)"
-                : $"Gained {delta} gold";
+                : $"Gained {delta} gold");
         if (delta < 0)
-            return showTotals
+            return Message.Raw(showTotals
                 ? $"Lost {-delta} gold ({_newGold} remaining)"
-                : $"Lost {-delta} gold";
+                : $"Lost {-delta} gold");
         return null;
     }
 

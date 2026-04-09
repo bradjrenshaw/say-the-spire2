@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -14,6 +15,6 @@ public class MapVoteEvent : GameEvent
         _message = message;
     }
 
-    public override string? GetMessage() => _message;
+    public override Message? GetMessage() => Message.Raw(_message);
     public override bool ShouldAddToBuffer() => false;
 }

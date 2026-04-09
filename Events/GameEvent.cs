@@ -10,7 +10,7 @@ public abstract class GameEvent
     /// </summary>
     public Creature? Source { get; set; }
 
-    public abstract string? GetMessage();
+    public abstract SayTheSpire2.Localization.Message? GetMessage();
 
     public virtual bool ShouldAnnounce() => true;
 

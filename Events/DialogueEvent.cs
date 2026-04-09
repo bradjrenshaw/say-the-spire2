@@ -1,3 +1,4 @@
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -14,10 +15,10 @@ public class DialogueEvent : GameEvent
         _text = text;
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         if (string.IsNullOrEmpty(_text)) return null;
-        if (string.IsNullOrEmpty(_speaker)) return _text;
-        return $"{_speaker}: {_text}";
+        if (string.IsNullOrEmpty(_speaker)) return Message.Raw(_text);
+        return Message.Raw($"{_speaker}: {_text}");
     }
 }

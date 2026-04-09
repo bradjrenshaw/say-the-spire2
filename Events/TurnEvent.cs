@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -17,13 +18,13 @@ public class TurnEvent : GameEvent
         _isStart = isStart;
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         if (_isStart)
         {
-            return _side == CombatSide.Player
+            return Message.Raw(_side == CombatSide.Player
                 ? $"Your turn, round {_round}"
-                : "Enemy turn";
+                : "Enemy turn");
         }
         return null;
     }

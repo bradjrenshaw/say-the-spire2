@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
@@ -26,20 +27,20 @@ public class BlockEvent : GameEvent
         category.Add(new BoolSetting("verbose_totals", "Include Block Totals", true));
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         int delta = _newBlock - _oldBlock;
         bool verbose = ModSettings.GetValue<bool>("events.block.verbose_totals");
         if (delta > 0)
-            return verbose
+            return Message.Raw(verbose
                 ? $"{_creatureName} gained {delta} Block ({_newBlock} total)"
-                : $"{_creatureName} gained {delta} Block";
+                : $"{_creatureName} gained {delta} Block");
         if (delta < 0 && _newBlock == 0)
-            return $"{_creatureName} lost all Block";
+            return Message.Raw($"{_creatureName} lost all Block");
         if (delta < 0)
-            return verbose
+            return Message.Raw(verbose
                 ? $"{_creatureName} lost {-delta} Block ({_newBlock} remaining)"
-                : $"{_creatureName} lost {-delta} Block";
+                : $"{_creatureName} lost {-delta} Block");
         return null;
     }
 

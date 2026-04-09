@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 
@@ -25,13 +26,13 @@ public class HpEvent : GameEvent
         category.Add(new BoolSetting("announce_heals", "Announce Heals", true));
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         int delta = _newHp - _oldHp;
         if (delta < 0)
-            return $"{_creatureName} {-delta} damage";
+            return Message.Raw($"{_creatureName} {-delta} damage");
         if (delta > 0)
-            return $"{_creatureName} healed {delta}";
+            return Message.Raw($"{_creatureName} healed {delta}");
         return null;
     }
 

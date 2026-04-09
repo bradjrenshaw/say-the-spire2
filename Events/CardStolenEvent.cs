@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -14,9 +15,9 @@ public class CardStolenEvent : GameEvent
         _cardName = cardName;
     }
 
-    public override string? GetMessage()
+    public override Message? GetMessage()
     {
         if (string.IsNullOrEmpty(_cardName)) return null;
-        return $"{_cardName} stolen";
+        return Message.Raw($"{_cardName} stolen");
     }
 }

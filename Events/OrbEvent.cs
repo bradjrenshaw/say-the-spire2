@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -28,10 +29,10 @@ public class OrbEvent : GameEvent
         category.Add(new Settings.BoolSetting("announce_evoked", "Announce Evoked", true));
     }
 
-    public override string? GetMessage() => _type switch
+    public override Message? GetMessage() => _type switch
     {
-        OrbEventType.Channeled => $"Channeled {_orbName}",
-        OrbEventType.Evoked => $"Evoked {_orbName}",
+        OrbEventType.Channeled => Message.Raw($"Channeled {_orbName}"),
+        OrbEventType.Evoked => Message.Raw($"Evoked {_orbName}"),
         _ => null,
     };
 

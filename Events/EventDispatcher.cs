@@ -20,7 +20,7 @@ public static class EventDispatcher
     public static void Enqueue(GameEvent evt)
     {
         var message = evt.GetMessage();
-        if (string.IsNullOrEmpty(message)) return;
+        if (message == null || message.IsEmpty) return;
 
         var timestamp = Time.GetTicksMsec();
 
@@ -32,7 +32,7 @@ public static class EventDispatcher
             var callerInfo = callerMethod != null
                 ? $"{callerMethod.DeclaringType?.Name}.{callerMethod.Name}"
                 : "unknown";
-            Log.Info($"[EventDebug] Enqueue: type={evt.GetType().Name} caller={callerInfo} msg=\"{message}\" t={timestamp}");
+            Log.Info($"[EventDebug] Enqueue: type={evt.GetType().Name} caller={callerInfo} msg=\"{message.Resolve()}\" t={timestamp}");
         }
 
         // Insertion sort by timestamp
@@ -50,7 +50,7 @@ public static class EventDispatcher
         {
             var evt = _pending[i].evt;
             var message = evt.GetMessage();
-            if (string.IsNullOrEmpty(message)) continue;
+            if (message == null || message.IsEmpty) continue;
 
             var attr = (EventSettingsAttribute?)Attribute.GetCustomAttribute(
                 evt.GetType(), typeof(EventSettingsAttribute));
@@ -64,18 +64,19 @@ public static class EventDispatcher
 
             if (VerboseLogging)
             {
-                Log.Info($"[EventDebug]   Flush: msg=\"{message}\" announce={announce} buffer={buffer} settingsKey={attr?.Key ?? "none"}");
+                var resolved = message.Resolve();
+                Log.Info($"[EventDebug]   Flush: msg=\"{resolved}\" announce={announce} buffer={buffer} settingsKey={attr?.Key ?? "none"}");
             }
 
             if (announce)
             {
-                SpeechManager.Output(Message.Raw(message), interrupt: false);
+                SpeechManager.Output(message, interrupt: false);
             }
 
             if (buffer)
             {
                 var buf = BufferManager.Instance.GetBuffer("events");
-                buf?.Add(message);
+                buf?.Add(message.Resolve());
                 BufferManager.Instance.EnableBuffer("events", true);
             }
         }

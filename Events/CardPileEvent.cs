@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
@@ -32,14 +33,14 @@ public class CardPileEvent : GameEvent
         category.Add(new Settings.BoolSetting("announce_deck_shuffled", "Announce Deck Shuffled", true));
     }
 
-    public override string? GetMessage() => _type switch
+    public override Message? GetMessage() => _type switch
     {
-        CardPileEventType.Drew => $"Drew {_cardName}",
-        CardPileEventType.Discarded => $"{_cardName} added to discard",
-        CardPileEventType.Exhausted => $"{_cardName} exhausted",
-        CardPileEventType.AddedToDraw => $"{_cardName} added to draw",
-        CardPileEventType.HandDiscarded => "Hand discarded",
-        CardPileEventType.DeckShuffled => "Deck shuffled",
+        CardPileEventType.Drew => Message.Raw($"Drew {_cardName}"),
+        CardPileEventType.Discarded => Message.Raw($"{_cardName} added to discard"),
+        CardPileEventType.Exhausted => Message.Raw($"{_cardName} exhausted"),
+        CardPileEventType.AddedToDraw => Message.Raw($"{_cardName} added to draw"),
+        CardPileEventType.HandDiscarded => Message.Raw("Hand discarded"),
+        CardPileEventType.DeckShuffled => Message.Raw("Deck shuffled"),
         _ => null,
     };
 
