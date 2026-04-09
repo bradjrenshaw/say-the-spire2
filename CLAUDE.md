@@ -30,11 +30,18 @@ All mod log lines are prefixed with `[AccessibilityMod]`.
 3. Our Initialize registers assembly resolver, applies Harmony patches, starts TTS
 
 ### Key Files
-- `ModEntry.cs` - Entry point. Registers assembly resolver for System.Speech.dll, creates Harmony instance, initializes all subsystems
+- `ModEntry.cs` - Entry point. Registers assembly resolver for System.Speech.dll, creates Harmony instance, initializes all subsystems, registers settings and keybinding categories
 - `Speech/SpeechManager.cs` - Windows SAPI TTS wrapper (speak, stop, queue, rate, volume)
-- `Hooks/FocusHooks.cs` - Patches `NClickableControl.RefreshFocus()` to announce focused UI elements
-- `Hooks/KeyboardNavHooks.cs` - Patches `NControllerManager.CheckForControllerInput()` to enable keyboard navigation
+- `Patches/FocusHooks.cs` - Patches `NClickableControl.RefreshFocus()` to announce focused UI elements
+- `Patches/KeyboardNavHooks.cs` - Patches `NControllerManager.CheckForControllerInput()` to enable keyboard navigation
 - `Patches/DisableBuiltinAccessibility.cs` - Subclasses game window to block WM_GETOBJECT, killing AccessKit
+- `Localization/Message.cs` - Composable message system for localized speech output
+- `Localization/LocalizationManager.cs` - JSON-based localization with language hot-switching
+- `Help/HelpMessage.cs` - Data model for context-sensitive help system
+- `Help/HelpScreenBuilder.cs` - Collects help from screen stack with dedup
+- `UI/Screens/HelpScreen.cs` - F1 help overlay with browsable controls list
+- `UI/Screens/ModalScreen.cs` - Screen wrapper for game modal dialogs
+- `UI/Screens/RewardsGameScreen.cs` - Post-combat rewards screen with position info
 
 ### Critical Technical Details
 
@@ -79,8 +86,21 @@ These rules were discovered through bugs. Check against them before making chang
 - Mouse hover must not trigger focus announcements during controller mode. We suppress `CheckForMouseInput` via Harmony to prevent the game from switching back to mouse mode during controller navigation.
 - Disabled `NClickableControl`s have `FocusMode = None` set by the game. We patch `SetEnabled` to restore `FocusMode.All` and use `HasFocus()` fallback in `RefreshFocusPostfix` since `IsFocused` is never true for disabled controls.
 
-**Speech:**
+**Speech and Messages:**
 - `SpeechManager.Output` must NEVER use `interrupt: true`. User preference is to never interrupt existing speech.
+- All user-facing text must go through the `Message` system. Use `Message.Localized("ui", "KEY", new { ... })` for mod-generated text, `Message.Raw()` only for game-provided text (card names, creature names, LocString results).
+- Never use `Message.Raw()` with hardcoded English — that bypasses localization.
+- `Message` supports `+` operator for composition and `Message.Join(separator, parts)` for custom separators.
+- UIElement methods (`GetLabel`, `GetStatusString`, `GetTooltip`, `GetExtrasString`) return `Message?`, not `string?`. Call `.Resolve()` only at the final output point.
+- Event `GetMessage()` returns `Message?`. EventDispatcher passes the Message directly to SpeechManager.
+- Localization keys live in `Localization/eng/ui.json`. Language switches at runtime via `LocManager.SetLanguage` hook.
+
+**Help system:**
+- `Screen.GetHelpMessages()` returns contextual help. `HelpScreenBuilder` walks screens deepest-first, deduplicating controls by action key.
+- `HelpMessage.Exclusive` flag: exclusive messages only show when their screen is the innermost active screen.
+- `ControlHelpMessage` supports multiple action keys (`ActionKeys` list) for grouped controls (e.g., "Select Combatant 1-12").
+- `HelpScreen` uses `ClaimAllActions()` to block all input. Self-closes on `OnUnfocus()` if another screen pushes on top.
+- `Screen.ClaimAllActions()` sets a flag so `HasClaimed()` returns true for everything. `ShouldPropagate` still defaults to false.
 
 **Events:**
 - Events with creature sources use `HasSourceFilter` on their `EventSettingsAttribute`. The `AllowCurrentPlayer/AllowOtherPlayers/AllowEnemies` flags control which sources the game provides visual feedback for — disallowed sources are silently dropped.
@@ -90,6 +110,16 @@ These rules were discovered through bugs. Check against them before making chang
 **Buffers:**
 - `FollowLatest` on a buffer means switching to it jumps to the last item (used by events buffer).
 - `Repopulate()` preserves position. Use stable container/proxy references (not new objects each frame) to avoid path-diffing churn.
+
+**Modals:**
+- Game modals push a `ModalScreen` via `ModalHooks.AddPostfix`. Removed on `NModalContainer.Clear` or when the modal node is freed (safety check in `OnUpdate`).
+- `NCombatRulesFtue` (multi-page tutorial) gets tutorial-specific help messages instead of generic confirm/cancel.
+- Modal buttons are registered as elements with `FocusEntered` signals for proper proxy resolution.
+
+**Rewards:**
+- `RewardsGameScreen` is pushed via `OverlayHooks` when `NRewardsScreen` opens. Provides position info and help for post-combat rewards.
+- State token polling rebuilds when rewards change (e.g., after claiming one).
+- `ProxyRewardButton.GetTypeKey()` returns "potion"/"relic"/"card" based on reward type. Delegates tooltip/status to inner proxies.
 
 **Multiplayer:**
 - All multiplayer event hooks must gate on `IsMultiplayer()` to avoid firing in singleplayer.
