@@ -22,7 +22,7 @@ public class ProxyMultiplayerPlayerState : ProxyElement
     private Player? GetPlayer()
     {
         try { return _state.Player; }
-        catch { return null; }
+        catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] MultiplayerPlayerState.Player access failed: {e.Message}"); return null; }
     }
 
     public override Message? GetLabel()

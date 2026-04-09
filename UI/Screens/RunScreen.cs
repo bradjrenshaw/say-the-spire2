@@ -3,6 +3,7 @@ using System.Linq;
 using Godot;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Runs;
@@ -299,7 +300,7 @@ public class RunScreen : Screen
                 }
             }
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Top bar focus wiring failed: {e.Message}"); }
     }
 
     private Player? GetLocalPlayer()

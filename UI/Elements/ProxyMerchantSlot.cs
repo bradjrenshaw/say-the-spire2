@@ -18,7 +18,7 @@ public class ProxyMerchantSlot : ProxyElement
     private MerchantEntry? GetEntry()
     {
         try { return Slot?.Entry; }
-        catch { return null; }
+        catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] MerchantSlot.Entry access failed: {e.Message}"); return null; }
     }
 
     private UIElement? GetInnerProxy()

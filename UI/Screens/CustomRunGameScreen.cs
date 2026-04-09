@@ -5,6 +5,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Localization;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
@@ -498,8 +499,9 @@ public class CustomRunGameScreen : GameScreen
             if (CharacterButtonSelectedField?.GetValue(button) is bool selectedField)
                 return selectedField;
         }
-        catch
+        catch (System.Exception e)
         {
+            Log.Error($"[AccessibilityMod] Character selection state check failed: {e.Message}");
         }
 
         return false;

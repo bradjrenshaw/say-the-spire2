@@ -26,7 +26,7 @@ public static class MultiplayerHelper
             var p = platform ?? RunManager.Instance.NetService.Platform;
             return PlatformUtil.GetPlayerName(p, netId);
         }
-        catch { }
+        catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] GetPlayerName failed for {netId}: {e.Message}"); }
         return $"Player {netId}";
     }
 
@@ -50,7 +50,7 @@ public static class MultiplayerHelper
             if (creature.IsPlayer && creature.Player != null && !RunManager.Instance.IsSinglePlayerOrFakeMultiplayer)
                 return GetPlayerName(creature.Player.NetId, platform);
         }
-        catch { }
+        catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] GetCreatureName multiplayer check failed: {e.Message}"); }
 
         return creature.Name;
     }
@@ -72,7 +72,7 @@ public static class MultiplayerHelper
     public static bool IsMultiplayer()
     {
         try { return RunManager.Instance.NetService.Type.IsMultiplayer(); }
-        catch { return false; }
+        catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] IsMultiplayer check failed: {e.Message}"); return false; }
     }
 
     /// <summary>

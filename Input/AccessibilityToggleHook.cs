@@ -60,7 +60,7 @@ public static class AccessibilityToggleHook
             {
                 Speech.SpeechManager.Output(msg);
             }
-            catch { }
+            catch (System.Exception e) { Log.Info($"[AccessibilityMod] Speech output attempt failed (may not be initialized): {e.Message}"); }
 
             if (!_triedBootstrapSpeech)
             {

@@ -126,7 +126,7 @@ public class ProxyCard : ProxyElement
         {
             int starCost;
             try { starCost = model.GetStarCostWithModifiers(); }
-            catch { starCost = model.CurrentStarCost; }
+            catch (System.Exception e) { Log.Info($"[AccessibilityMod] GetStarCostWithModifiers failed: {e.Message}"); starCost = model.CurrentStarCost; }
             parts.Add(verbose ? Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = starCost }).Resolve() : $"{starCost}");
         }
 

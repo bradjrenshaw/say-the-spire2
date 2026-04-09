@@ -187,7 +187,7 @@ public class ProxyTopBar : ProxyElement
             singleDesc.Add("BossName", activeBoss.Title);
             return (singleTitle.GetFormattedText(), singleDesc.GetFormattedText());
         }
-        catch { return (null, null); }
+        catch (System.Exception e) { Log.Info($"[AccessibilityMod] Boss tooltip failed: {e.Message}"); return (null, null); }
     }
 
     private string? GetHoverTipKey()
@@ -211,7 +211,7 @@ public class ProxyTopBar : ProxyElement
             if (runState == null) return null;
             return GetRoomTipPrefix(runState);
         }
-        catch { return null; }
+        catch (System.Exception e) { Log.Info($"[AccessibilityMod] Room tip prefix failed: {e.Message}"); return null; }
     }
 
     private static string GetRoomTipPrefix(IRunState runState)
@@ -256,7 +256,7 @@ public class ProxyTopBar : ProxyElement
                 return "DOUBLE_BOSS";
             return "BOSS";
         }
-        catch { return null; }
+        catch (System.Exception e) { Log.Info($"[AccessibilityMod] Boss tip prefix failed: {e.Message}"); return null; }
     }
 
     private static bool ShouldOnlyShowSecondBoss(IRunState runState)

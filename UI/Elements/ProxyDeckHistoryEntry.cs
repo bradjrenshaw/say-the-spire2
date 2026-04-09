@@ -4,6 +4,7 @@ using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 using SayTheSpire2.Buffers;
@@ -75,7 +76,7 @@ public class ProxyDeckHistoryEntry : ProxyElement
         {
             int starCost;
             try { starCost = model.GetStarCostWithModifiers(); }
-            catch { starCost = model.CurrentStarCost; }
+            catch (System.Exception e) { Log.Info($"[AccessibilityMod] GetStarCostWithModifiers failed: {e.Message}"); starCost = model.CurrentStarCost; }
             parts.Add(verbose ? Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = starCost }).Resolve() : $"{starCost}");
         }
 

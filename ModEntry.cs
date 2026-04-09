@@ -325,7 +325,7 @@ public static class ModEntry
             if (!string.IsNullOrEmpty(gameLang))
                 language = gameLang;
         }
-        catch { }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Language detection failed: {e.Message}"); }
         Localization.LocalizationManager.Initialize(language);
         Localization.Message.LocalizationResolver = Localization.LocalizationManager.Get;
 

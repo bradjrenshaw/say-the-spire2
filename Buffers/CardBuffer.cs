@@ -68,7 +68,7 @@ public class CardBuffer : Buffer
             else
             {
                 try { costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = model.EnergyCost.GetWithModifiers(CostModifiers.All) }).Resolve()); }
-                catch { costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = model.EnergyCost.Canonical }).Resolve()); }
+                catch (System.Exception e) { Log.Info($"[AccessibilityMod] Energy cost modifier failed: {e.Message}"); costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = model.EnergyCost.Canonical }).Resolve()); }
             }
         }
         if (model.HasStarCostX)
@@ -76,7 +76,7 @@ public class CardBuffer : Buffer
         else if (model.CurrentStarCost >= 0)
         {
             try { costs.Add(Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = model.GetStarCostWithModifiers() }).Resolve()); }
-            catch { costs.Add(Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = model.CurrentStarCost }).Resolve()); }
+            catch (System.Exception e) { Log.Info($"[AccessibilityMod] Star cost modifier failed: {e.Message}"); costs.Add(Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = model.CurrentStarCost }).Resolve()); }
         }
         if (costs.Count > 0)
             buffer.Add(string.Join(", ", costs));
