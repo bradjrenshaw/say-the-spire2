@@ -21,6 +21,8 @@ namespace SayTheSpire2.Patches;
 
 public static class VotingHooks
 {
+    public readonly record struct LocalMapVoteState(bool ShouldAnnounce, string? NodeName, Creature? LocalCreature);
+
     private static readonly FieldInfo? MapPointDictField =
         AccessTools.Field(typeof(NMapScreen), "_mapPointDictionary");
 
@@ -32,7 +34,9 @@ public static class VotingHooks
 
         // Map voting: local player selected a point
         HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "OnMapPointSelectedLocally",
-            typeof(VotingHooks), nameof(MapPointSelectedLocallyPostfix), "Map OnMapPointSelectedLocally");
+            typeof(VotingHooks), nameof(MapPointSelectedLocallyPrefix), "Map OnMapPointSelectedLocally", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "OnMapPointSelectedLocally",
+            typeof(VotingHooks), nameof(MapPointSelectedLocallyPostfix), "Map OnMapPointSelectedLocally Postfix");
 
         // Map voting: travel begins (destination chosen)
         HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "TravelToMapCoord",
@@ -70,8 +74,9 @@ public static class VotingHooks
         }
     }
 
-    public static void MapPointSelectedLocallyPostfix(NMapScreen __instance, NMapPoint point)
+    public static void MapPointSelectedLocallyPrefix(NMapScreen __instance, NMapPoint point, out LocalMapVoteState __state)
     {
+        __state = default;
         try
         {
             if (!MultiplayerHelper.IsMultiplayer()) return;
@@ -81,8 +86,7 @@ public static class VotingHooks
             var me = LocalContext.GetMe(runState);
             if (me == null) return;
 
-            var currentVote = RunManager.Instance.MapSelectionSynchronizer.GetVote(me);
-            if (currentVote?.coord == point.Point.coord)
+            if (__instance.PlayerVoteDictionary.TryGetValue(me, out var currentVote) && currentVote == point.Point.coord)
                 return;
 
             if (WouldCompleteAllMapVotes(runState, me))
@@ -99,11 +103,26 @@ public static class VotingHooks
                 Log.Error($"[AccessibilityMod] Local creature lookup failed: {e.Message}");
             }
 
-            EventDispatcher.Enqueue(new MapVoteEvent("", nodeName, localCreature, MapVoteEvent.VoteKind.LocalVote));
+            __state = new LocalMapVoteState(true, nodeName, localCreature);
         }
         catch (Exception e)
         {
-            Log.Error($"[AccessibilityMod] MapPointSelectedLocally error: {e.Message}");
+            Log.Error($"[AccessibilityMod] MapPointSelectedLocally prefix error: {e.Message}");
+        }
+    }
+
+    public static void MapPointSelectedLocallyPostfix(LocalMapVoteState __state)
+    {
+        try
+        {
+            if (!__state.ShouldAnnounce || string.IsNullOrWhiteSpace(__state.NodeName))
+                return;
+
+            EventDispatcher.Enqueue(new MapVoteEvent("", __state.NodeName, __state.LocalCreature, MapVoteEvent.VoteKind.LocalVote));
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[AccessibilityMod] MapPointSelectedLocally postfix error: {e.Message}");
         }
     }
 
