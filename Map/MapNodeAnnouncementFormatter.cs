@@ -10,13 +10,17 @@ namespace SayTheSpire2.Map;
 public static class MapNodeAnnouncementFormatter
 {
     public static string DescribeNode(MapNode node, MapHandler handler, IReadOnlyList<MapNode>? rowNodes = null,
-        bool includeChoicePrefix = false)
+        bool includeChoicePrefix = false, MapNode? travelOrigin = null)
     {
         rowNodes ??= GetDefaultRowNodes(node);
 
         var type = node.GetDisplayName();
         if (MapMarkerState.IsMarked(node.Point))
             type = $"{GetMarkedText()}, {type}";
+        if (handler.IsFreeTravelOnlyFrom(node, travelOrigin?.Point))
+            type = $"{type}, {GetFreeTravelText()}";
+        else if (travelOrigin == null && handler.IsFreeTravelOnlyFromCurrent(node))
+            type = $"{type}, {GetFreeTravelText()}";
 
         string announcement;
         var state = node.GetStateString();
@@ -219,5 +223,10 @@ public static class MapNodeAnnouncementFormatter
     private static string GetMarkedText()
     {
         return LocalizationManager.GetOrDefault("map_nav", "MARKERS.MARKED", "Marked");
+    }
+
+    private static string GetFreeTravelText()
+    {
+        return LocalizationManager.GetOrDefault("map_nav", "NAV.FREE_TRAVEL", "fly");
     }
 }

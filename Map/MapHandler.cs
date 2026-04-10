@@ -20,14 +20,19 @@ public class MapHandler
 
     private readonly Dictionary<MapPoint, MapNode> _nodeMap = new();
     private readonly List<MapEdge> _edges = new();
+    private bool _allowsFreeTravel;
+    private MapPoint? _currentPoint;
 
     public IReadOnlyDictionary<MapPoint, MapNode> Nodes => _nodeMap;
     public IReadOnlyList<MapEdge> Edges => _edges;
+    public bool AllowsFreeTravel => _allowsFreeTravel;
 
     public bool Build()
     {
         _nodeMap.Clear();
         _edges.Clear();
+        _allowsFreeTravel = false;
+        _currentPoint = null;
 
         var screen = NMapScreen.Instance;
         if (screen == null)
@@ -39,6 +44,8 @@ public class MapHandler
         var map = MapField?.GetValue(screen) as ActMap;
         var runState = RunStateField?.GetValue(screen) as RunState;
         var pointDict = MapPointDictField?.GetValue(screen) as Dictionary<MapCoord, NMapPoint>;
+        _allowsFreeTravel = ShouldAllowFreeTravel(runState);
+        _currentPoint = runState?.CurrentMapPoint;
 
         if (map == null || pointDict == null)
         {
@@ -60,20 +67,17 @@ public class MapHandler
             EnsureNode(map.SecondBossMapPoint, map, runState, pointDict);
         EnsureNode(map.StartingMapPoint, map, runState, pointDict);
 
-        // Build edges from Children relationships
+        // Build the static map graph from the authored child paths first.
         foreach (var (mapPoint, node) in _nodeMap)
         {
             foreach (var child in mapPoint.Children)
             {
                 if (_nodeMap.TryGetValue(child, out var childNode))
-                {
-                    var edge = new MapEdge(node, childNode);
-                    _edges.Add(edge);
-                    node.ForwardEdges.Add(edge);
-                    childNode.BackwardEdges.Add(edge);
-                }
+                    AddEdge(node, childNode);
             }
         }
+
+        AddDynamicTravelEdges(runState);
 
         Log.Info($"[AccessibilityMod] MapHandler: Built graph with {_nodeMap.Count} nodes, {_edges.Count} edges");
         return true;
@@ -104,6 +108,25 @@ public class MapHandler
             .Where(n => n.Row == row)
             .OrderBy(n => n.Col)
             .ToList();
+    }
+
+    public bool IsFreeTravelOnlyFromCurrent(MapNode node)
+    {
+        return IsFreeTravelOnlyFrom(node, _currentPoint);
+    }
+
+    public bool IsFreeTravelOnlyFrom(MapNode node, MapPoint? originPoint)
+    {
+        if (!_allowsFreeTravel)
+            return false;
+
+        if (originPoint == null)
+            return false;
+
+        if (node.Row != originPoint.coord.row + 1)
+            return false;
+
+        return !originPoint.Children.Contains(node.Point);
     }
 
     private void EnsureNode(MapPoint point, ActMap map, RunState? runState,
@@ -149,5 +172,68 @@ public class MapHandler
         if (pointDict.TryGetValue(coord, out var nMapPoint))
             return nMapPoint.State;
         return MapPointState.None;
+    }
+
+    private void AddDynamicTravelEdges(RunState? runState)
+    {
+        var currentPoint = runState?.CurrentMapPoint;
+        if (currentPoint == null)
+            return;
+
+        var currentNode = GetNode(currentPoint);
+        if (currentNode == null)
+            return;
+
+        var nextRow = currentNode.Row + 1;
+        foreach (var candidate in GetNodesAtRow(nextRow))
+        {
+            if (candidate.State != MapPointState.Travelable)
+                continue;
+
+            AddEdge(currentNode, candidate);
+        }
+    }
+
+    private static readonly MethodInfo? ShouldAllowFreeTravelMethod =
+        AccessTools.Method("MegaCrit.Sts2.Core.Hooks.Hook:ShouldAllowFreeTravel");
+
+    private static bool ShouldAllowFreeTravel(RunState? runState)
+    {
+        if (runState == null)
+            return false;
+
+        try
+        {
+            if (ShouldAllowFreeTravelMethod?.Invoke(null, new object[] { runState }) is bool allowed)
+                return allowed;
+
+            var modifiersProperty = runState.GetType().GetProperty("Modifiers");
+            if (modifiersProperty?.GetValue(runState) is System.Collections.IEnumerable modifiers)
+            {
+                foreach (var modifier in modifiers)
+                {
+                    if (modifier?.GetType().GetMethod("ShouldAllowFreeTravel")?.Invoke(modifier, null) is bool modifierAllows
+                        && modifierAllows)
+                        return true;
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] MapHandler: free-travel detection failed: {e.Message}");
+        }
+
+        return false;
+    }
+
+    private void AddEdge(MapNode from, MapNode to)
+    {
+        if (from.ForwardEdges.Any(edge => edge.To == to))
+            return;
+
+        var edge = new MapEdge(from, to);
+        _edges.Add(edge);
+        from.ForwardEdges.Add(edge);
+        to.BackwardEdges.Add(edge);
     }
 }

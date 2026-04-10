@@ -18,6 +18,7 @@
   "NAV.CURRENT_LOCATION": "You are at {type}, {coordinates}",
   "NAV.ON_PATH_TO": "on path to {markers}",
   "NAV.DIVERGES_FROM": "diverges from {markers}",
+  "NAV.FREE_TRAVEL": "fly",
   "NAV.BRANCH": "path {position} of {total}: {type} {coordinates}",
   "NAV.NO_FORWARD": "No path forward",
   "NAV.NO_BACKWARD": "No path backward",
