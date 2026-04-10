@@ -75,12 +75,24 @@ public static class VotingHooks
         try
         {
             if (!MultiplayerHelper.IsMultiplayer()) return;
+            var runState = RunManager.Instance.DebugOnlyGetState();
+            if (runState == null) return;
+
+            var me = LocalContext.GetMe(runState);
+            if (me == null) return;
+
+            var currentVote = RunManager.Instance.MapSelectionSynchronizer.GetVote(me);
+            if (currentVote?.coord == point.Point.coord)
+                return;
+
+            if (WouldCompleteAllMapVotes(runState, me))
+                return;
 
             var nodeName = GetMapPointName(point);
             Creature? localCreature = null;
             try
             {
-                localCreature = LocalContext.GetMe(RunManager.Instance.DebugOnlyGetState())?.Creature;
+                localCreature = me.Creature;
             }
             catch (Exception e)
             {
@@ -220,5 +232,20 @@ public static class VotingHooks
 
         RelicModel relic = relics[index];
         return relic.Title.GetFormattedText();
+    }
+
+    private static bool WouldCompleteAllMapVotes(RunState runState, Player localPlayer)
+    {
+        foreach (var player in runState.Players)
+        {
+            if (player.NetId == localPlayer.NetId)
+                continue;
+
+            var vote = RunManager.Instance.MapSelectionSynchronizer.GetVote(player);
+            if (!vote.HasValue || vote.Value.mapGenerationCount != RunManager.Instance.MapSelectionSynchronizer.MapGenerationCount)
+                return false;
+        }
+
+        return runState.Players.Count > 1;
     }
 }
