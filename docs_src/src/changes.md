@@ -6,8 +6,7 @@
 * Added a show enemy intent setting to the enemy moves combat event. This will announce the intent of the enemy's move at the start of its turn.
 * Added player turn start, player turn end, enemy turn start, enemy turn end, and show rounds settings to the turns event.
 * Added help messages to the hand select screen and the Crystal Sphere divination event.
-
-
+* Added support for the dev console (use ` on any screen to access it by default.)
 
 ## V0.3.0
 * Fixed an issue where localization was only using English and not the current game language.
