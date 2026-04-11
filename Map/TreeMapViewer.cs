@@ -10,6 +10,8 @@ namespace SayTheSpire2.Map;
 public class TreeMapViewer : MapViewer
 {
     private readonly Stack<MapEdge> _pathStack = new();
+    private readonly Stack<MapReachabilityContext> _contextStack = new();
+    private MapReachabilityContext _currentContext;
 
     // Cached row nodes for left/right navigation
     private List<MapNode> _rowNodes = new();
@@ -26,7 +28,9 @@ public class TreeMapViewer : MapViewer
     public override void SetStartNode(MapNode focusedNode)
     {
         _pathStack.Clear();
+        _contextStack.Clear();
         Current = focusedNode;
+        _currentContext = ResolveStartContext(focusedNode);
         RefreshSiblings();
     }
 
@@ -34,23 +38,28 @@ public class TreeMapViewer : MapViewer
     {
         SetStartNode(node);
         return MapNodeAnnouncementFormatter.DescribeNode(node, Handler, _rowNodes,
-            includeChoicePrefix: true, travelOrigin: GetChoiceOrigin());
+            includeChoicePrefix: true, travelOrigin: GetChoiceOrigin(),
+            travelContext: GetChoiceContext(), nodeContext: _currentContext);
     }
 
     public override string? MoveForward()
     {
         if (Current == null) return null;
 
-        var forwardNodes = GetForwardNodes(Current);
+        var forwardNodes = GetForwardNodes(Current, _currentContext);
         if (forwardNodes.Count == 0)
             return LocalizationManager.Get("map_nav", "NAV.NO_FORWARD");
 
         // Always move to leftmost child by column
         var nextNode = forwardNodes[0];
-        var edge = Current.ForwardEdges.FirstOrDefault(e => e.To == nextNode)
-                   ?? new MapEdge(Current, nextNode);
+        if (!MapReachability.TryAdvance(Current, nextNode, Handler, _currentContext, out var nextContext))
+            return LocalizationManager.Get("map_nav", "NAV.NO_FORWARD");
+
+        var edge = Current.ForwardEdges.FirstOrDefault(e => e.To == nextNode) ?? new MapEdge(Current, nextNode);
         _pathStack.Push(edge);
+        _contextStack.Push(_currentContext);
         Current = nextNode;
+        _currentContext = nextContext;
         RefreshSiblings();
 
         if (AutoAdvance)
@@ -69,6 +78,7 @@ public class TreeMapViewer : MapViewer
         if (_pathStack.Count > 0)
         {
             var edge = _pathStack.Pop();
+            _currentContext = _contextStack.Pop();
             Current = edge.From;
             RefreshSiblings();
 
@@ -88,6 +98,7 @@ public class TreeMapViewer : MapViewer
                      ?? parents[0];
 
         Current = parent.From;
+        _currentContext = ResolveStartContext(Current);
         RefreshSiblings();
 
         if (AutoAdvanceBackwards)
@@ -102,8 +113,16 @@ public class TreeMapViewer : MapViewer
         if (_rowNodes.Count <= 1 || _rowIndex >= _rowNodes.Count - 1)
             return null;
 
+        var origin = GetChoiceOrigin();
+        var choiceContext = GetChoiceContext();
         _rowIndex++;
-        Current = _rowNodes[_rowIndex];
+        var nextNode = _rowNodes[_rowIndex];
+        var nextContext = ResolveStartContext(nextNode);
+        if (origin != null && !MapReachability.TryAdvance(origin, nextNode, Handler, choiceContext, out nextContext))
+            return null;
+
+        Current = nextNode;
+        _currentContext = nextContext;
         return AnnounceCurrentNode();
     }
 
@@ -113,8 +132,16 @@ public class TreeMapViewer : MapViewer
         if (_rowNodes.Count <= 1 || _rowIndex <= 0)
             return null;
 
+        var origin = GetChoiceOrigin();
+        var choiceContext = GetChoiceContext();
         _rowIndex--;
-        Current = _rowNodes[_rowIndex];
+        var nextNode = _rowNodes[_rowIndex];
+        var nextContext = ResolveStartContext(nextNode);
+        if (origin != null && !MapReachability.TryAdvance(origin, nextNode, Handler, choiceContext, out nextContext))
+            return null;
+
+        Current = nextNode;
+        _currentContext = nextContext;
         return AnnounceCurrentNode();
     }
 
@@ -140,7 +167,7 @@ public class TreeMapViewer : MapViewer
 
         if (parent != null)
         {
-            _rowNodes = GetForwardNodes(parent);
+            _rowNodes = GetForwardNodes(parent, GetChoiceContext());
         }
         else
         {
@@ -155,7 +182,7 @@ public class TreeMapViewer : MapViewer
     public string AnnounceCurrentNode()
     {
         return MapNodeAnnouncementFormatter.DescribeNode(Current!, Handler, _rowNodes,
-            travelOrigin: GetChoiceOrigin());
+            travelOrigin: GetChoiceOrigin(), travelContext: GetChoiceContext(), nodeContext: _currentContext);
     }
 
     private string AnnounceBackwardNode()
@@ -182,7 +209,7 @@ public class TreeMapViewer : MapViewer
                 sb.Append(GetChoiceText());
                 sb.Append(", ");
                 sb.Append(MapNodeAnnouncementFormatter.DescribeNode(Current!, Handler, _rowNodes,
-                    travelOrigin: GetChoiceOrigin()));
+                    travelOrigin: GetChoiceOrigin(), travelContext: GetChoiceContext(), nodeContext: _currentContext));
                 break;
             }
 
@@ -191,15 +218,19 @@ public class TreeMapViewer : MapViewer
             sb.Append(Current!.GetDisplayName());
 
             // Try to advance
-            var forwardNodes = GetForwardNodes(Current!);
+            var forwardNodes = GetForwardNodes(Current!, _currentContext);
             if (forwardNodes.Count == 0)
                 break;
 
             var nextNode = forwardNodes[0];
-            var edge = Current.ForwardEdges.FirstOrDefault(e => e.To == nextNode)
-                       ?? new MapEdge(Current, nextNode);
+            if (!MapReachability.TryAdvance(Current, nextNode, Handler, _currentContext, out var nextContext))
+                break;
+
+            var edge = Current.ForwardEdges.FirstOrDefault(e => e.To == nextNode) ?? new MapEdge(Current, nextNode);
             _pathStack.Push(edge);
+            _contextStack.Push(_currentContext);
             Current = nextNode;
+            _currentContext = nextContext;
             RefreshSiblings();
         }
 
@@ -223,11 +254,14 @@ public class TreeMapViewer : MapViewer
             if (_pathStack.Count > 0)
             {
                 var edge = _pathStack.Pop();
+                var previousContext = _contextStack.Pop();
                 if (edge.From != Current!.BackwardEdges.FirstOrDefault()?.From)
                 {
                     _pathStack.Push(edge);
+                    _contextStack.Push(previousContext);
                     break;
                 }
+                _currentContext = previousContext;
                 Current = edge.From;
                 visited.Add(Current);
             }
@@ -241,6 +275,7 @@ public class TreeMapViewer : MapViewer
                 var parent = parents.FirstOrDefault(e => e.From.State == MapPointState.Traveled)
                              ?? parents[0];
                 Current = parent.From;
+                _currentContext = ResolveStartContext(Current);
                 visited.Add(Current);
             }
         }
@@ -265,7 +300,7 @@ public class TreeMapViewer : MapViewer
             sb.Append(", ");
         }
         sb.Append(MapNodeAnnouncementFormatter.DescribeNode(visited[^1], Handler, _rowNodes,
-            travelOrigin: GetChoiceOrigin()));
+            travelOrigin: GetChoiceOrigin(), travelContext: GetChoiceContext(), nodeContext: _currentContext));
 
         return sb.ToString();
     }
@@ -275,19 +310,9 @@ public class TreeMapViewer : MapViewer
         return LocalizationManager.Get("map_nav", "NAV.CHOICE") ?? "choice";
     }
 
-    private List<MapNode> GetForwardNodes(MapNode node)
+    private List<MapNode> GetForwardNodes(MapNode node, MapReachabilityContext context)
     {
-        if (Handler.AllowsFreeTravel)
-        {
-            var nextRow = Handler.GetNodesAtRow(node.Row + 1);
-            if (nextRow.Count > 0)
-                return nextRow;
-        }
-
-        return node.ForwardEdges
-            .Select(edge => edge.To)
-            .OrderBy(child => child.Col)
-            .ToList();
+        return MapReachability.GetForwardNodes(node, Handler, context);
     }
 
     private MapNode? GetChoiceOrigin()
@@ -302,5 +327,21 @@ public class TreeMapViewer : MapViewer
             .FirstOrDefault(e => e.From.State == MapPointState.Traveled)
             ?? Current.BackwardEdges.FirstOrDefault();
         return parentEdge?.From;
+    }
+
+    private MapReachabilityContext GetChoiceContext()
+    {
+        return _contextStack.Count > 0 ? _contextStack.Peek() : Handler.ReachabilityContext;
+    }
+
+    private MapReachabilityContext ResolveStartContext(MapNode node)
+    {
+        var start = Handler.CurrentNode;
+        if (start == null)
+            return Handler.ReachabilityContext;
+
+        return MapReachability.TryGetBestContextAtNode(start, Handler, Handler.ReachabilityContext, node, out var context)
+            ? context
+            : Handler.ReachabilityContext;
     }
 }

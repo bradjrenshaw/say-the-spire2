@@ -10,16 +10,18 @@ namespace SayTheSpire2.Map;
 public static class MapNodeAnnouncementFormatter
 {
     public static string DescribeNode(MapNode node, MapHandler handler, IReadOnlyList<MapNode>? rowNodes = null,
-        bool includeChoicePrefix = false, MapNode? travelOrigin = null)
+        bool includeChoicePrefix = false, MapNode? travelOrigin = null,
+        MapReachabilityContext? travelContext = null, MapReachabilityContext? nodeContext = null)
     {
         rowNodes ??= GetDefaultRowNodes(node);
+        var effectiveOrigin = travelOrigin ?? GetDefaultTravelOrigin(node);
+        var effectiveTravelContext = travelContext ?? ResolveContextAtNode(handler, effectiveOrigin);
+        var effectiveNodeContext = nodeContext ?? ResolveContextAtNode(handler, node);
 
         var type = node.GetDisplayName();
         if (MapMarkerState.IsMarked(node.Point))
             type = $"{GetMarkedText()}, {type}";
-        if (handler.IsFreeTravelOnlyFrom(node, travelOrigin?.Point))
-            type = $"{type}, {GetFreeTravelText()}";
-        else if (travelOrigin == null && handler.IsFreeTravelOnlyFromCurrent(node))
+        if (effectiveOrigin != null && MapReachability.IsFreeTravelOnly(effectiveOrigin, node, handler, effectiveTravelContext))
             type = $"{type}, {GetFreeTravelText()}";
 
         string announcement;
@@ -42,7 +44,7 @@ public static class MapNodeAnnouncementFormatter
             }).Resolve();
         }
 
-        var guidance = BuildMarkerGuidance(node, handler, rowNodes);
+        var guidance = BuildMarkerGuidance(node, handler, rowNodes, effectiveOrigin, effectiveTravelContext, effectiveNodeContext);
         if (guidance.Count > 0)
             announcement = $"{announcement}, {string.Join(", ", guidance)}";
 
@@ -72,24 +74,28 @@ public static class MapNodeAnnouncementFormatter
             .ToList();
     }
 
-    private static List<string> BuildMarkerGuidance(MapNode node, MapHandler handler, IReadOnlyList<MapNode> rowNodes)
+    private static List<string> BuildMarkerGuidance(MapNode node, MapHandler handler, IReadOnlyList<MapNode> rowNodes,
+        MapNode? travelOrigin, MapReachabilityContext travelContext, MapReachabilityContext nodeContext)
     {
         var markedCoords = new HashSet<MegaCrit.Sts2.Core.Map.MapCoord>(MapMarkerState.GetMarkedCoords());
         if (markedCoords.Count == 0)
             return new List<string>();
 
-        var currentReachable = GetReachableMarkedCoords(node, markedCoords);
+        var currentReachable = MapReachability.GetReachableMarkedCoords(node, handler, nodeContext, markedCoords);
         currentReachable.Remove(node.Point.coord);
 
         var alternativeReachable = new HashSet<MegaCrit.Sts2.Core.Map.MapCoord>();
-        if (rowNodes.Count > 1)
+        if (rowNodes.Count > 1 && travelOrigin != null)
         {
             foreach (var sibling in rowNodes)
             {
                 if (sibling.Point.coord.Equals(node.Point.coord))
                     continue;
 
-                alternativeReachable.UnionWith(GetReachableMarkedCoords(sibling, markedCoords));
+                if (!MapReachability.TryAdvance(travelOrigin, sibling, handler, travelContext, out var siblingContext))
+                    continue;
+
+                alternativeReachable.UnionWith(MapReachability.GetReachableMarkedCoords(sibling, handler, siblingContext, markedCoords));
             }
         }
 
@@ -168,28 +174,26 @@ public static class MapNodeAnnouncementFormatter
             : null;
     }
 
-    private static HashSet<MegaCrit.Sts2.Core.Map.MapCoord> GetReachableMarkedCoords(MapNode start,
-        HashSet<MegaCrit.Sts2.Core.Map.MapCoord> markedCoords)
+    private static MapNode? GetDefaultTravelOrigin(MapNode node)
     {
-        var reachable = new HashSet<MegaCrit.Sts2.Core.Map.MapCoord>();
-        var visited = new HashSet<MegaCrit.Sts2.Core.Map.MapCoord>();
-        var stack = new Stack<MapNode>();
-        stack.Push(start);
+        return node.BackwardEdges
+            .FirstOrDefault(edge => edge.From.State == MegaCrit.Sts2.Core.Map.MapPointState.Traveled)
+            ?.From
+            ?? node.BackwardEdges.FirstOrDefault()?.From;
+    }
 
-        while (stack.Count > 0)
-        {
-            var node = stack.Pop();
-            if (!visited.Add(node.Point.coord))
-                continue;
+    private static MapReachabilityContext ResolveContextAtNode(MapHandler handler, MapNode? node)
+    {
+        if (node == null)
+            return handler.ReachabilityContext;
 
-            if (markedCoords.Contains(node.Point.coord))
-                reachable.Add(node.Point.coord);
+        var start = handler.CurrentNode;
+        if (start == null)
+            return handler.ReachabilityContext;
 
-            foreach (var child in node.ForwardEdges.Select(edge => edge.To))
-                stack.Push(child);
-        }
-
-        return reachable;
+        return MapReachability.TryGetBestContextAtNode(start, handler, handler.ReachabilityContext, node, out var context)
+            ? context
+            : handler.ReachabilityContext;
     }
 
     private static List<MapNode> SortByVisualOrder(IEnumerable<MapNode> nodes)

@@ -156,22 +156,8 @@ public sealed class PointOfInterestBuffer
 
     private List<MapNode> BuildReachableNodes(MapNode currentNode)
     {
-        var visited = new HashSet<MapNode>();
-        var stack = new Stack<MapNode>(currentNode.ForwardEdges
-            .Select(edge => edge.To)
-            .Reverse());
-
-        while (stack.Count > 0)
-        {
-            var node = stack.Pop();
-            if (!visited.Add(node))
-                continue;
-
-            foreach (var child in node.ForwardEdges.Select(edge => edge.To).Reverse())
-                stack.Push(child);
-        }
-
-        return SortByVisualOrder(visited.Where(MatchesEnabledCategories));
+        var reachable = MapReachability.GetReachableNodes(currentNode, _handler, _handler.ReachabilityContext);
+        return SortByVisualOrder(reachable.Where(MatchesEnabledCategories));
     }
 
     private List<MapNode> BuildAllNodes(MapNode currentNode)
