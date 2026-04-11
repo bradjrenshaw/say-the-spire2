@@ -33,6 +33,11 @@
   "KEYBINDINGS.CATEGORIES.MOD": "Mod",
   "KEYBINDINGS.CATEGORIES.NAVIGATION": "Navigation",
   "KEYBINDINGS.CATEGORIES.RUN_INFORMATION": "Run Information",
+  "EVENT.MAP_VOTE_LOCAL": "Voted for {node}",
+  "EVENT.MAP_VOTE_SKIP": "{player} skipped",
+  "EVENT.MAP_VOTE_SKIP_LOCAL": "Skipped",
+  "EVENT.MAP_TRAVEL": "Traveling to {node}",
+  "EVENT.VOTED_FOR_BY": "voted for by {players}",
   "BUFFERS.UI": "界面",
   "BUFFERS.CHARACTER": "角色",
   "BUFFERS.CARD": "卡牌",
@@ -65,5 +70,8 @@
   "CARD_LIBRARY.ROWS.RARITY": "Rarity",
   "CARD_LIBRARY.ROWS.COST": "Cost",
   "CARD_LIBRARY.ROWS.DISPLAY": "Display",
-  "CARD.UPGRADE_UNAVAILABLE": "无可用升级"
+  "CARD.UPGRADE_UNAVAILABLE": "无可用升级",
+  "DAILY_RUN_LEADERBOARD.FLOOR": "Floor {floor}",
+  "DAILY_RUN_LEADERBOARD.BADGES": "Badges {badges}",
+  "DAILY_RUN_LEADERBOARD.TIME": "Time {time}"
 }

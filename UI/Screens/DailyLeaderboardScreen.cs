@@ -143,12 +143,15 @@ public class DailyLeaderboardScreen : Screen
         var dayLabel = _adapter.GetDayLabel();
         if (!string.IsNullOrWhiteSpace(dayLabel))
         {
-            var dayElement = new ActionElement(() => dayLabel);
+            var dayElement = new ActionElement(
+                () => dayLabel,
+                status: () => _adapter.GetEntries().Count == 0 ? _adapter.GetSummary() : null);
             _rows.Add(dayElement);
             _focusables.Add(dayElement);
         }
 
-        foreach (var entry in _adapter.GetEntries())
+        var entries = _adapter.GetEntries();
+        foreach (var entry in entries)
         {
             var element = new ActionElement(
                 () => entry.Label,
@@ -157,12 +160,15 @@ public class DailyLeaderboardScreen : Screen
             _focusables.Add(element);
         }
 
-        if (_focusables.Count == 0)
+        if (entries.Count == 0)
         {
             var fallback = new ActionElement(
                 () => GetFallbackLabel(),
                 status: () => _adapter.GetSummary());
-            _extras.Add(fallback);
+            if (_focusables.Count == 0)
+                _rows.Add(fallback);
+            else
+                _extras.Add(fallback);
             _focusables.Add(fallback);
         }
 
