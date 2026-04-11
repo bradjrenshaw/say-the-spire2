@@ -7,6 +7,8 @@
 * Added player turn start, player turn end, enemy turn start, enemy turn end, and show rounds settings to the turns event.
 * Added help messages to the hand select screen and the Crystal Sphere divination event.
 * Added support for the dev console (use ` on any screen to access it by default.)
+* Added support for relic vote announcements as well as announcements of map node votes when focusing a map node (thanks @amerikrainian)
+* Added badges to leaderboard screen (thanks @amerikrainian)
 
 ## V0.3.0
 * Fixed an issue where localization was only using English and not the current game language.
