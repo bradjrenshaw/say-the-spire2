@@ -48,6 +48,8 @@ public static class EventHooks
         HarmonyHelper.PatchIfFound(harmony, typeof(CardCmd), "Upgrade",
             typeof(EventHooks), nameof(CardUpgradeCombatPostfix), "CardCmd.Upgrade (combat)",
             parameterTypes: new[] { typeof(IEnumerable<CardModel>), typeof(CardPreviewStyle) });
+        HarmonyHelper.PatchIfFound(harmony, typeof(CardCmd), "Downgrade",
+            typeof(EventHooks), nameof(CardDowngradePostfix), "CardCmd.Downgrade");
         HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardUpgradeVfx), "Create",
             typeof(EventHooks), nameof(CardUpgradeVfxPostfix), "NCardUpgradeVfx.Create");
         HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardSmithVfx), "Create",
@@ -96,6 +98,20 @@ public static class EventHooks
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Card upgrade combat hook error: {e.Message}");
+        }
+    }
+
+    public static void CardDowngradePostfix(CardModel card)
+    {
+        try
+        {
+            var name = card.Title;
+            if (!string.IsNullOrEmpty(name))
+                EventDispatcher.Enqueue(new CardUpgradeEvent(name, isDowngrade: true));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Card downgrade hook error: {e.Message}");
         }
     }
 

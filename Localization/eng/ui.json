@@ -255,6 +255,7 @@
   "EVENT.CARD_OBTAINED": "{card} obtained",
   "EVENT.CARD_STOLEN": "{card} stolen by {thief}",
   "EVENT.CARD_UPGRADE": "{card} upgraded",
+  "EVENT.CARD_DOWNGRADE": "{card} downgraded",
   "EVENT.CARD_PLAYED": "{player} played {card}",
   "EVENT.DEATH": "{creature} died",
   "EVENT.DEATH_ENEMY_REMAINING": "{creature} died, {remaining} enemies remaining",

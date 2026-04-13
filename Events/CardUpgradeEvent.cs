@@ -8,12 +8,16 @@ namespace SayTheSpire2.Events;
 public class CardUpgradeEvent : GameEvent
 {
     private readonly string _cardName;
+    private readonly bool _isDowngrade;
 
-    public CardUpgradeEvent(string cardName, Creature? source = null)
+    public CardUpgradeEvent(string cardName, Creature? source = null, bool isDowngrade = false)
     {
         Source = source;
         _cardName = cardName;
+        _isDowngrade = isDowngrade;
     }
 
-    public override Message? GetMessage() => Message.Localized("ui", "EVENT.CARD_UPGRADE", new { card = _cardName });
+    public override Message? GetMessage() => Message.Localized("ui",
+        _isDowngrade ? "EVENT.CARD_DOWNGRADE" : "EVENT.CARD_UPGRADE",
+        new { card = _cardName });
 }
