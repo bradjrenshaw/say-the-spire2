@@ -100,13 +100,14 @@ public abstract class Screen
 
     /// <summary>
     /// Returns true if this screen has claimed the action.
-    /// When a claim is focusedOnly, it only applies if this screen has no active child.
+    /// When a claim is focusedOnly, it only applies if this screen is the
+    /// current innermost focused screen (top of stack, deepest active child).
     /// </summary>
     public bool HasClaimed(string actionKey)
     {
         if (_claimAll) return true;
         if (!_claimedActions.TryGetValue(actionKey, out var info)) return false;
-        if (info.FocusedOnly && ActiveChild != null) return false;
+        if (info.FocusedOnly && ScreenManager.CurrentScreen != this) return false;
         return true;
     }
 
