@@ -613,6 +613,7 @@ public class CombatScreen : Screen
             combatRoom.CreatureNodes
                 .Where(c => c != null && (!_isTargeting
                     || (c.Hitbox != null && c.Hitbox.FocusMode != Control.FocusModeEnum.None)))
+                .OrderBy(c => c.GlobalPosition.X)
                 .OfType<Control>());
         SyncContainer(_handContainer, hand?.ActiveHolders?.OfType<Control>());
     }
