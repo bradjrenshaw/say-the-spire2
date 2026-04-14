@@ -89,11 +89,7 @@ public static class EventHooks
             if (!MegaCrit.Sts2.Core.Combat.CombatManager.Instance.IsInProgress) return;
 
             foreach (var card in cards)
-            {
-                var name = card.Title;
-                if (!string.IsNullOrEmpty(name))
-                    EventDispatcher.Enqueue(new CardUpgradeEvent(name));
-            }
+                EnqueueCardUpgrade(card, isDowngrade: false);
         }
         catch (System.Exception e)
         {
@@ -105,9 +101,7 @@ public static class EventHooks
     {
         try
         {
-            var name = card.Title;
-            if (!string.IsNullOrEmpty(name))
-                EventDispatcher.Enqueue(new CardUpgradeEvent(name, isDowngrade: true));
+            EnqueueCardUpgrade(card, isDowngrade: true);
         }
         catch (System.Exception e)
         {
@@ -119,9 +113,7 @@ public static class EventHooks
     {
         try
         {
-            var name = card.Title;
-            if (!string.IsNullOrEmpty(name))
-                EventDispatcher.Enqueue(new CardUpgradeEvent(name));
+            EnqueueCardUpgrade(card, isDowngrade: false);
         }
         catch (System.Exception e)
         {
@@ -134,16 +126,36 @@ public static class EventHooks
         try
         {
             foreach (var card in cards)
-            {
-                var name = card.Title;
-                if (!string.IsNullOrEmpty(name))
-                    EventDispatcher.Enqueue(new CardUpgradeEvent(name));
-            }
+                EnqueueCardUpgrade(card, isDowngrade: false);
         }
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Card smith VFX hook error: {e.Message}");
         }
+    }
+
+    private static void EnqueueCardUpgrade(CardModel card, bool isDowngrade)
+    {
+        var name = card.Title;
+        if (string.IsNullOrEmpty(name)) return;
+
+        string? playerName = null;
+        MegaCrit.Sts2.Core.Entities.Creatures.Creature? source = null;
+        try
+        {
+            var owner = card.Owner;
+            if (owner != null)
+            {
+                source = owner.Creature;
+                playerName = Multiplayer.MultiplayerHelper.GetPlayerDisplayName(owner);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Log.Info($"[AccessibilityMod] Card owner lookup failed: {e.Message}");
+        }
+
+        EventDispatcher.Enqueue(new CardUpgradeEvent(name, source: source, isDowngrade: isDowngrade, playerName: playerName));
     }
 
     public static void CardStolenPostfix(SwipePower __instance, CardModel card)
