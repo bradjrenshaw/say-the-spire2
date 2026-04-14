@@ -16,6 +16,9 @@ public static class MapReachability
     private static readonly System.Type? WingedBootsType =
         AccessTools.TypeByName("MegaCrit.Sts2.Core.Models.Relics.WingedBoots");
 
+    private static readonly System.Reflection.MethodInfo? ShouldAllowFreeTravelMethod =
+        AccessTools.Method(typeof(AbstractModel), "ShouldAllowFreeTravel");
+
     public static MapReachabilityContext CreateContext(RunState? runState)
     {
         if (runState == null)
@@ -26,9 +29,12 @@ public static class MapReachability
 
         try
         {
+            if (ShouldAllowFreeTravelMethod == null)
+                return default;
+
             foreach (AbstractModel listener in runState.IterateHookListeners(null))
             {
-                if (!listener.ShouldAllowFreeTravel())
+                if (ShouldAllowFreeTravelMethod.Invoke(listener, null) is not true)
                     continue;
 
                 if (WingedBootsType != null && WingedBootsType.IsInstanceOfType(listener))
