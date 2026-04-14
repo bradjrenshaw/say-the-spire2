@@ -6,11 +6,13 @@
 * Added a show enemy intent setting to the enemy moves combat event. This will announce the intent of the enemy's move at the start of its turn.
 * Added player turn start, player turn end, enemy turn start, enemy turn end, and show rounds settings to the turns event.
 * Added help messages to the hand select screen and the Crystal Sphere divination event.
+* Added support for map nodes that require flight thanks to @amerikrainian (for example given by the Winged Boots relic in the beta branch.)
 * Added support for the dev console (use ` on any screen to access it by default.)
 * Added support for relic vote announcements as well as announcements of map node votes when focusing a map node (thanks @amerikrainian)
 * Added badges to leaderboard screen (thanks @amerikrainian)
 * Fixed a bug where the map viewer controls would take priority on screens that opened while the map screen was also open, preventing access to buffers.
-* Fixed a bug where the position information for creatures in combat would often be incorrect.
+* Fixed a bug where the position information for creatures in combat (mostly for other players and temporary summons) would often be incorrect.
+* Fixed a bug where downgraded cards were not being properly read out.
 
 ## V0.3.0
 * Fixed an issue where localization was only using English and not the current game language.
