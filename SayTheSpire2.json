@@ -3,7 +3,7 @@
   "name": "Say the Spire 2",
   "author": "Chaosbringer216/bradjrenshaw",
   "description": "A mod providing accessibility to the blind.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "has_pck": true,
   "has_dll": true,
   "affects_gameplay": false,
