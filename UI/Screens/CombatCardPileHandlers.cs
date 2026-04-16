@@ -66,14 +66,14 @@ internal class CombatCardPileHandlers
         {
             _isShuffling = false;
             _shuffleTask = null;
-            EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.DeckShuffled));
+            EventDispatcher.Enqueue(new DeckShuffledEvent());
         }, TaskContinuationOptions.ExecuteSynchronously);
     }
 
     private void OnHandCardAdded(CardModel card)
     {
         Log.Info($"[EventDebug] CardPile.HandAdded: {card.Title} handler={GetHashCode()}");
-        EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.Drew, card.Title));
+        EventDispatcher.Enqueue(new CardDrawnEvent(card.Title));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ internal class CombatCardPileHandlers
             {
                 _endOfTurnDiscardAnnounced = true;
                 Log.Info($"[EventDebug] CardPile.HandDiscarded handler={GetHashCode()}");
-                EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.HandDiscarded));
+                EventDispatcher.Enqueue(new HandDiscardedEvent());
             }
             _activelyDiscarded.Remove(card);
             return;
@@ -108,21 +108,28 @@ internal class CombatCardPileHandlers
         }
 
         bool wasActiveDiscard = _activelyDiscarded.Remove(card);
-        var type = wasActiveDiscard ? CardPileEventType.Discarded : CardPileEventType.AddedToDiscard;
-        Log.Info($"[EventDebug] CardPile.{type}: {card.Title} handler={GetHashCode()}");
-        EventDispatcher.Enqueue(new CardPileEvent(type, card.Title));
+        if (wasActiveDiscard)
+        {
+            Log.Info($"[EventDebug] CardPile.Discarded: {card.Title} handler={GetHashCode()}");
+            EventDispatcher.Enqueue(new CardDiscardedEvent(card.Title));
+        }
+        else
+        {
+            Log.Info($"[EventDebug] CardPile.AddedToDiscard: {card.Title} handler={GetHashCode()}");
+            EventDispatcher.Enqueue(new CardAddedToDiscardEvent(card.Title));
+        }
     }
 
     private void OnExhaustCardAdded(CardModel card)
     {
         Log.Info($"[EventDebug] CardPile.Exhausted: {card.Title} handler={GetHashCode()}");
-        EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.Exhausted, card.Title));
+        EventDispatcher.Enqueue(new CardExhaustedEvent(card.Title));
     }
 
     private void OnDrawCardAdded(CardModel card)
     {
         if (_isShuffling) return;
         Log.Info($"[EventDebug] CardPile.AddedToDraw: {card.Title} handler={GetHashCode()}");
-        EventDispatcher.Enqueue(new CardPileEvent(CardPileEventType.AddedToDraw, card.Title));
+        EventDispatcher.Enqueue(new CardAddedToDrawEvent(card.Title));
     }
 }
