@@ -4,16 +4,53 @@ using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.UI;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(HpAnnouncement),
+    typeof(BlockAnnouncement),
+    typeof(MonsterIntentsAnnouncement),
+    typeof(HoveredModelAnnouncement)
+)]
 [ModSettings("ui.creature", "UI/Creature")]
 public class ProxyCreature : ProxyElement
 {
     public static void RegisterSettings(CategorySetting category)
     {
         category.Add(new BoolSetting("intent_first", "Announce Intent Before HP", false));
+    }
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var view = GetView();
+        if (view == null)
+        {
+            if (Control != null)
+                yield return new LabelAnnouncement(CleanNodeName(Control.Name));
+            yield break;
+        }
+
+        yield return new LabelAnnouncement(view.Name);
+        yield return new TypeAnnouncement("creature");
+        yield return new HpAnnouncement(view.CurrentHp, view.MaxHp);
+        if (view.Block > 0)
+            yield return new BlockAnnouncement(view.Block);
+
+        if (view.IsMonster)
+        {
+            yield return new MonsterIntentsAnnouncement(view.MonsterIntents);
+        }
+        else if (view.IsPlayer && view.PlayerHoveredModel != null)
+        {
+            var summary = CreatureIntentFormatter.HoveredModelSummary(view.PlayerHoveredModel);
+            if (!string.IsNullOrEmpty(summary))
+                yield return new HoveredModelAnnouncement(summary);
+        }
     }
 
     public ProxyCreature(Control control) : base(control) { }

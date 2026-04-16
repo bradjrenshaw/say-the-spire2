@@ -64,7 +64,7 @@ public static class CreatureIntentFormatter
             : summary;
     }
 
-    private static string? HoveredModelSummary(AbstractModel model)
+    public static string? HoveredModelSummary(AbstractModel model)
     {
         return model switch
         {
