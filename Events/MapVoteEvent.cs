@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("map_vote", "Map Vote", hasSourceFilter: true, allowEnemies: false)]
+[EventSettings("map_vote", "Map Vote", category: "Multiplayer", hasSourceFilter: true, allowEnemies: false)]
 public class MapVoteEvent : GameEvent
 {
     public enum VoteKind

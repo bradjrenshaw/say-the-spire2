@@ -9,7 +9,7 @@ namespace SayTheSpire2.Events;
 
 public enum PowerEventType { Applied, Increased, Decreased, Removed }
 
-[EventSettings("power", "Powers", hasSourceFilter: true)]
+[EventSettings("power", "Powers", category: "Combat", hasSourceFilter: true)]
 public class PowerEvent : GameEvent
 {
     private readonly string _creatureName;

@@ -22,7 +22,10 @@ public class EventSettingsAttribute : ModSettingsAttribute
     public bool DefaultOtherPlayers { get; }
     public bool DefaultEnemies { get; }
 
-    public EventSettingsAttribute(string key, string label, bool defaultAnnounce = true, bool defaultBuffer = true,
+    public string? Category { get; }
+
+    public EventSettingsAttribute(string key, string label, string? category = null,
+        bool defaultAnnounce = true, bool defaultBuffer = true,
         bool hasSourceFilter = false, bool allowCurrentPlayer = true, bool allowOtherPlayers = true, bool allowEnemies = true,
         bool defaultCurrentPlayer = true, bool defaultOtherPlayers = true, bool defaultEnemies = true)
         : base($"events.{key}", $"Events/{label}")
@@ -37,5 +40,6 @@ public class EventSettingsAttribute : ModSettingsAttribute
         DefaultCurrentPlayer = defaultCurrentPlayer;
         DefaultOtherPlayers = defaultOtherPlayers;
         DefaultEnemies = defaultEnemies;
+        Category = category;
     }
 }

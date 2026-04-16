@@ -21,6 +21,16 @@ public class CategorySetting : Setting
         _children.Add(child);
     }
 
+    public bool Remove(Setting child)
+    {
+        if (_children.Remove(child))
+        {
+            child.Parent = null;
+            return true;
+        }
+        return false;
+    }
+
     public T? Get<T>(string key) where T : Setting
     {
         return _children.OfType<T>().FirstOrDefault(c => c.Key == key);

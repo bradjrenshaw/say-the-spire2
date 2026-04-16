@@ -5,6 +5,7 @@ using SayTheSpire2.Settings;
 namespace SayTheSpire2.Events;
 
 [EventSettings("card_played", "Card Played",
+    category: "Cards",
     hasSourceFilter: true, allowEnemies: false,
     defaultCurrentPlayer: false)]
 public class CardPlayedEvent : GameEvent

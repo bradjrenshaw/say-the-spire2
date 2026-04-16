@@ -3,7 +3,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("dialogue", "Dialogue", defaultBuffer: false)]
+[EventSettings("dialogue", "Dialogue", category: "Other", defaultBuffer: false)]
 public class DialogueEvent : GameEvent
 {
     private readonly string? _speaker;

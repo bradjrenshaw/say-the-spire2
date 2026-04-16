@@ -5,6 +5,7 @@ using SayTheSpire2.Settings;
 namespace SayTheSpire2.Events;
 
 [EventSettings("end_turn", "End Turn",
+    category: "Combat",
     hasSourceFilter: true, allowEnemies: false,
     defaultCurrentPlayer: false)]
 public class EndTurnEvent : GameEvent

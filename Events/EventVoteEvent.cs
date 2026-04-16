@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("event_vote", "Event Vote", hasSourceFilter: true, allowEnemies: false)]
+[EventSettings("event_vote", "Event Vote", category: "Multiplayer", hasSourceFilter: true, allowEnemies: false)]
 public class EventVoteEvent : GameEvent
 {
     private readonly string _playerName;

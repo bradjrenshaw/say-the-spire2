@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("relic_obtained", "Relic Obtained", hasSourceFilter: true, allowEnemies: false)]
+[EventSettings("relic_obtained", "Relic Obtained", category: "Resources", hasSourceFilter: true, allowEnemies: false)]
 public class RelicObtainedEvent : GameEvent
 {
     private readonly string _relicName;

@@ -5,7 +5,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("hp", "HP Changes", hasSourceFilter: true)]
+[EventSettings("hp", "HP Changes", category: "Combat", hasSourceFilter: true)]
 public class HpEvent : GameEvent
 {
     private readonly string _creatureName;

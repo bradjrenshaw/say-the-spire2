@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("turn", "Turns")]
+[EventSettings("turn", "Turns", category: "Combat")]
 public class TurnEvent : GameEvent
 {
     private const string BasePath = "events.turn";

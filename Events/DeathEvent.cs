@@ -5,7 +5,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("death", "Death", hasSourceFilter: true)]
+[EventSettings("death", "Death", category: "Combat", hasSourceFilter: true)]
 public class DeathEvent : GameEvent
 {
     private readonly string _creatureName;

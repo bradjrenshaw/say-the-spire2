@@ -3,7 +3,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("card_drawn", "Card Drawn")]
+[EventSettings("card_drawn", "Card Drawn", category: "Cards")]
 public class CardDrawnEvent : GameEvent
 {
     private readonly string _cardName;

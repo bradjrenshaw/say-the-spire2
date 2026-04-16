@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("room_entered", "Room Entered")]
+[EventSettings("room_entered", "Room Entered", category: "Other")]
 public class RoomEnteredEvent : GameEvent
 {
     private readonly RoomType _roomType;

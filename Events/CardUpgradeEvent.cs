@@ -5,7 +5,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("card_upgrade", "Card Upgrade", hasSourceFilter: true, allowEnemies: false)]
+[EventSettings("card_upgrade", "Card Upgrade", category: "Cards", hasSourceFilter: true, allowEnemies: false)]
 public class CardUpgradeEvent : GameEvent
 {
     private readonly string _cardName;

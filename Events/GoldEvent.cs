@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("gold", "Gold", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
+[EventSettings("gold", "Gold", category: "Resources", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
 public class GoldEvent : GameEvent
 {
     private readonly int _oldGold;

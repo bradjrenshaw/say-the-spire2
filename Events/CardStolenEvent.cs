@@ -4,7 +4,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("card_stolen", "Card Stolen", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
+[EventSettings("card_stolen", "Card Stolen", category: "Cards", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
 public class CardStolenEvent : GameEvent
 {
     private readonly string _cardName;

@@ -5,7 +5,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("block", "Block", hasSourceFilter: true)]
+[EventSettings("block", "Block", category: "Combat", hasSourceFilter: true)]
 public class BlockEvent : GameEvent
 {
     private readonly string _creatureName;

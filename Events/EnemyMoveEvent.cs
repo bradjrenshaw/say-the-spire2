@@ -5,7 +5,7 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-[EventSettings("enemy_move", "Enemy Moves", hasSourceFilter: true, allowCurrentPlayer: false, allowOtherPlayers: false)]
+[EventSettings("enemy_move", "Enemy Moves", category: "Combat", hasSourceFilter: true, allowCurrentPlayer: false, allowOtherPlayers: false)]
 public class EnemyMoveEvent : GameEvent
 {
     private readonly string _creatureName;

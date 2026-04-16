@@ -10,7 +10,7 @@ public enum OrbEventType
     Evoked,
 }
 
-[EventSettings("orb", "Orbs", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
+[EventSettings("orb", "Orbs", category: "Resources", hasSourceFilter: true, allowOtherPlayers: false, allowEnemies: false)]
 public class OrbEvent : GameEvent
 {
     private readonly OrbEventType _type;

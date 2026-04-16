@@ -5,6 +5,7 @@ using SayTheSpire2.Settings;
 namespace SayTheSpire2.Events;
 
 [EventSettings("potion_used", "Potion Used",
+    category: "Resources",
     hasSourceFilter: true, allowEnemies: false,
     defaultCurrentPlayer: false)]
 public class PotionUsedEvent : GameEvent

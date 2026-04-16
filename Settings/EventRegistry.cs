@@ -25,6 +25,10 @@ public static class EventRegistry
         // Generic system creates/finds the category and calls RegisterSettings
         var cat = ModSettingsRegistry.Register(eventType);
 
+        // Reparent into a visual-only group category if one is specified
+        if (attr.Category != null)
+            ReparentIntoGroup(cat, attr.Category);
+
         // Event-specific: add standard announce + buffer settings
         if (cat.GetByKey("announce") == null)
             cat.Add(new BoolSetting("announce", "Announce", attr.DefaultAnnounce));
@@ -97,5 +101,27 @@ public static class EventRegistry
                 Log.Error($"[AccessibilityMod] Failed to register event type {type.Name}: {e.Message}");
             }
         }
+    }
+
+    /// <summary>
+    /// Moves an event's category setting under a visual-only group category.
+    /// The group has includeInPath: false so the settings key path is unchanged.
+    /// </summary>
+    private static void ReparentIntoGroup(CategorySetting eventCat, string groupLabel)
+    {
+        var eventsParent = eventCat.Parent as CategorySetting;
+        if (eventsParent == null) return;
+
+        // Find or create the visual-only group
+        var groupKey = groupLabel.ToLowerInvariant().Replace(" ", "_");
+        var group = eventsParent.GetByKey(groupKey) as CategorySetting;
+        if (group == null)
+        {
+            group = new CategorySetting(groupKey, groupLabel, includeInPath: false);
+            eventsParent.Add(group);
+        }
+
+        eventsParent.Remove(eventCat);
+        group.Add(eventCat);
     }
 }
