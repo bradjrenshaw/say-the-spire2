@@ -107,7 +107,11 @@ public class ModSettingsScreen : Screen
     {
         if (GodotObject.IsInstanceValid(_root))
             _root.Visible = true;
-        _navContainer.FocusFirst();
+
+        if (_navContainer.FocusIndex >= 0)
+            _navContainer.SetFocusIndex(_navContainer.FocusIndex);
+        else
+            _navContainer.FocusFirst();
     }
 
     public override void OnUnfocus()
