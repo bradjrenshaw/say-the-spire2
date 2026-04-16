@@ -32,8 +32,8 @@ You are the **convention enforcer** on a 3-agent code review team. Focus exclusi
 - Registered in the correct Initialize(Harmony) method.
 
 ### Event Rules (if adding/modifying events)
-- Has [EventSettings] attribute.
-- Registered in EventRegistry.RegisterDefaults().
+- Has [EventSettings] attribute (auto-discovered via assembly scanning — do NOT add manual Register() calls to EventRegistry.RegisterDefaults()).
+- Custom sub-settings added via static RegisterSettings(CategorySetting), not inline.
 - Source creature set when applicable.
 - hasSourceFilter and Allow* flags match game's visual feedback.
 - GetMessage() returns Message.Localized with keys from ui.json, not hardcoded format strings.

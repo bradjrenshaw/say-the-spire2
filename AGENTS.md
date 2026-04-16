@@ -1,6 +1,6 @@
 # AI Agent Guidelines for SayTheSpire2
 
-This file contains review rules and checklists for AI agents working on this codebase. Reference CLAUDE.md for full architectural details.
+This file is an **actionable review checklist** for AI agents. It intentionally mirrors invariants from CLAUDE.md in imperative, checkbox form. When the two files conflict, **CLAUDE.md is authoritative** — read it for rationale and full architectural context.
 
 ## Before Making Changes
 
@@ -112,6 +112,6 @@ These areas have historically broken due to unintended side effects. Test them a
 
 - Commit messages should describe the "why" not just the "what".
 - If a fix addresses a regression, mention what caused the regression.
-- Include `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` on AI-assisted commits.
+- Include `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` on AI-assisted commits.
 - Don't amend previous commits — create new ones.
 - Don't push to remote unless the user explicitly asks.
