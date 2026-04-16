@@ -50,7 +50,7 @@
   "CHECKBOX.CHECKED": "checked",
   "CHECKBOX.UNCHECKED": "unchecked",
   "POSITIONS.LIST": "{position} of {total}",
-  "POSITIONS.GRID": "row {row}, column {column}",
+  "POSITIONS.GRID": "column {column}, row {row}",
   "POSITIONS.CATEGORY_LIST": "{position} of {total} {category}",
   "DAILY_RUN.SCREEN_NAME": "Daily Run",
   "DAILY_RUN.FALLBACK": "Daily run",
