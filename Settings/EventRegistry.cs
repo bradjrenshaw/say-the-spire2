@@ -117,7 +117,9 @@ public static class EventRegistry
         var group = eventsParent.GetByKey(groupKey) as CategorySetting;
         if (group == null)
         {
-            group = new CategorySetting(groupKey, groupLabel, includeInPath: false);
+            var localizedLabel = Localization.LocalizationManager.GetOrDefault("ui",
+                $"EVENT_CATEGORIES.{groupKey.ToUpperInvariant()}", groupLabel);
+            group = new CategorySetting(groupKey, localizedLabel, includeInPath: false);
             eventsParent.Add(group);
         }
 

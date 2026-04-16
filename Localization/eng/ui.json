@@ -302,6 +302,12 @@
   "EVENT.CARDS_EXHAUSTED": "{count} cards exhausted",
   "EVENT.CARD_EXHAUSTED": "{card} exhausted",
   "EVENT.CARDS_SHUFFLED": "Discard pile shuffled into draw pile",
+  "EVENT_CATEGORIES.COMBAT": "Combat",
+  "EVENT_CATEGORIES.CARDS": "Cards",
+  "EVENT_CATEGORIES.RESOURCES": "Resources",
+  "EVENT_CATEGORIES.MULTIPLAYER": "Multiplayer",
+  "EVENT_CATEGORIES.OTHER": "Other",
+
   "EVENT.SHARED_PREFIX": "Shared event. ",
   "EVENT.PLAYER_TURN": "Player turn",
   "EVENT.PLAYER_TURN_START": "Player turn, round {round}",
