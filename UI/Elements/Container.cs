@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -13,6 +14,16 @@ public abstract class Container : UIElement
     public bool AnnouncePosition { get; set; } = true;
 
     public override Message? GetLabel() => ContainerLabel != null ? Message.Raw(ContainerLabel) : null;
+
+    /// <summary>
+    /// Containers aren't focused directly — their label is read via FocusContext
+    /// path diffing when a child is focused. Default is empty; subclasses can
+    /// override if they want a direct-focus announcement.
+    /// </summary>
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        yield break;
+    }
 
     public void Add(UIElement child)
     {

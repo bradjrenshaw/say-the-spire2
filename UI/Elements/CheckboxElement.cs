@@ -1,12 +1,29 @@
+using System.Collections.Generic;
 using Godot;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.Speech;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(ControlValueAnnouncement)
+)]
 public class CheckboxElement : UIElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        yield return new LabelAnnouncement(_setting.Label);
+        yield return new TypeAnnouncement("checkbox");
+        yield return new ControlValueAnnouncement(
+            _setting.Get()
+                ? Message.Localized("ui", "CHECKBOX.CHECKED")
+                : Message.Localized("ui", "CHECKBOX.UNCHECKED"));
+    }
+
     private readonly CheckBox _control;
     private readonly BoolSetting _setting;
 

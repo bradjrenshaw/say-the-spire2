@@ -76,15 +76,12 @@ public class CardGridSelectionGameScreen : GameScreen
                         {
                             var cardHolder = holder;
                             var selectedSet = _selectedCards;
-                            proxy.CollectPreExtras += extras =>
+                            proxy.CollectAnnouncements += list =>
                             {
                                 var model = cardHolder.CardModel;
                                 if (model != null && selectedSet.Contains(model))
-                                    extras.Add(Localization.Message.Localized("ui", "CARD.SELECTED"));
-                            };
-                            proxy.CollectPostExtras += extras =>
-                            {
-                                extras.Add(Localization.Message.Localized("ui", "CARD.COUNT_SELECTED", new { count = selectedSet.Count }));
+                                    list.Add(new UI.Announcements.SelectedMarkerAnnouncement());
+                                list.Add(new UI.Announcements.SelectionCountAnnouncement(selectedSet.Count));
                             };
                         }
                         gridContainer.Add(proxy, col, row);

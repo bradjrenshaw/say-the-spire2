@@ -2,11 +2,34 @@ using System;
 using System.Collections.Generic;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(ControlValueAnnouncement)
+)]
 public sealed class StatsValueElement : UIElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        if (!_suppressLabelForCurrentAnnouncement)
+        {
+            var label = _label();
+            if (label != null)
+                yield return new LabelAnnouncement(label);
+        }
+
+        var values = GetNormalizedValues();
+        if (values.Count > 0)
+        {
+            if (_valueIndex >= values.Count)
+                _valueIndex = values.Count - 1;
+            yield return new ControlValueAnnouncement(values[_valueIndex]);
+        }
+    }
+
     private readonly Func<Message?> _label;
     private readonly Func<IReadOnlyList<string>> _values;
     private int _valueIndex;

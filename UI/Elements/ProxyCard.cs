@@ -20,6 +20,10 @@ namespace SayTheSpire2.UI.Elements;
     // ProxyMerchantSlot does, and card's order positions them here.
     typeof(PriceAnnouncement),
     typeof(SoldOutAnnouncement),
+    // Grid-selection insertion points — injected via CollectAnnouncements in
+    // CardGridSelectionGameScreen when a card is part of the active selection.
+    typeof(SelectedMarkerAnnouncement),
+    typeof(SelectionCountAnnouncement),
     typeof(TooltipAnnouncement)
 )]
 [ModSettings("ui.card", "UI/Card")]
