@@ -3,12 +3,43 @@ using Godot;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(RelicCounterAnnouncement),
+    typeof(RelicDisabledAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 public class ProxyRelicHolder : ProxyElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var view = GetView();
+        if (view == null)
+        {
+            if (Control != null)
+                yield return new LabelAnnouncement(CleanNodeName(Control.Name));
+            yield break;
+        }
+
+        yield return new LabelAnnouncement(view.Title);
+        yield return new TypeAnnouncement("relic");
+
+        if (view.ShowCounter && view.DisplayAmount != 0)
+            yield return new RelicCounterAnnouncement(view.DisplayAmount);
+
+        if (view.IsDisabled)
+            yield return new RelicDisabledAnnouncement();
+
+        if (!string.IsNullOrEmpty(view.Description))
+            yield return new TooltipAnnouncement(view.Description);
+    }
+
     private readonly RelicModel? _model;
 
     public ProxyRelicHolder(Control control) : base(control) { }

@@ -1,13 +1,40 @@
+using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 public class ProxyPotionHolder : ProxyElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var view = GetView();
+        if (view == null) yield break;
+
+        if (view.IsEmptySlot)
+        {
+            yield return new LabelAnnouncement(Message.Localized("ui", "LABELS.EMPTY_POTION_SLOT"));
+            yield return new TypeAnnouncement("potion");
+            yield break;
+        }
+
+        if (view.Title != null)
+            yield return new LabelAnnouncement(view.Title);
+        yield return new TypeAnnouncement("potion");
+
+        if (!string.IsNullOrEmpty(view.Description))
+            yield return new TooltipAnnouncement(view.Description);
+    }
+
     private readonly PotionModel? _model;
 
     public ProxyPotionHolder(Control control) : base(control) { }
