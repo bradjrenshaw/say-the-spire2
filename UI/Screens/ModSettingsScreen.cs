@@ -144,6 +144,19 @@ public class ModSettingsScreen : Screen
 
     private void BuildControls()
     {
+        if (_category.HasResetAction)
+        {
+            var resetLabel = LocalizationManager.GetOrDefault("ui", "SETTINGS.RESET_TO_DEFAULTS", "Reset to defaults");
+            var resetButton = new ButtonElement(resetLabel);
+            resetButton.OnActivated = () =>
+            {
+                ResetAllOverrides(_category);
+                SpeechManager.Output(Message.Localized("ui", "SETTINGS.RESET_DONE"));
+            };
+            _navContainer.Add(resetButton);
+            AddControl(resetButton.Node, resetButton);
+        }
+
         foreach (var setting in _category.Children.OrderBy(s => s.SortPriority).ThenBy(s => s.Label))
         {
             switch (setting)
@@ -193,6 +206,22 @@ public class ModSettingsScreen : Screen
                     };
                     _navContainer.Add(bindingButton);
                     AddControl(bindingButton.Node, bindingButton);
+                    break;
+            }
+        }
+    }
+
+    private static void ResetAllOverrides(CategorySetting category)
+    {
+        foreach (var child in category.Children)
+        {
+            switch (child)
+            {
+                case NullableBoolSetting n:
+                    n.Reset();
+                    break;
+                case CategorySetting c:
+                    ResetAllOverrides(c);
                     break;
             }
         }

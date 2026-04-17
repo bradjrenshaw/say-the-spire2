@@ -10,6 +10,13 @@ public class CategorySetting : Setting
 
     public IReadOnlyList<Setting> Children => _children;
 
+    /// <summary>
+    /// When true, the settings screen prepends a "Reset to defaults" action
+    /// that clears every descendant NullableBoolSetting back to null (inherit).
+    /// Set by AnnouncementRegistry on per-element override categories.
+    /// </summary>
+    public bool HasResetAction { get; set; }
+
     public CategorySetting(string key, string label, bool includeInPath = true, string localizationKey = "")
         : base(key, label, localizationKey)
     {

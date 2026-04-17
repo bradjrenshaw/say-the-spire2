@@ -91,6 +91,15 @@ public static class AnnouncementRegistry
         var elementKey = DeriveElementKey(elementType);
         var elementDisplay = DeriveDisplayName(StripSuffix(StripSuffix(elementType.Name, "Element"), "Proxy", prefixInstead: true));
 
+        // The per-element "Announcements" subcategory that contains all the
+        // announcement overrides — we tag it with HasResetAction so the
+        // settings screen shows a "Reset to defaults" button.
+        var announcementsParent = ModSettingsRegistry.EnsureCategory(
+            $"ui.{elementKey}.announcements",
+            $"UI/{elementDisplay}/Announcements",
+            $"/SETTINGS.ELEMENTS.{elementKey.ToUpperInvariant()}/{RootLocKey}");
+        announcementsParent.HasResetAction = true;
+
         foreach (var announcementType in orderAttr.Types.Distinct())
         {
             var announcementKey = DeriveAnnouncementKey(announcementType);
