@@ -5,16 +5,71 @@ using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(EnergyCostAnnouncement),
+    typeof(StarCostAnnouncement),
+    typeof(SubtypeAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 [ModSettings("ui.card", "UI/Card")]
 public class ProxyCard : ProxyElement
 {
     public static void RegisterSettings(CategorySetting category)
     {
         category.Add(new BoolSetting("verbose_costs", "Verbose Costs", true));
+    }
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var view = GetView();
+        if (view == null)
+        {
+            if (Control != null)
+                yield return new LabelAnnouncement(CleanNodeName(Control.Name));
+            yield break;
+        }
+
+        // Label (with enchantment/affliction in parens when present)
+        var modifiers = new List<string>();
+        if (view.EnchantmentTitle is { Length: > 0 } ench) modifiers.Add(ench);
+        if (view.AfflictionTitle is { Length: > 0 } aff) modifiers.Add(aff);
+        var labelText = modifiers.Count > 0
+            ? $"{view.Title} ({string.Join(", ", modifiers)})"
+            : view.Title;
+        yield return new LabelAnnouncement(labelText);
+
+        bool verbose = ModSettings.GetValue<bool>("ui.card.verbose_costs");
+
+        // Energy cost (skipped entirely if the card has no energy cost concept)
+        var energyCost = view.EnergyCost;
+        if (energyCost != null)
+        {
+            if (energyCost.CostsX)
+                yield return new EnergyCostAnnouncement(0, isX: true, verbose);
+            else
+                yield return new EnergyCostAnnouncement(energyCost.GetWithModifiers(CostModifiers.All), isX: false, verbose);
+        }
+
+        // Star cost
+        if (view.HasStarCostX)
+            yield return new StarCostAnnouncement(0, isX: true, verbose);
+        else if (view.CurrentStarCost >= 0)
+            yield return new StarCostAnnouncement(view.StarCostWithModifiers, isX: false, verbose);
+
+        // Subtype + type
+        yield return new SubtypeAnnouncement(view.TypeKey);
+        yield return new TypeAnnouncement("card");
+
+        // Tooltip
+        if (!string.IsNullOrEmpty(view.Description))
+            yield return new TooltipAnnouncement(view.Description);
     }
 
     private readonly CardModel? _model;
