@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Settings;
 using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Announcements;
@@ -44,10 +45,11 @@ public static class AnnouncementComposer
         }
         sorted.AddRange(undeclared);
 
-        // Render and skip empty
+        // Render, skip disabled (global setting), skip empty
         var rendered = new List<(string Text, string Suffix)>();
         foreach (var a in sorted)
         {
+            if (!IsEnabled(a.Key)) continue;
             var text = a.Render()?.Resolve();
             if (!string.IsNullOrEmpty(text))
                 rendered.Add((text, a.Suffix));
@@ -69,5 +71,16 @@ public static class AnnouncementComposer
         }
 
         return Message.Raw(sb.ToString());
+    }
+
+    /// <summary>
+    /// Reads the global announcement enabled flag. Returns true if the setting
+    /// doesn't exist (covers announcements added after startup registration or
+    /// in unit tests where the settings tree isn't populated).
+    /// </summary>
+    private static bool IsEnabled(string announcementKey)
+    {
+        var setting = ModSettings.GetSetting<BoolSetting>($"announcements.{announcementKey}.enabled");
+        return setting?.Value ?? true;
     }
 }
