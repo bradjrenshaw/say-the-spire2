@@ -13,8 +13,7 @@ namespace SayTheSpire2.UI.Elements;
     typeof(LabelAnnouncement),
     typeof(FreeTravelAnnouncement),
     typeof(NodeStateAnnouncement),
-    typeof(OnPathAnnouncement),
-    typeof(DivergesAnnouncement),
+    typeof(MarkerGuidanceAnnouncement),
     typeof(VotersAnnouncement)
 )]
 public class ProxyMapPoint : ProxyElement
@@ -57,11 +56,8 @@ public class ProxyMapPoint : ProxyElement
         if (!string.IsNullOrEmpty(view.State))
             yield return new NodeStateAnnouncement(view.State);
 
-        if (view.OnPathMarkers.Count > 0)
-            yield return new OnPathAnnouncement(view.OnPathMarkers);
-
-        if (view.DivergingMarkers.Count > 0)
-            yield return new DivergesAnnouncement(view.DivergingMarkers);
+        if (view.OnPathMarkers.Count > 0 || view.DivergingMarkers.Count > 0)
+            yield return new MarkerGuidanceAnnouncement(view.OnPathMarkers, view.DivergingMarkers);
 
         if (view.Voters.Count > 0)
             yield return new VotersAnnouncement(view.Voters);
