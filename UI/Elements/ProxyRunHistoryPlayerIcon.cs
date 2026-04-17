@@ -14,7 +14,8 @@ namespace SayTheSpire2.UI.Elements;
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
-    typeof(ControlValueAnnouncement)
+    typeof(AscensionAnnouncement),
+    typeof(AchievementsLockedAnnouncement)
 )]
 public class ProxyRunHistoryPlayerIcon : ProxyElement
 {
@@ -26,9 +27,17 @@ public class ProxyRunHistoryPlayerIcon : ProxyElement
 
         yield return new TypeAnnouncement("button");
 
-        var status = GetStatusString();
-        if (status != null)
-            yield return new ControlValueAnnouncement(status);
+        var icon = Icon;
+        if (icon == null)
+            yield break;
+
+        var ascensionLabel = AscensionLabelField?.GetValue(icon) as Label;
+        if (ascensionLabel != null && !string.IsNullOrWhiteSpace(ascensionLabel.Text))
+            yield return new AscensionAnnouncement(ascensionLabel.Text.Trim());
+
+        var achievementLock = AchievementLockField?.GetValue(icon) as Control;
+        if (achievementLock?.Visible == true)
+            yield return new AchievementsLockedAnnouncement();
     }
 
     private static readonly FieldInfo? AscensionLabelField =
