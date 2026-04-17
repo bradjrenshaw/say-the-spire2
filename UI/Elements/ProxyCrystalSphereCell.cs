@@ -1,11 +1,16 @@
+using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Events.Custom.CrystalSphereEvent;
 using MegaCrit.Sts2.Core.Events.Custom.CrystalSphereEvent.CrystalSphereItems;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement)
+)]
 public class ProxyCrystalSphereCell : ProxyElement
 {
     public ProxyCrystalSphereCell(Control control) : base(control) { }
@@ -13,6 +18,13 @@ public class ProxyCrystalSphereCell : ProxyElement
     private NCrystalSphereCell? Cell => Control as NCrystalSphereCell;
 
     private CrystalSphereCell? Entity => Cell?.Entity;
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+    }
 
     public override Message? GetLabel()
     {

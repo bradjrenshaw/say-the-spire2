@@ -1,11 +1,16 @@
+using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Map;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement)
+)]
 public class ProxyMapPoint : ProxyElement
 {
     private MapScreen? _mapScreen;
@@ -13,6 +18,13 @@ public class ProxyMapPoint : ProxyElement
     public ProxyMapPoint(Control control) : base(control) { }
 
     private NMapPoint? MapPointNode => Control as NMapPoint;
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+    }
 
     public override Message? GetLabel()
     {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Godot;
 using HarmonyLib;
@@ -7,11 +8,35 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.PotionLab;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(ControlValueAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 public class ProxyPotionLabHolder : ProxyElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        yield return new TypeAnnouncement("potion");
+
+        var status = GetStatusString();
+        if (status != null)
+            yield return new ControlValueAnnouncement(status);
+
+        var tooltip = GetTooltip();
+        if (tooltip != null)
+            yield return new TooltipAnnouncement(tooltip);
+    }
+
     private static readonly FieldInfo? ModelField =
         AccessTools.Field(typeof(NLabPotionHolder), "_model");
     private static readonly FieldInfo? VisibilityField =

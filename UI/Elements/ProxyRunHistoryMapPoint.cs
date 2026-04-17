@@ -12,11 +12,35 @@ using MegaCrit.Sts2.Core.Runs.History;
 using MegaCrit.Sts2.Core.Saves;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(ControlValueAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 public class ProxyRunHistoryMapPoint : ProxyElement
 {
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        yield return new TypeAnnouncement("button");
+
+        var status = GetStatusString();
+        if (status != null)
+            yield return new ControlValueAnnouncement(status);
+
+        var tooltip = GetTooltip();
+        if (tooltip != null)
+            yield return new TooltipAnnouncement(tooltip);
+    }
+
     private static readonly FieldInfo? EntryField =
         AccessTools.Field(typeof(NMapPointHistoryEntry), "_entry");
     private static readonly FieldInfo? QuestIconField =

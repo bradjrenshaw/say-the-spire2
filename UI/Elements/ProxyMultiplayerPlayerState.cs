@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
@@ -6,9 +7,14 @@ using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(ControlValueAnnouncement)
+)]
 public class ProxyMultiplayerPlayerState : ProxyElement
 {
     private readonly NMultiplayerPlayerState _state;
@@ -17,6 +23,17 @@ public class ProxyMultiplayerPlayerState : ProxyElement
         : base(hitbox)
     {
         _state = state;
+    }
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        var status = GetStatusString();
+        if (status != null)
+            yield return new ControlValueAnnouncement(status);
     }
 
     private Player? GetPlayer()
