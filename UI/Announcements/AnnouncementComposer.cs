@@ -45,11 +45,11 @@ public static class AnnouncementComposer
         }
         sorted.AddRange(undeclared);
 
-        // Render, skip disabled (global setting), skip empty
+        // Render, skip disabled (per-element override, else global), skip empty
         var rendered = new List<(string Text, string Suffix)>();
         foreach (var a in sorted)
         {
-            if (!IsEnabled(a.Key)) continue;
+            if (!IsEnabled(element, a.Key)) continue;
             var text = a.Render()?.Resolve();
             if (!string.IsNullOrEmpty(text))
                 rendered.Add((text, a.Suffix));
@@ -74,13 +74,20 @@ public static class AnnouncementComposer
     }
 
     /// <summary>
-    /// Reads the global announcement enabled flag. Returns true if the setting
-    /// doesn't exist (covers announcements added after startup registration or
-    /// in unit tests where the settings tree isn't populated).
+    /// Whether the announcement should be emitted for this element. Checks the
+    /// per-element override (NullableBoolSetting) first; falls back to the global
+    /// enabled flag. Returns true if neither is registered (covers announcements
+    /// added after startup or test environments without a populated settings tree).
     /// </summary>
-    private static bool IsEnabled(string announcementKey)
+    private static bool IsEnabled(UIElement element, string announcementKey)
     {
-        var setting = ModSettings.GetSetting<BoolSetting>($"announcements.{announcementKey}.enabled");
-        return setting?.Value ?? true;
+        var elementKey = AnnouncementRegistry.DeriveElementKey(element.AnnouncementOrderType);
+        var overrideSetting = ModSettings.GetSetting<NullableBoolSetting>(
+            $"ui.{elementKey}.announcements.{announcementKey}.enabled");
+        if (overrideSetting != null)
+            return overrideSetting.Resolved;
+
+        var global = ModSettings.GetSetting<BoolSetting>($"announcements.{announcementKey}.enabled");
+        return global?.Value ?? true;
     }
 }
