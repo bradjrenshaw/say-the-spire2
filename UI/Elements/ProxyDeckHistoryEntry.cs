@@ -10,9 +10,18 @@ using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(EnergyCostAnnouncement),
+    typeof(StarCostAnnouncement),
+    typeof(SubtypeAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 [ModSettings("ui.card", "UI/Card")]
 public class ProxyDeckHistoryEntry : ProxyElement
 {
@@ -24,6 +33,49 @@ public class ProxyDeckHistoryEntry : ProxyElement
     private NDeckHistoryEntry? Entry => Control as NDeckHistoryEntry;
     private CardModel? Card => Entry?.Card;
     private int Amount => AmountField?.GetValue(Entry) as int? ?? 1;
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var model = Card;
+        if (model == null)
+        {
+            if (Control != null)
+                yield return new LabelAnnouncement(CleanNodeName(Control.Name));
+            yield break;
+        }
+
+        // Label uses GetLabel since it folds in quantity + enchantment/affliction
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        bool verbose = ModSettings.GetValue<bool>("ui.card.verbose_costs");
+
+        if (model.EnergyCost != null)
+        {
+            if (model.EnergyCost.CostsX)
+                yield return new EnergyCostAnnouncement(0, isX: true, verbose);
+            else
+                yield return new EnergyCostAnnouncement(model.EnergyCost.GetWithModifiers(CostModifiers.All), isX: false, verbose);
+        }
+
+        if (model.HasStarCostX)
+            yield return new StarCostAnnouncement(0, isX: true, verbose);
+        else if (model.CurrentStarCost >= 0)
+        {
+            int starCost;
+            try { starCost = model.GetStarCostWithModifiers(); }
+            catch (System.Exception e) { Log.Info($"[AccessibilityMod] GetStarCostWithModifiers failed: {e.Message}"); starCost = model.CurrentStarCost; }
+            yield return new StarCostAnnouncement(starCost, isX: false, verbose);
+        }
+
+        yield return new SubtypeAnnouncement(model.Type.ToString().ToLowerInvariant());
+        yield return new TypeAnnouncement("card");
+
+        var desc = model.GetDescriptionForPile(PileType.None);
+        if (!string.IsNullOrEmpty(desc))
+            yield return new TooltipAnnouncement(StripBbcode(desc));
+    }
 
     public override Message? GetLabel()
     {

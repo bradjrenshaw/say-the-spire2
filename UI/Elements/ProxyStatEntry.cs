@@ -2,12 +2,28 @@ using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.StatsScreen;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(ControlValueAnnouncement)
+)]
 public class ProxyStatEntry : ProxyElement
 {
     public ProxyStatEntry(Control control) : base(control) { }
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        var values = GetValues();
+        if (values.Count > 0)
+            yield return new ControlValueAnnouncement(string.Join(", ", values));
+    }
 
     public override Message? GetLabel()
     {
