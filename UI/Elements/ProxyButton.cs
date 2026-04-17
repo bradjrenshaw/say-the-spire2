@@ -1,11 +1,35 @@
+using System.Collections.Generic;
 using Godot;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[AnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(TypeAnnouncement),
+    typeof(LockedAnnouncement),
+    typeof(TooltipAnnouncement)
+)]
 public class ProxyButton : ProxyElement
 {
     public ProxyButton(Control control) : base(control) { }
+
+    public override IEnumerable<Announcement> GetFocusAnnouncements()
+    {
+        var label = GetLabel();
+        if (label != null)
+            yield return new LabelAnnouncement(label);
+
+        yield return new TypeAnnouncement("button");
+
+        if (Control is MegaCrit.Sts2.Core.Nodes.GodotExtensions.NClickableControl ncc && !ncc.IsEnabled)
+            yield return new LockedAnnouncement();
+
+        var tooltip = GetTooltip();
+        if (tooltip != null)
+            yield return new TooltipAnnouncement(tooltip);
+    }
 
     public override Message? GetLabel()
     {
