@@ -61,17 +61,21 @@ public class NullableCheckboxElement : UIElement
     {
         var newValue = !_setting.Resolved;
         _setting.SetExplicit(newValue);
-        _control.SetPressedNoSignal(newValue);
-        SpeechManager.Output(newValue
-            ? Message.Localized("ui", "CHECKBOX.CHECKED")
-            : Message.Localized("ui", "CHECKBOX.UNCHECKED"));
+        // ResolvedChanged handler already updated _control's pressed state.
+        SpeakState(newValue);
     }
 
     /// <summary>Called from mouse click. Godot already flipped the checkbox; write the explicit value.</summary>
     public void SyncFromControl()
     {
-        _setting.SetExplicit(_control.ButtonPressed);
-        SpeechManager.Output(_control.ButtonPressed
+        var newValue = _control.ButtonPressed;
+        _setting.SetExplicit(newValue);
+        SpeakState(newValue);
+    }
+
+    private static void SpeakState(bool isChecked)
+    {
+        SpeechManager.Output(isChecked
             ? Message.Localized("ui", "CHECKBOX.CHECKED")
             : Message.Localized("ui", "CHECKBOX.UNCHECKED"));
     }
