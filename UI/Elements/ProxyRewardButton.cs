@@ -79,18 +79,6 @@ public class ProxyRewardButton : ProxyElement
         _ => "button",
     };
 
-    public override Message? GetTooltip()
-    {
-        var inner = GetInnerProxy();
-        return inner?.GetTooltip();
-    }
-
-    public override Message? GetStatusString()
-    {
-        var inner = GetInnerProxy();
-        return inner?.GetStatusString();
-    }
-
     private ProxyElement? GetInnerProxy()
     {
         var reward = GetReward();

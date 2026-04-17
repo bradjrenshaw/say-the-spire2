@@ -45,13 +45,4 @@ public class ProxyRestSiteButton : ProxyElement
     }
 
     public override string? GetTypeKey() => "button";
-
-    public override Message? GetExtrasString()
-    {
-        var option = Button?.Option;
-        if (option == null) return null;
-
-        var desc = option.Description.GetFormattedText();
-        return !string.IsNullOrEmpty(desc) ? Message.Raw(StripBbcode(desc)) : null;
-    }
 }

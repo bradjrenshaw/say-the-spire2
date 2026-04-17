@@ -30,17 +30,6 @@ public class ProxyStatEntry : ProxyElement
         return Message.Raw(OverrideLabel ?? CleanNodeName(Control!.Name));
     }
 
-    public override Message? GetExtrasString()
-    {
-        var values = GetValues();
-        return values.Count switch
-        {
-            0 => null,
-            1 => Message.Raw(values[0]),
-            _ => Message.Raw(string.Join(", ", values)),
-        };
-    }
-
     public IReadOnlyList<string> GetValues()
     {
         if (Control is not NStatEntry entry)

@@ -114,40 +114,6 @@ public class ProxyMerchantSlot : ProxyElement
         return "shop item";
     }
 
-    public override string? GetSubtypeKey()
-    {
-        return GetInnerProxy()?.GetSubtypeKey();
-    }
-
-    public override Message? GetExtrasString()
-    {
-        return GetInnerProxy()?.GetExtrasString();
-    }
-
-    public override Message? GetTooltip()
-    {
-        return GetInnerProxy()?.GetTooltip();
-    }
-
-    public override Message? GetStatusString()
-    {
-        var entry = GetEntry();
-        if (entry == null) return null;
-
-        if (!entry.IsStocked) return Message.Localized("ui", "LABELS.SOLD_OUT");
-
-        var parts = new System.Collections.Generic.List<string>();
-        parts.Add(Message.Localized("ui", "RESOURCE.PRICE", new { cost = entry.Cost }).Resolve());
-
-        if (!entry.EnoughGold)
-            parts.Add(LocalizationManager.GetOrDefault("ui", "RESOURCE.NOT_ENOUGH_GOLD", "Not enough gold"));
-
-        if (entry is MerchantCardEntry cardEntry && cardEntry.IsOnSale)
-            parts.Add(LocalizationManager.GetOrDefault("ui", "RESOURCE.ON_SALE", "On sale"));
-
-        return Message.Raw(string.Join(", ", parts));
-    }
-
     public override string? HandleBuffers(BufferManager buffers)
     {
         var entry = GetEntry();
