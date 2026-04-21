@@ -13,8 +13,7 @@ namespace SayTheSpire2.UI.Elements;
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
-    typeof(OrbPassiveAnnouncement),
-    typeof(OrbEvokeAnnouncement),
+    typeof(OrbNumbersAnnouncement),
     typeof(TooltipAnnouncement)
 )]
 public class ProxyOrb : ProxyElement
@@ -34,8 +33,7 @@ public class ProxyOrb : ProxyElement
         var model = Orb?.Model;
         if (model != null)
         {
-            yield return new OrbPassiveAnnouncement((int)model.PassiveVal);
-            yield return new OrbEvokeAnnouncement((int)model.EvokeVal);
+            yield return new OrbNumbersAnnouncement((int)model.PassiveVal, (int)model.EvokeVal);
         }
         else
         {
