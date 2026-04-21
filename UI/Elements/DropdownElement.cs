@@ -6,13 +6,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(ControlValueAnnouncement)
-)]
 public class DropdownElement : UIElement
 {
+    // Share settings / [AnnouncementOrder] with ProxyDropdown.
+    public override System.Type AnnouncementOrderType => typeof(ProxyDropdown);
+
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {
         yield return new LabelAnnouncement(_setting.Label);

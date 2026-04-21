@@ -7,13 +7,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(ControlValueAnnouncement)
-)]
 public class SliderElement : UIElement
 {
+    // Share settings / [AnnouncementOrder] with ProxySlider.
+    public override System.Type AnnouncementOrderType => typeof(ProxySlider);
+
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {
         yield return new LabelAnnouncement(_setting.Label);

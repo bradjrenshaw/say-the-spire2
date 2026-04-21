@@ -6,12 +6,12 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement)
-)]
 public class ButtonElement : UIElement
 {
+    // Share settings / [AnnouncementOrder] with ProxyButton — both are buttons
+    // to the end user, no reason to configure them separately.
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     private readonly Button _control;
     private readonly string _label;
 

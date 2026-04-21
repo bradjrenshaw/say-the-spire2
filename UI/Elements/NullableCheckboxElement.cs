@@ -18,7 +18,7 @@ public class NullableCheckboxElement : UIElement
     // Delegate focus-string composition to CheckboxElement's [AnnouncementOrder]
     // and settings path. Nullable variants are an implementation detail for the
     // per-element override UI — to the end user, this is just a checkbox.
-    public override System.Type AnnouncementOrderType => typeof(CheckboxElement);
+    public override System.Type AnnouncementOrderType => typeof(ProxyCheckbox);
 
     private readonly CheckBox _control;
     private readonly NullableBoolSetting _setting;

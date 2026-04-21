@@ -7,13 +7,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(ControlValueAnnouncement)
-)]
 public class CheckboxElement : UIElement
 {
+    // Share settings / [AnnouncementOrder] with ProxyCheckbox.
+    public override System.Type AnnouncementOrderType => typeof(ProxyCheckbox);
+
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {
         yield return new LabelAnnouncement(_setting.Label);
