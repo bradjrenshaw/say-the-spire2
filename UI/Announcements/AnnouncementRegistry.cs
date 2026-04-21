@@ -150,9 +150,17 @@ public static class AnnouncementRegistry
     public static string DeriveAnnouncementKey(Type announcementType) =>
         ToSnakeCase(StripSuffix(announcementType.Name, "Announcement"));
 
-    /// <summary>Converts e.g. <c>ProxyCreature</c> to <c>creature</c>, <c>ButtonElement</c> to <c>button_element</c>.</summary>
-    public static string DeriveElementKey(Type elementType) =>
-        ToSnakeCase(StripSuffix(StripSuffix(elementType.Name, "Element"), "Proxy", prefixInstead: true));
+    /// <summary>
+    /// Converts e.g. <c>ProxyCreature</c> to <c>creature</c>, <c>ButtonElement</c> to <c>button_element</c>.
+    /// Honors <see cref="ElementSettingsKeyAttribute"/> when present.
+    /// </summary>
+    public static string DeriveElementKey(Type elementType)
+    {
+        var attr = elementType.GetCustomAttribute<ElementSettingsKeyAttribute>();
+        if (attr != null)
+            return attr.Key;
+        return ToSnakeCase(StripSuffix(StripSuffix(elementType.Name, "Element"), "Proxy", prefixInstead: true));
+    }
 
     private static string DeriveDisplayName(string pascalCase)
     {

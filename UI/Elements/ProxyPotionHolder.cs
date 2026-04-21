@@ -8,6 +8,7 @@ using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
+[ElementSettingsKey("potion")]
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
