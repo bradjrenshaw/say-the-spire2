@@ -9,14 +9,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(StatusAnnouncement),
-    typeof(TooltipAnnouncement)
-)]
 public class ProxyEpochSlot : ProxyElement
 {
+    // User-perceives this as a button; share settings / [AnnouncementOrder] with ProxyButton.
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     public ProxyEpochSlot(Control control) : base(control) { }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

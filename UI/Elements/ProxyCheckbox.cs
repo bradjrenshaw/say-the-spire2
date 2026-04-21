@@ -10,7 +10,8 @@ namespace SayTheSpire2.UI.Elements;
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
-    typeof(StatusAnnouncement)
+    typeof(StatusAnnouncement),
+    typeof(TooltipAnnouncement)
 )]
 public class ProxyCheckbox : ProxyElement
 {

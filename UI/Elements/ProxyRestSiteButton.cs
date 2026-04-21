@@ -6,13 +6,13 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TooltipAnnouncement),
-    typeof(TypeAnnouncement)
-)]
 public class ProxyRestSiteButton : ProxyElement
 {
+    // User-perceives this as a button; share settings / [AnnouncementOrder] with ProxyButton.
+    // Minor cadence change: tooltip now reads after type rather than between
+    // label and type. Small tradeoff for unified button settings.
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     public ProxyRestSiteButton(Control control) : base(control) { }
 
     private NRestSiteButton? Button => Control as NRestSiteButton;

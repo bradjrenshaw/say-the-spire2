@@ -8,6 +8,7 @@ namespace SayTheSpire2.UI.Elements;
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
+    typeof(StatusAnnouncement),
     typeof(LockedAnnouncement),
     typeof(TooltipAnnouncement)
 )]

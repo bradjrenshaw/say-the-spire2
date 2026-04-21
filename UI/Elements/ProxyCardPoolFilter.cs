@@ -6,14 +6,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(StatusAnnouncement),
-    typeof(TooltipAnnouncement)
-)]
 public class ProxyCardPoolFilter : ProxyElement
 {
+    // User-perceives this as a checkbox; share settings / [AnnouncementOrder] with ProxyCheckbox.
+    public override System.Type AnnouncementOrderType => typeof(ProxyCheckbox);
+
     public ProxyCardPoolFilter(Control control) : base(control) { }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

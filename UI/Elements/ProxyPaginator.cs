@@ -6,13 +6,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(StatusAnnouncement)
-)]
 public class ProxyPaginator : ProxyElement
 {
+    // User-perceives this as a slider; share settings / [AnnouncementOrder] with ProxySlider.
+    public override System.Type AnnouncementOrderType => typeof(ProxySlider);
+
     public ProxyPaginator(Control control) : base(control) { }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

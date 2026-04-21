@@ -6,13 +6,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement),
-    typeof(StatusAnnouncement)
-)]
 public class ProxyCardViewSortButton : ProxyElement
 {
+    // User-perceives this as a button; share settings / [AnnouncementOrder] with ProxyButton.
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     public ProxyCardViewSortButton(Control control) : base(control) { }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()
