@@ -23,6 +23,14 @@ public class ProxyMapPoint : ProxyElement
 
     public ProxyMapPoint(Control control) : base(control) { }
 
+    /// <summary>
+    /// Used by <see cref="ComposeFromView"/> to drive the composer from
+    /// non-focus callers (tree map viewer, DescribePoint) so user settings +
+    /// reorder apply there too. No Control backing — only announcement
+    /// composition uses it.
+    /// </summary>
+    private ProxyMapPoint() : base() { }
+
     private NMapPoint? MapPointNode => Control as NMapPoint;
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()
@@ -42,14 +50,22 @@ public class ProxyMapPoint : ProxyElement
             yield break;
         }
 
+        foreach (var a in BuildAnnouncements(view))
+            yield return a;
+    }
+
+    /// <summary>
+    /// The shared yield sequence for a map-node <see cref="MapNodeView"/>. Used
+    /// by both the focus path (ProxyMapPoint.GetFocusAnnouncements) and the
+    /// non-focus callers (TreeMapViewer, MapScreen.DescribePoint) so every
+    /// speech source honors the same settings + user order.
+    /// </summary>
+    public static IEnumerable<Announcement> BuildAnnouncements(MapNodeView view)
+    {
         if (view.IsMarked)
             yield return new MapMarkedAnnouncement();
 
-        yield return new LabelAnnouncement(Message.Localized("map_nav", "NAV.NODE", new
-        {
-            type = view.TypeName,
-            coordinates = view.Coordinates
-        }));
+        yield return new LabelAnnouncement(Message.Raw(view.TypeName));
 
         if (view.IsFreeTravel)
             yield return new FreeTravelAnnouncement();
@@ -62,6 +78,23 @@ public class ProxyMapPoint : ProxyElement
 
         if (view.Voters.Count > 0)
             yield return new VotersAnnouncement(view.Voters);
+
+        // Coordinates are the map node's "position" — yield them as a PositionAnnouncement
+        // so the user can reorder or toggle them like any other announcement. Map points
+        // have no mod-side Container parent, so UIElement.GetFocusMessage wouldn't inject
+        // one for us.
+        yield return new PositionAnnouncement(Message.Raw(view.Coordinates));
+    }
+
+    /// <summary>
+    /// Renders a <see cref="MapNodeView"/> through the announcement pipeline —
+    /// honors enabled toggles, per-element overrides, and user-specified order
+    /// just like focus-path readings. Uses an ephemeral Control-less proxy as
+    /// the composer's context source.
+    /// </summary>
+    public static string ComposeFromView(MapNodeView view)
+    {
+        return AnnouncementComposer.Compose(new ProxyMapPoint(), BuildAnnouncements(view)).Resolve();
     }
 
     public override Message? GetLabel()

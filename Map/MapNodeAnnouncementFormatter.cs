@@ -44,63 +44,20 @@ public static class MapNodeAnnouncementFormatter
     }
 
     /// <summary>
-    /// Renders a node description as a single string. Used by non-focus callers
-    /// (TreeMapViewer, MapScreen.DescribePoint) that want a one-shot speech line.
-    /// Focus-string usage goes through the announcement pipeline instead.
+    /// Renders a node description as a single string, routed through the
+    /// announcement pipeline so non-focus callers (TreeMapViewer,
+    /// MapScreen.DescribePoint) honor the same settings and user-specified
+    /// order as the focus path.
     /// </summary>
     public static string DescribeNode(MapNode node, MapHandler handler, IReadOnlyList<MapNode>? rowNodes = null,
         bool includeChoicePrefix = false, MapNode? travelOrigin = null,
         MapReachabilityContext? travelContext = null, MapReachabilityContext? nodeContext = null)
     {
         var view = BuildView(node, handler, rowNodes, travelOrigin, travelContext, nodeContext);
-        return RenderView(view, includeChoicePrefix);
-    }
-
-    private static string RenderView(MapNodeView view, bool includeChoicePrefix)
-    {
-        var type = view.TypeName;
-        if (view.IsMarked)
-            type = $"{GetMarkedText()}, {type}";
-        if (view.IsFreeTravel)
-            type = $"{type}, {GetFreeTravelText()}";
-
-        var announcement = view.State != null
-            ? Message.Localized("map_nav", "NAV.NODE_WITH_STATE", new
-            {
-                type,
-                coordinates = view.Coordinates,
-                state = view.State
-            }).Resolve()
-            : Message.Localized("map_nav", "NAV.NODE", new
-            {
-                type,
-                coordinates = view.Coordinates
-            }).Resolve();
-
-        var extras = new List<string>();
-        if (view.OnPathMarkers.Count > 0)
-            extras.Add(Message.Localized("map_nav", "NAV.ON_PATH_TO", new
-            {
-                markers = string.Join(", ", view.OnPathMarkers)
-            }).Resolve());
-        if (view.DivergingMarkers.Count > 0)
-            extras.Add(Message.Localized("map_nav", "NAV.DIVERGES_FROM", new
-            {
-                markers = string.Join(", ", view.DivergingMarkers)
-            }).Resolve());
-        if (view.Voters.Count > 0)
-            extras.Add(Message.Localized("ui", "EVENT.VOTED_FOR_BY", new
-            {
-                players = string.Join(", ", view.Voters)
-            }).Resolve());
-
-        if (extras.Count > 0)
-            announcement = $"{announcement}, {string.Join(", ", extras)}";
-
+        var text = UI.Elements.ProxyMapPoint.ComposeFromView(view);
         if (includeChoicePrefix && view.IsChoice)
-            announcement = $"{GetChoiceText()}, {announcement}";
-
-        return announcement;
+            text = $"{GetChoiceText()}, {text}";
+        return text;
     }
 
     public static List<MapNode> GetDefaultRowNodes(MapNode node)
@@ -244,15 +201,5 @@ public static class MapNodeAnnouncementFormatter
     private static string GetChoiceText()
     {
         return LocalizationManager.GetOrDefault("map_nav", "NAV.CHOICE", "choice");
-    }
-
-    private static string GetMarkedText()
-    {
-        return LocalizationManager.GetOrDefault("map_nav", "MARKERS.MARKED", "Marked");
-    }
-
-    private static string GetFreeTravelText()
-    {
-        return LocalizationManager.GetOrDefault("map_nav", "NAV.FREE_TRAVEL", "fly");
     }
 }

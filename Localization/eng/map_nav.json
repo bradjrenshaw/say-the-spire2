@@ -13,8 +13,6 @@
   "NAV.CHOICE": "choice",
   "NAV.PATH_ITEM": "{type}",
   "NAV.COORDINATES": "({col}, {row})",
-  "NAV.NODE": "{type} {coordinates}",
-  "NAV.NODE_WITH_STATE": "{type} {coordinates}, {state}",
   "NAV.CURRENT_LOCATION": "You are at {type}, {coordinates}",
   "NAV.ON_PATH_TO": "on path to {markers}",
   "NAV.DIVERGES_FROM": "diverges from {markers}",
