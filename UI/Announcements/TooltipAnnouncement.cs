@@ -3,6 +3,7 @@ using SayTheSpire2.Localization;
 namespace SayTheSpire2.UI.Announcements;
 
 /// <summary>The element's description / tooltip text, typically from the game model.</summary>
+[ShowInGlobalSettings]
 public sealed class TooltipAnnouncement : Announcement
 {
     private readonly Message _text;

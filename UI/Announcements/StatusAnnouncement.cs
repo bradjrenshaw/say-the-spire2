@@ -7,6 +7,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// slider's current value, dropdown's selected option, keybinding summary,
 /// sort direction, etc.). Takes the pre-formatted text from the caller.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class StatusAnnouncement : Announcement
 {
     private readonly Message _value;

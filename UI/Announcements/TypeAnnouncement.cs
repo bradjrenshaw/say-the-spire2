@@ -6,6 +6,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// The element's type label (e.g., "creature", "card"). Renders from the
 /// TYPES.{key} localization table.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class TypeAnnouncement : Announcement
 {
     private readonly string _typeKey;

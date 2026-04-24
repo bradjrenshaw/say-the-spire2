@@ -3,6 +3,7 @@ using SayTheSpire2.Localization;
 namespace SayTheSpire2.UI.Announcements;
 
 /// <summary>The element's primary identifying text (creature name, card title, etc.).</summary>
+[ShowInGlobalSettings]
 public sealed class LabelAnnouncement : Announcement
 {
     private readonly Message _label;

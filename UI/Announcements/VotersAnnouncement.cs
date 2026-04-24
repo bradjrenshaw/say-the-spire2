@@ -7,6 +7,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// Lists the co-op players who have voted to travel to this item in multiplayer
 /// (e.g., a map node). Renders only when at least one player has voted.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class VotersAnnouncement : Announcement
 {
     private readonly IReadOnlyList<string> _voters;

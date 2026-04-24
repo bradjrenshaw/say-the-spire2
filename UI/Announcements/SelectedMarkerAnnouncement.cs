@@ -7,6 +7,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// in a card-grid selection screen). Stateless — the caller only yields this
 /// when the element is actually selected.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class SelectedMarkerAnnouncement : Announcement
 {
     public override string Key => "selected_marker";

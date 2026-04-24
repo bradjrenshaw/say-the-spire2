@@ -74,6 +74,12 @@ public static class AnnouncementRegistry
             $"Announcements/{displayName}",
             $"{RootLocKey}/{categoryLocKey}");
 
+        // Announcements that aren't opted in via [ShowInGlobalSettings] still
+        // get their global category (per-element NullableBool overrides need
+        // it as a fallback), but it's hidden from the settings UI so the user
+        // only sees it via the per-element reorder/configure screens.
+        category.Hidden = announcementType.GetCustomAttribute<ShowInGlobalSettingsAttribute>() == null;
+
         if (category.GetByKey("enabled") == null)
             category.Add(new BoolSetting("enabled", "Announce", true, localizationKey: EnabledLocKey));
 

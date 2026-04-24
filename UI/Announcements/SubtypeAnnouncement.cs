@@ -7,6 +7,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// Renders from the TYPES.{key} localization table, same source as TypeAnnouncement.
 /// Separate announcement class so it gets its own settings identity.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class SubtypeAnnouncement : Announcement
 {
     private readonly string _subtypeKey;

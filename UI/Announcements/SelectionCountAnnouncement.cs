@@ -7,6 +7,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// (e.g., "3 cards selected" while picking cards to remove or upgrade). Not
 /// tied to this specific element's state — reflects the selection-set size.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class SelectionCountAnnouncement : Announcement
 {
     private readonly int _count;

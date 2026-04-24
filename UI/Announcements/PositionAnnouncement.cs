@@ -10,6 +10,7 @@ namespace SayTheSpire2.UI.Announcements;
 /// it at the end by default, subclasses can declare it in their
 /// <c>[AnnouncementOrder]</c> to reorder.
 /// </summary>
+[ShowInGlobalSettings]
 public sealed class PositionAnnouncement : Announcement
 {
     private readonly Message _position;
