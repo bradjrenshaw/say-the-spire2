@@ -8,6 +8,7 @@ using SayTheSpire2.UI.Screens;
 
 namespace SayTheSpire2.UI.Elements;
 
+[ElementSettingsKey("map_node")]
 [AnnouncementOrder(
     typeof(MapMarkedAnnouncement),
     typeof(LabelAnnouncement),

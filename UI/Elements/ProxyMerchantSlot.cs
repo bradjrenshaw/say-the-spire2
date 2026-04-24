@@ -11,6 +11,7 @@ namespace SayTheSpire2.UI.Elements;
 // [AnnouncementOrder] used only for the card-removal fallback (no inner proxy).
 // When wrapping a card/relic/potion the composer uses the inner's order via
 // AnnouncementOrderType below.
+[ElementSettingsKey("shop_item")]
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
@@ -31,7 +32,7 @@ public class ProxyMerchantSlot : ProxyElement
         if (entry is MerchantCardRemovalEntry)
         {
             yield return new LabelAnnouncement(Message.Localized("ui", "LABELS.CARD_REMOVAL"));
-            yield return new TypeAnnouncement("shop item");
+            yield return new TypeAnnouncement("shop_item");
             if (!entry.IsStocked)
             {
                 yield return new SoldOutAnnouncement();
@@ -111,7 +112,7 @@ public class ProxyMerchantSlot : ProxyElement
         var inner = GetInnerProxy();
         if (inner != null) return inner.GetTypeKey();
 
-        return "shop item";
+        return "shop_item";
     }
 
     public override string? HandleBuffers(BufferManager buffers)

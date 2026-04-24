@@ -34,8 +34,8 @@ public static class FocusStringSettings
         Register("slider", "Slider");
         Register("dropdown", "Dropdown");
         Register("keybind", "Key Binding");
-        Register("shop item", "Shop Item");
-        Register("map node", "Map Node");
+        Register("shop_item", "Shop Item");
+        Register("map_node", "Map Node");
     }
 
     public static bool ShouldAnnouncePosition(string typeKey)

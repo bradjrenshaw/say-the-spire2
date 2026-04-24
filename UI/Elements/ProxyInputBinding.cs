@@ -10,6 +10,7 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
+[ElementSettingsKey("keybind")]
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),

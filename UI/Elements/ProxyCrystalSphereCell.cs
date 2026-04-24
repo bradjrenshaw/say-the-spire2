@@ -8,11 +8,12 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement)
-)]
+// Delegates settings / [AnnouncementOrder] to ProxyButton — cell is perceived
+// as a button; range info rides along as StatusAnnouncement.
 public class ProxyCrystalSphereCell : ProxyElement
 {
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     public ProxyCrystalSphereCell(Control control) : base(control) { }
 
     private NCrystalSphereCell? Cell => Control as NCrystalSphereCell;
@@ -24,6 +25,12 @@ public class ProxyCrystalSphereCell : ProxyElement
         var label = GetLabel();
         if (label != null)
             yield return new LabelAnnouncement(label);
+
+        yield return new TypeAnnouncement("button");
+
+        var status = GetStatusString();
+        if (status != null)
+            yield return new StatusAnnouncement(status);
     }
 
     public override Message? GetLabel()
@@ -38,9 +45,18 @@ public class ProxyCrystalSphereCell : ProxyElement
         if (item == null)
             return Message.Localized("ui", "LABELS.EMPTY");
 
-        var itemLabel = GetItemLabel(item);
-        var rangeStr = GetItemRangeString(item);
-        return rangeStr != null ? Message.Raw($"{itemLabel} {rangeStr}") : Message.Raw(itemLabel);
+        return Message.Raw(GetItemLabel(item));
+    }
+
+    public override string? GetTypeKey() => "button";
+
+    public override Message? GetStatusString()
+    {
+        var item = Entity?.Item;
+        if (item == null) return null;
+
+        var range = GetItemRangeString(item);
+        return range != null ? Message.Raw(range) : null;
     }
 
     private static string GetItemLabel(CrystalSphereItem item)
