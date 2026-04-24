@@ -542,6 +542,7 @@
   "SETTINGS.ANNOUNCEMENTS.BINDING_EXCLUSIVITY": "Binding Exclusivity",
   "SETTINGS.ANNOUNCEMENTS.ORB_NUMBERS": "Orb Numbers",
   "SETTINGS.VERBOSE": "Verbose",
+  "SETTINGS.INCLUDE_PREFIX": "Include Prefix",
   "BINDING.KEYBOARD_BOUND": "keyboard {key}",
   "BINDING.KEYBOARD_UNBOUND": "keyboard unbound",
   "BINDING.CONTROLLER_BOUND": "controller {button}",

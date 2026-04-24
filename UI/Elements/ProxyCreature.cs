@@ -20,14 +20,8 @@ namespace SayTheSpire2.UI.Elements;
     typeof(MonsterIntentsAnnouncement),
     typeof(PlayerIntentsAnnouncement)
 )]
-[ModSettings("ui.creature", "UI/Creature")]
 public class ProxyCreature : ProxyElement
 {
-    public static void RegisterSettings(CategorySetting category)
-    {
-        category.Add(new BoolSetting("intent_first", "Announce Intent Before HP", false));
-    }
-
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {
         var view = GetView();
@@ -86,20 +80,16 @@ public class ProxyCreature : ProxyElement
         var view = GetView();
         if (view == null) return null;
 
-        var parts = new List<string>();
-        var intentFirst = ModSettings.GetValue<bool>("ui.creature.intent_first");
-
-        var intentSummary = CreatureIntentFormatter.Summary(view, includePrefix: !intentFirst);
-
-        if (intentFirst && !string.IsNullOrEmpty(intentSummary))
-            parts.Add(intentSummary);
-
-        parts.Add(Message.Localized("ui", "RESOURCE.HP", new { current = view.CurrentHp, max = view.MaxHp }).Resolve());
+        var parts = new List<string>
+        {
+            Message.Localized("ui", "RESOURCE.HP", new { current = view.CurrentHp, max = view.MaxHp }).Resolve(),
+        };
 
         if (view.Block > 0)
             parts.Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = view.Block }).Resolve());
 
-        if (!intentFirst && !string.IsNullOrEmpty(intentSummary))
+        var intentSummary = CreatureIntentFormatter.Summary(view, includePrefix: true);
+        if (!string.IsNullOrEmpty(intentSummary))
             parts.Add(intentSummary);
 
         return Message.Raw(string.Join(", ", parts));
