@@ -19,6 +19,7 @@ public class NullableDropdownElement : UIElement
 
     private readonly Button _control;
     private readonly NullableChoiceSetting _setting;
+    private readonly System.Action<string> _onResolvedChanged;
 
     public Node Node => _control;
     public NullableChoiceSetting Setting => _setting;
@@ -32,7 +33,18 @@ public class NullableDropdownElement : UIElement
             FocusMode = Control.FocusModeEnum.None,
         };
 
-        setting.ResolvedChanged += _ => _control.Text = GetButtonText();
+        _onResolvedChanged = _ =>
+        {
+            if (GodotObject.IsInstanceValid(_control))
+                _control.Text = GetButtonText();
+        };
+        setting.ResolvedChanged += _onResolvedChanged;
+    }
+
+    public override void Detach()
+    {
+        _setting.ResolvedChanged -= _onResolvedChanged;
+        base.Detach();
     }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

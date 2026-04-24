@@ -47,6 +47,18 @@ public abstract class Container : UIElement
     public int IndexOf(UIElement child) => _children.IndexOf(child);
 
     /// <summary>
+    /// Recursively detaches every descendant, then self. Containers call
+    /// children's Detach so a screen can tear the whole element tree down by
+    /// invoking Detach on the root.
+    /// </summary>
+    public override void Detach()
+    {
+        foreach (var child in _children)
+            child.Detach();
+        base.Detach();
+    }
+
+    /// <summary>
     /// Swap two children's positions in this container. No-op for invalid indices.
     /// </summary>
     public void Swap(int a, int b)

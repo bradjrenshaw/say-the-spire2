@@ -22,6 +22,7 @@ public class NullableCheckboxElement : UIElement
 
     private readonly CheckBox _control;
     private readonly NullableBoolSetting _setting;
+    private readonly System.Action<bool> _onResolvedChanged;
 
     public Node Node => _control;
 
@@ -36,8 +37,21 @@ public class NullableCheckboxElement : UIElement
         };
 
         // Keep UI in sync if the resolved value changes (global flip while inheriting,
-        // or a reset action clearing the override).
-        setting.ResolvedChanged += v => _control.SetPressedNoSignal(v);
+        // or a reset action clearing the override). Guard with IsInstanceValid so
+        // a stale subscription that survives past the screen pop — e.g., during
+        // the frame the Godot node is queued for free — doesn't throw.
+        _onResolvedChanged = v =>
+        {
+            if (GodotObject.IsInstanceValid(_control))
+                _control.SetPressedNoSignal(v);
+        };
+        setting.ResolvedChanged += _onResolvedChanged;
+    }
+
+    public override void Detach()
+    {
+        _setting.ResolvedChanged -= _onResolvedChanged;
+        base.Detach();
     }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

@@ -558,5 +558,8 @@
   "SETTINGS.MOVE_UP": "Move Up",
   "SETTINGS.MOVE_DOWN": "Move Down",
   "SETTINGS.CONFIGURE": "Configure",
-  "SETTINGS.HORIZONTAL_BAR_LABEL": "{label} horizontal bar"
+  "SETTINGS.HORIZONTAL_BAR_LABEL": "{label} horizontal bar",
+  "SETTINGS.MOVED_BETWEEN": "Moved between {prev} and {next}",
+  "SETTINGS.MOVED_BEFORE": "Moved before {next}",
+  "SETTINGS.MOVED_AFTER": "Moved after {prev}"
 }

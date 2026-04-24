@@ -22,6 +22,7 @@ public class NullableTextInputElement : UIElement
 
     private readonly LineEdit _control;
     private readonly NullableStringSetting _setting;
+    private readonly System.Action<string> _onResolvedChanged;
     private bool _suppressSync;
 
     public Node Node => _control;
@@ -36,12 +37,20 @@ public class NullableTextInputElement : UIElement
             CustomMinimumSize = new Vector2(200, 0),
         };
 
-        setting.ResolvedChanged += v =>
+        _onResolvedChanged = v =>
         {
+            if (!GodotObject.IsInstanceValid(_control)) return;
             _suppressSync = true;
             _control.Text = v;
             _suppressSync = false;
         };
+        setting.ResolvedChanged += _onResolvedChanged;
+    }
+
+    public override void Detach()
+    {
+        _setting.ResolvedChanged -= _onResolvedChanged;
+        base.Detach();
     }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

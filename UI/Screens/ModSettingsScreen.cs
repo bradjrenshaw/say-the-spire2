@@ -125,6 +125,11 @@ public class ModSettingsScreen : Screen
 
     public override void OnPop()
     {
+        // Unsubscribe every element from long-lived events (e.g., NullableSetting
+        // ResolvedChanged) before freeing the Godot nodes. Container.Detach
+        // recurses so row children get cleaned up too.
+        _navContainer.Detach();
+
         if (GodotObject.IsInstanceValid(_root))
         {
             _root.GetParent()?.RemoveChild(_root);
@@ -338,6 +343,50 @@ public class ModSettingsScreen : Screen
         }
 
         PersistAnnouncementOrder();
+        SpeakMoveFeedback(row);
+    }
+
+    /// <summary>
+    /// Speaks where the row landed after a move. Reports the neighbouring
+    /// row labels — "between X and Y", "before Y" at the top, "after X" at
+    /// the bottom. No-op when the row is the only row in the container.
+    /// </summary>
+    private void SpeakMoveFeedback(RowContainer row)
+    {
+        var index = _navContainer.IndexOf(row);
+        CategorySetting? prevCat = null;
+        CategorySetting? nextCat = null;
+
+        for (int i = index - 1; i >= 0; i--)
+        {
+            if (_navContainer.Children[i] is RowContainer r && _rowCategories.TryGetValue(r, out var c))
+            {
+                prevCat = c;
+                break;
+            }
+        }
+        for (int i = index + 1; i < _navContainer.Children.Count; i++)
+        {
+            if (_navContainer.Children[i] is RowContainer r && _rowCategories.TryGetValue(r, out var c))
+            {
+                nextCat = c;
+                break;
+            }
+        }
+
+        Message? msg = (prevCat, nextCat) switch
+        {
+            (not null, not null) => Message.Localized("ui", "SETTINGS.MOVED_BETWEEN",
+                new { prev = prevCat.Label, next = nextCat.Label }),
+            (null, not null) => Message.Localized("ui", "SETTINGS.MOVED_BEFORE",
+                new { next = nextCat.Label }),
+            (not null, null) => Message.Localized("ui", "SETTINGS.MOVED_AFTER",
+                new { prev = prevCat.Label }),
+            _ => null,
+        };
+
+        if (msg != null)
+            SpeechManager.Output(msg);
     }
 
     private void PersistAnnouncementOrder()

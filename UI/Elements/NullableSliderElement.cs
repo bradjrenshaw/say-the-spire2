@@ -20,6 +20,7 @@ public class NullableSliderElement : UIElement
 
     private readonly HSlider _control;
     private readonly NullableIntSetting _setting;
+    private readonly System.Action<int> _onResolvedChanged;
     private bool _suppressSync;
 
     public Node Node => _control;
@@ -38,12 +39,20 @@ public class NullableSliderElement : UIElement
         };
 
         // Keep UI in sync when resolved changes via fallback or reset.
-        setting.ResolvedChanged += v =>
+        _onResolvedChanged = v =>
         {
+            if (!GodotObject.IsInstanceValid(_control)) return;
             _suppressSync = true;
             _control.Value = v;
             _suppressSync = false;
         };
+        setting.ResolvedChanged += _onResolvedChanged;
+    }
+
+    public override void Detach()
+    {
+        _setting.ResolvedChanged -= _onResolvedChanged;
+        base.Detach();
     }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()

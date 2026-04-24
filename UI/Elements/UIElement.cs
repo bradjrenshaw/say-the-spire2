@@ -68,6 +68,14 @@ public abstract class UIElement
         return "ui";
     }
 
+    /// <summary>
+    /// Called when this element is being torn down — e.g., the settings screen
+    /// that owns it is popping. Subclasses override to unsubscribe from
+    /// long-lived events (NullableSetting.ResolvedChanged etc.) so they don't
+    /// accumulate stale handlers across repeated screen opens.
+    /// </summary>
+    public virtual void Detach() { }
+
     public bool IsFocused { get; private set; }
 
     public void Focus()
