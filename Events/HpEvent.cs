@@ -22,8 +22,8 @@ public class HpEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("announce_damage", "Announce Damage", true));
-        category.Add(new BoolSetting("announce_heals", "Announce Heals", true));
+        category.Add(new BoolSetting("announce_damage", "Announce Damage", true, localizationKey: "EVENTS.HP.ANNOUNCE_DAMAGE"));
+        category.Add(new BoolSetting("announce_heals", "Announce Heals", true, localizationKey: "EVENTS.HP.ANNOUNCE_HEALS"));
     }
 
     public override Message? GetMessage()

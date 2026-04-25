@@ -22,11 +22,11 @@ public class TurnEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("player_turn_start", "Player Turn Start", true));
-        category.Add(new BoolSetting("player_turn_end", "Player Turn End", false));
-        category.Add(new BoolSetting("enemy_turn_start", "Enemy Turn Start", true));
-        category.Add(new BoolSetting("enemy_turn_end", "Enemy Turn End", false));
-        category.Add(new BoolSetting("show_round", "Show Round Number", true));
+        category.Add(new BoolSetting("player_turn_start", "Player Turn Start", true, localizationKey: "EVENTS.TURN.PLAYER_TURN_START"));
+        category.Add(new BoolSetting("player_turn_end", "Player Turn End", false, localizationKey: "EVENTS.TURN.PLAYER_TURN_END"));
+        category.Add(new BoolSetting("enemy_turn_start", "Enemy Turn Start", true, localizationKey: "EVENTS.TURN.ENEMY_TURN_START"));
+        category.Add(new BoolSetting("enemy_turn_end", "Enemy Turn End", false, localizationKey: "EVENTS.TURN.ENEMY_TURN_END"));
+        category.Add(new BoolSetting("show_round", "Show Round Number", true, localizationKey: "EVENTS.TURN.SHOW_ROUND"));
     }
 
     private string SubSettingKey

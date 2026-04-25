@@ -17,7 +17,7 @@ public class TolkHandler : ISpeechHandler
         if (_settings != null) return _settings;
 
         _settings = new CategorySetting(Key, Label);
-        _trySapi = new BoolSetting("try_sapi", "Fall back to SAPI", true);
+        _trySapi = new BoolSetting("try_sapi", "Fall back to SAPI", true, localizationKey: "SPEECH.TOLK.TRY_SAPI");
         _settings.Add(_trySapi);
 
         return _settings;

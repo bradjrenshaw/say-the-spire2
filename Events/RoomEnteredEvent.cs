@@ -16,13 +16,13 @@ public class RoomEnteredEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("announce_combat", "Announce Combat", true));
-        category.Add(new BoolSetting("announce_elite", "Announce Elite Combat", true));
-        category.Add(new BoolSetting("announce_boss", "Announce Boss Combat", true));
-        category.Add(new BoolSetting("announce_treasure", "Announce Treasure Chest", true));
-        category.Add(new BoolSetting("announce_shop", "Announce Shop", true));
-        category.Add(new BoolSetting("announce_event", "Announce Event", true));
-        category.Add(new BoolSetting("announce_rest_site", "Announce Rest Site", true));
+        category.Add(new BoolSetting("announce_combat", "Announce Combat", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_COMBAT"));
+        category.Add(new BoolSetting("announce_elite", "Announce Elite Combat", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_ELITE"));
+        category.Add(new BoolSetting("announce_boss", "Announce Boss Combat", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_BOSS"));
+        category.Add(new BoolSetting("announce_treasure", "Announce Treasure Chest", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_TREASURE"));
+        category.Add(new BoolSetting("announce_shop", "Announce Shop", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_SHOP"));
+        category.Add(new BoolSetting("announce_event", "Announce Event", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_EVENT"));
+        category.Add(new BoolSetting("announce_rest_site", "Announce Rest Site", true, localizationKey: "EVENTS.ROOM.ANNOUNCE_REST_SITE"));
     }
 
     public override Message? GetMessage()

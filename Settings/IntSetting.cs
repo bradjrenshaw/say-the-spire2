@@ -12,8 +12,8 @@ public class IntSetting : Setting
 
     public event Action<int>? Changed;
 
-    public IntSetting(string key, string label, int defaultValue = 0, int min = 0, int max = 100, int step = 1)
-        : base(key, label)
+    public IntSetting(string key, string label, int defaultValue = 0, int min = 0, int max = 100, int step = 1, string localizationKey = "")
+        : base(key, label, localizationKey)
     {
         Default = defaultValue;
         Value = defaultValue;

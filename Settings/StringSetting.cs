@@ -11,8 +11,8 @@ public class StringSetting : Setting
 
     public event Action<string>? Changed;
 
-    public StringSetting(string key, string label, string defaultValue = "")
-        : base(key, label)
+    public StringSetting(string key, string label, string defaultValue = "", string localizationKey = "")
+        : base(key, label, localizationKey)
     {
         Default = defaultValue;
         Value = defaultValue;

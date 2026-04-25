@@ -14,8 +14,8 @@ public class ChoiceSetting : Setting
 
     public event Action<string>? Changed;
 
-    public ChoiceSetting(string key, string label, string defaultKey, List<Choice> options)
-        : base(key, label)
+    public ChoiceSetting(string key, string label, string defaultKey, List<Choice> options, string localizationKey = "")
+        : base(key, label, localizationKey)
     {
         DefaultKey = defaultKey;
         Value = defaultKey;

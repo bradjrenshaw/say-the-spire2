@@ -1,4 +1,4 @@
-## V0.5.0
+## V0.5.0 (pre-release)
 * The focus-string system has been reworked from a fixed template into a composable set of "announcements" that you can toggle, reorder, and customize individually. Each piece of information an element reads out — label, type, HP, block, intents, tooltip, price, position, etc. — is now its own announcement with its own settings.
 * Every element type (card, creature, button, relic, potion, shop item, map node, keybinding, ...) now has an Announcements tree under UI/<element>/Announcements. Each announcement in that tree is configurable independently and inherits its values from a global default unless you change it.
 * You can now reorder the pieces of an element's focus string. Each announcement in an element's Announcements tree is a row with Configure / Move Up / Move Down buttons. Use this to (for example) put monster intent before HP on creatures, or put price first on shop items. The new position is spoken as "moved between X and Y", "moved before X", or "moved after X".

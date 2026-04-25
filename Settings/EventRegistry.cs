@@ -31,20 +31,20 @@ public static class EventRegistry
 
         // Event-specific: add standard announce + buffer settings
         if (cat.GetByKey("announce") == null)
-            cat.Add(new BoolSetting("announce", "Announce", attr.DefaultAnnounce));
+            cat.Add(new BoolSetting("announce", "Announce", attr.DefaultAnnounce, localizationKey: "EVENTS.COMMON.ANNOUNCE"));
         if (cat.GetByKey("buffer") == null)
-            cat.Add(new BoolSetting("buffer", "Add to buffer", attr.DefaultBuffer));
+            cat.Add(new BoolSetting("buffer", "Add to buffer", attr.DefaultBuffer, localizationKey: "EVENTS.COMMON.BUFFER"));
 
         // Source filter subcategory (for events that apply to a creature)
         if (attr.HasSourceFilter && cat.GetByKey("sources") == null)
         {
-            var sources = new CategorySetting("sources", "Sources");
+            var sources = new CategorySetting("sources", "Sources", localizationKey: "EVENTS.COMMON.SOURCES");
             if (attr.AllowCurrentPlayer)
-                sources.Add(new BoolSetting("current_player", "Current Player", attr.DefaultCurrentPlayer));
+                sources.Add(new BoolSetting("current_player", "Current Player", attr.DefaultCurrentPlayer, localizationKey: "EVENTS.COMMON.SOURCE_CURRENT_PLAYER"));
             if (attr.AllowOtherPlayers)
-                sources.Add(new BoolSetting("other_players", "Other Players", attr.DefaultOtherPlayers));
+                sources.Add(new BoolSetting("other_players", "Other Players", attr.DefaultOtherPlayers, localizationKey: "EVENTS.COMMON.SOURCE_OTHER_PLAYERS"));
             if (attr.AllowEnemies)
-                sources.Add(new BoolSetting("enemies", "Enemies", attr.DefaultEnemies));
+                sources.Add(new BoolSetting("enemies", "Enemies", attr.DefaultEnemies, localizationKey: "EVENTS.COMMON.SOURCE_ENEMIES"));
             cat.Add(sources);
         }
     }

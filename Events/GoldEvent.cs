@@ -19,9 +19,9 @@ public class GoldEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("announce_gained", "Announce Gold Gained", true));
-        category.Add(new BoolSetting("announce_lost", "Announce Gold Lost", true));
-        category.Add(new BoolSetting("verbose_totals", "Include Gold Totals", true));
+        category.Add(new BoolSetting("announce_gained", "Announce Gold Gained", true, localizationKey: "EVENTS.GOLD.ANNOUNCE_GAINED"));
+        category.Add(new BoolSetting("announce_lost", "Announce Gold Lost", true, localizationKey: "EVENTS.GOLD.ANNOUNCE_LOST"));
+        category.Add(new BoolSetting("verbose_totals", "Include Gold Totals", true, localizationKey: "EVENTS.GOLD.VERBOSE_TOTALS"));
     }
 
     public override Message? GetMessage()

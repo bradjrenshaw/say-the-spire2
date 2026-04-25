@@ -20,7 +20,7 @@ public class EnemyMoveEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("show_intent", "Show Intent on Enemy Move", false));
+        category.Add(new BoolSetting("show_intent", "Show Intent on Enemy Move", false, localizationKey: "EVENTS.ENEMY_MOVE.SHOW_INTENT"));
     }
 
     public override Message? GetMessage()

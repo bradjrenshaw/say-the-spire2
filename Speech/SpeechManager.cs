@@ -29,7 +29,7 @@ public static class SpeechManager
         };
         foreach (var handler in Handlers)
             handlerChoices.Add(new Choice(handler.Key, handler.Label));
-        var handlerSetting = new ChoiceSetting("handler", "Speech Handler", "auto", handlerChoices) { SortPriority = -1 };
+        var handlerSetting = new ChoiceSetting("handler", "Speech Handler", "auto", handlerChoices, localizationKey: "SPEECH.HANDLER") { SortPriority = -1 };
         speechCategory.Add(handlerSetting);
         SetHandlerSetting(handlerSetting);
 

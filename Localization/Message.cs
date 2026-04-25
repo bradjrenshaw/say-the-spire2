@@ -23,13 +23,15 @@ public class Message
     private static readonly Regex ResPathPattern = new(@"res://\S+", RegexOptions.Compiled);
     private static readonly Regex VariablePattern = new(@"\{(\w+)\}", RegexOptions.Compiled);
 
+    // Icon suffix → ui.json loc key. Resolved each time so language switches at
+    // runtime apply to card descriptions / any bbcode-stripped text.
     private static readonly Dictionary<string, string> IconNames = new()
     {
-        { "energy_icon", "Energy" },
-        { "star_icon", "Star" },
-        { "gold_icon", "Gold" },
-        { "card_icon", "Card" },
-        { "chest_icon", "Chest" },
+        { "energy_icon", "ICONS.ENERGY" },
+        { "star_icon", "ICONS.STAR" },
+        { "gold_icon", "ICONS.GOLD" },
+        { "card_icon", "ICONS.CARD" },
+        { "chest_icon", "ICONS.CHEST" },
     };
 
     private readonly string? _rawText;
@@ -228,10 +230,10 @@ public class Message
         var dot = name.LastIndexOf('.');
         if (dot > 0) name = name.Substring(0, dot);
 
-        foreach (var (suffix, label) in IconNames)
+        foreach (var (suffix, locKey) in IconNames)
         {
             if (name.EndsWith(suffix) || name == suffix)
-                return label;
+                return LocalizationManager.GetOrDefault("ui", locKey, locKey);
         }
 
         name = name.Replace("_", " ").Trim();

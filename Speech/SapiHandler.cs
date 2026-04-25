@@ -24,8 +24,8 @@ public class SapiHandler : ISpeechHandler
 
         _settings = new CategorySetting(Key, Label);
 
-        _rate = new IntSetting("rate", "Rate", defaultValue: 2, min: -10, max: 10);
-        _volume = new IntSetting("volume", "Volume", defaultValue: 100, min: 0, max: 100, step: 5);
+        _rate = new IntSetting("rate", "Rate", defaultValue: 2, min: -10, max: 10, localizationKey: "SPEECH.SAPI.RATE");
+        _volume = new IntSetting("volume", "Volume", defaultValue: 100, min: 0, max: 100, step: 5, localizationKey: "SPEECH.SAPI.VOLUME");
 
         // Enumerate installed voices
         var voices = new List<Choice>();
@@ -43,7 +43,7 @@ public class SapiHandler : ISpeechHandler
         }
 
         var defaultVoice = voices.FirstOrDefault()?.Key ?? "default";
-        _voice = new ChoiceSetting("voice", "Voice", defaultVoice, voices);
+        _voice = new ChoiceSetting("voice", "Voice", defaultVoice, voices, localizationKey: "SPEECH.SAPI.VOICE");
 
         _settings.Add(_rate);
         _settings.Add(_volume);

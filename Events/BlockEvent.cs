@@ -22,9 +22,9 @@ public class BlockEvent : GameEvent
 
     public static void RegisterSettings(CategorySetting category)
     {
-        category.Add(new BoolSetting("announce_gained", "Announce Block Gained", true));
-        category.Add(new BoolSetting("announce_lost", "Announce Block Lost", true));
-        category.Add(new BoolSetting("verbose_totals", "Include Block Totals", true));
+        category.Add(new BoolSetting("announce_gained", "Announce Block Gained", true, localizationKey: "EVENTS.BLOCK.ANNOUNCE_GAINED"));
+        category.Add(new BoolSetting("announce_lost", "Announce Block Lost", true, localizationKey: "EVENTS.BLOCK.ANNOUNCE_LOST"));
+        category.Add(new BoolSetting("verbose_totals", "Include Block Totals", true, localizationKey: "EVENTS.BLOCK.VERBOSE_TOTALS"));
     }
 
     public override Message? GetMessage()
