@@ -4,18 +4,9 @@
 * You can now reorder the pieces of an element's focus string. Each announcement in an element's Announcements tree is a row with Configure / Move Up / Move Down buttons. Use this to (for example) put monster intent before HP on creatures, or put price first on shop items. The new position is spoken as "moved between X and Y", "moved before X", or "moved after X".
 * A subset of announcements (Label, Position, Selected, Selection Count, Status, Subtype, Tooltip, Type, Voters) also appear in a top-level Announcements tree so you can toggle them across the whole game without setting per-element overrides. The more context-specific announcements (HP, energy, price, monster intents, etc.) are only configurable per element.
 * Each per-element Announcements tree has a Reset to Defaults action that clears your overrides back to inheriting the global value.
-* Position ("3 of 12") is now an announcement like any other — you can disable, reorder, or toggle it per element.
-* Monster Intents has a new Include Prefix toggle (on by default) that drops the word "Intent" from the reading. Useful for people that want to reorder monster intents elsewhere in the focus string (such as before HP.)
-* Card cost is now a single announcement covering both energy and stars with one Verbose toggle — "1 energy, 3 stars" vs. "1, 3". Replaces the old per-card Verbose Costs setting; applies to cards in hand, deck history, and anywhere else card costs appear.
-* Energy pool has its own Verbose toggle — "3/3 energy" vs. "3/3".
-* Orb Passive and Evoke are merged into one Orb Numbers announcement with a Verbose toggle — "Passive 3, Evoke 5" vs. "3/5".
-* Price, On Sale, Not Enough Gold, and Sold Out are merged into one Price announcement; the sold-out portion has its own sub-toggle.
 * Map node focus strings are now built from separate announcements (marked, free travel, node state, voter list, marker guidance) so each can be toggled individually.
-* Keybinding focus strings are now built from separate keyboard-binding, controller-binding, and exclusivity announcements.
 * Focused player creatures now read their current energy, stars, and cards-in-hand alongside HP and block.
 * The "Announce Intent Before HP" setting for creatures is gone — use Move Up on the Monster Intents row under UI/Creature/Announcements instead.
-* The per-element "Announce Position / Type / Subtype / Tooltip" toggles that used to live directly under UI/<element> have been folded into the per-element Announcements tree with the new override model.
-* Settings trees for similar button-like, slider-like, potion-like, and relic-like controls have been collapsed so related elements share one settings category instead of fragmenting across many near-duplicates.
 
 ## V0.4.1
 * Fixed an incorrect localization string that was causing positions to be read out as "row y, column x" instead of "x, y". All positions should be  in the form column, row.

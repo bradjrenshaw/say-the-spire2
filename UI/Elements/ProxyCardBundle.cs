@@ -8,12 +8,11 @@ using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
 
-[AnnouncementOrder(
-    typeof(LabelAnnouncement),
-    typeof(TypeAnnouncement)
-)]
+// User-perceives this as a button; share settings / [AnnouncementOrder] with ProxyButton.
 public class ProxyCardBundle : ProxyElement
 {
+    public override System.Type AnnouncementOrderType => typeof(ProxyButton);
+
     public ProxyCardBundle(Control control) : base(control) { }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()
