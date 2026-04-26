@@ -7,6 +7,7 @@
 * Map node focus strings are now built from separate announcements (marked, free travel, node state, voter list, marker guidance) so each can be toggled individually.
 * Focused player creatures now read their current energy, stars, and cards-in-hand alongside HP and block.
 * The "Announce Intent Before HP" setting for creatures is gone — use Move Up on the Monster Intents row under UI/Creature/Announcements instead.
+* Fixed a bug where the events buffer would keep disappearing mid run.
 
 ## V0.4.1
 * Fixed an incorrect localization string that was causing positions to be read out as "row y, column x" instead of "x, y". All positions should be  in the form column, row.
