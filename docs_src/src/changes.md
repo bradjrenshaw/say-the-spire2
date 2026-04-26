@@ -1,13 +1,22 @@
 ## V0.5.0 (pre-release)
-* The focus-string system has been reworked from a fixed template into a composable set of "announcements" that you can toggle, reorder, and customize individually. Each piece of information an element reads out — label, type, HP, block, intents, tooltip, price, position, etc. — is now its own announcement with its own settings.
+Due to the significant refactoring to how UI element configuration works, some of your saved settings will not carry over to this version of the mod. sorry for the inconvenience. All functionality is still present but you will have to reconfigure it.
+
+* The focus-string system (text read out when you focus abutton, card, etc) has been reworked from a fixed template into a composable set of "announcements" that you can toggle, reorder, and customize individually. Each piece of information an element reads out — label, type, HP, block, intents, tooltip, price, position, etc. — is now its own announcement with its own settings.
 * Every element type (card, creature, button, relic, potion, shop item, map node, keybinding, ...) now has an Announcements tree under UI/<element>/Announcements. Each announcement in that tree is configurable independently and inherits its values from a global default unless you change it.
 * You can now reorder the pieces of an element's focus string. Each announcement in an element's Announcements tree is a row with Configure / Move Up / Move Down buttons. Use this to (for example) put monster intent before HP on creatures, or put price first on shop items. The new position is spoken as "moved between X and Y", "moved before X", or "moved after X".
 * A subset of announcements (Label, Position, Selected, Selection Count, Status, Subtype, Tooltip, Type, Voters) also appear in a top-level Announcements tree so you can toggle them across the whole game without setting per-element overrides. The more context-specific announcements (HP, energy, price, monster intents, etc.) are only configurable per element.
 * Each per-element Announcements tree has a Reset to Defaults action that clears your overrides back to inheriting the global value.
-* Map node focus strings are now built from separate announcements (marked, free travel, node state, voter list, marker guidance) so each can be toggled individually.
+* Map node focus strings are now built from separate announcements (marked, free travel, node state, voter list, marker guidance) so each can be toggled or reordered.
 * Focused player creatures now read their current energy, stars, and cards-in-hand alongside HP and block.
 * The "Announce Intent Before HP" setting for creatures is gone — use Move Up on the Monster Intents row under UI/Creature/Announcements instead.
 * Fixed a bug where the events buffer would keep disappearing mid run.
+* Various fixes, thanks to @amerikrainian:
+    * Fixed voters missing from event option and treasure room relics in multiplayer.
+    * Fixed creature owner missing on summoned creatures in multiplayer.
+    * Added support for score badge reading on game over screen.
+    * Fixed card upgrade buffer crash in beta branch.
+    * Fixed card compendium sort buttons to properly read out ascending/descending state changes.
+    * Fixed map screen stale data/crash bug in beta branch.
 
 ## V0.4.1
 * Fixed an incorrect localization string that was causing positions to be read out as "row y, column x" instead of "x, y". All positions should be  in the form column, row.
