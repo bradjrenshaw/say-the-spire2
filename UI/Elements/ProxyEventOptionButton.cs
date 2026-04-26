@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
@@ -30,6 +31,10 @@ public class ProxyEventOptionButton : ProxyElement
         var option = Button?.Option;
         if (option != null && option.IsLocked)
             yield return new LockedAnnouncement();
+
+        var voters = MultiplayerHelper.GetPlayerNames(Button?.VoteContainer?.Players);
+        if (voters.Count > 0)
+            yield return new VotersAnnouncement(voters);
 
         var tooltip = GetTooltip();
         if (tooltip != null)

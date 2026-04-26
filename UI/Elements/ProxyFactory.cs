@@ -3,13 +3,13 @@ using MegaCrit.sts2.Core.Nodes.TopBar;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
-using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
@@ -43,7 +43,7 @@ public static class ProxyFactory
         if (control is LineEdit)
             return new ProxyTextInput(control);
 
-        if (control is NTickbox)
+        if (control is NTickbox or NCardTypeTickbox or NCardCostTickbox)
             return new ProxyCheckbox(control);
 
         if (control is NDropdown)

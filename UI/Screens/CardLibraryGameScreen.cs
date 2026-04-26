@@ -580,6 +580,8 @@ public class CardLibraryGameScreen : GameScreen
         {
             NCardPoolFilter pool => pool.IsSelected,
             NTickbox tickbox => tickbox.IsTicked,
+            NCardTypeTickbox tickbox => tickbox.IsTicked,
+            NCardCostTickbox tickbox => tickbox.IsTicked,
             _ => null
         };
     }

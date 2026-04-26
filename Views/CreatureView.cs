@@ -48,6 +48,30 @@ public class CreatureView
     public MonsterModel? Monster => Entity.Monster;
 
     /// <summary>
+    /// The non-local player who owns this creature, when it's a pet in a real
+    /// multiplayer session. Null in singleplayer, for non-pets, or when the
+    /// pet is owned by the local player (where labelling the owner is noise).
+    /// </summary>
+    public Player? OtherPlayerPetOwner
+    {
+        get
+        {
+            var owner = Entity.PetOwner;
+            if (owner == null) return null;
+            try
+            {
+                if (RunManager.Instance.IsSinglePlayerOrFakeMultiplayer) return null;
+            }
+            catch (System.Exception e)
+            {
+                MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] OtherPlayerPetOwner singleplayer check failed: {e.Message}");
+                return null;
+            }
+            return LocalContext.IsMe(owner) ? null : owner;
+        }
+    }
+
+    /// <summary>
     /// The player's current combat state (energy, stars, hand). Null for
     /// non-players, or when the player isn't in combat.
     /// </summary>

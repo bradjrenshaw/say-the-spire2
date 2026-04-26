@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Nodes.Screens.TreasureRoomRelic;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
@@ -20,6 +22,8 @@ namespace SayTheSpire2.UI.Elements;
     // Shop-context insertion point — ProxyRelicHolder never yields this, but
     // ProxyMerchantSlot does, and relic's order positions it here.
     typeof(PriceAnnouncement),
+    // Treasure-room insertion point — only NTreasureRoomRelicHolder yields voters.
+    typeof(VotersAnnouncement),
     typeof(TooltipAnnouncement)
 )]
 public class ProxyRelicHolder : ProxyElement
@@ -42,6 +46,13 @@ public class ProxyRelicHolder : ProxyElement
 
         if (view.IsDisabled)
             yield return new RelicDisabledAnnouncement();
+
+        if (Control is NTreasureRoomRelicHolder treasureHolder)
+        {
+            var voters = MultiplayerHelper.GetPlayerNames(treasureHolder.VoteContainer?.Players);
+            if (voters.Count > 0)
+                yield return new VotersAnnouncement(voters);
+        }
 
         if (!string.IsNullOrEmpty(view.Description))
             yield return new TooltipAnnouncement(view.Description);

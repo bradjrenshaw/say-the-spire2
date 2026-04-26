@@ -38,6 +38,8 @@
   "EVENT.MAP_VOTE_SKIP_LOCAL": "Skipped",
   "EVENT.MAP_TRAVEL": "Traveling to {node}",
   "EVENT.VOTED_FOR_BY": "voted for by {players}",
+  "MULTIPLAYER.PET_OWNER": "{owner}",
+  "RELIC.DISABLED": "已禁用",
   "BUFFERS.UI": "界面",
   "BUFFERS.CHARACTER": "角色",
   "BUFFERS.CARD": "卡牌",

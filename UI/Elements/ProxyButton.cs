@@ -10,6 +10,9 @@ namespace SayTheSpire2.UI.Elements;
     typeof(TypeAnnouncement),
     typeof(StatusAnnouncement),
     typeof(LockedAnnouncement),
+    // Event-option insertion point — ProxyEventOptionButton yields voters; plain
+    // ProxyButton instances never do, so the slot has zero cost for them.
+    typeof(VotersAnnouncement),
     typeof(TooltipAnnouncement)
 )]
 public class ProxyButton : ProxyElement

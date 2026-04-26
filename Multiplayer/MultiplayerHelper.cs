@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -36,6 +37,27 @@ public static class MultiplayerHelper
     public static string GetPlayerName(Player player)
     {
         return GetPlayerName(player.NetId);
+    }
+
+    /// <summary>
+    /// Resolve display names for a sequence of players, skipping any that fail.
+    /// Returns an empty list when the input is null or empty so callers can
+    /// safely chain Count / string.Join.
+    /// </summary>
+    public static List<string> GetPlayerNames(IEnumerable<Player>? players, PlatformType? platform = null)
+    {
+        var names = new List<string>();
+        if (players == null) return names;
+
+        foreach (var player in players)
+        {
+            try { names.Add(GetPlayerName(player.NetId, platform)); }
+            catch (System.Exception e)
+            {
+                MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] GetPlayerNames failed for {player.NetId}: {e.Message}");
+            }
+        }
+        return names;
     }
 
     /// <summary>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Settings;
 using SayTheSpire2.UI;
 using SayTheSpire2.UI.Announcements;
@@ -11,6 +12,7 @@ namespace SayTheSpire2.UI.Elements;
 
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
+    typeof(OwnerAnnouncement),
     typeof(TypeAnnouncement),
     typeof(HpAnnouncement),
     typeof(BlockAnnouncement),
@@ -33,6 +35,9 @@ public class ProxyCreature : ProxyElement
         }
 
         yield return new LabelAnnouncement(view.Name);
+        var petOwner = view.OtherPlayerPetOwner;
+        if (petOwner != null)
+            yield return new OwnerAnnouncement(MultiplayerHelper.GetPlayerName(petOwner));
         yield return new TypeAnnouncement("creature");
         yield return new HpAnnouncement(view.CurrentHp, view.MaxHp);
         if (view.Block > 0)

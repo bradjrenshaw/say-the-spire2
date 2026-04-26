@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Speech;
 using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.UI.Elements;
@@ -12,6 +14,25 @@ public class ProxyCardViewSortButton : ProxyElement
     public override System.Type AnnouncementOrderType => typeof(ProxyButton);
 
     public ProxyCardViewSortButton(Control control) : base(control) { }
+
+    protected override void OnFocus()
+    {
+        if (Control is NCardViewSortButton button)
+            button.Released += OnReleased;
+    }
+
+    protected override void OnUnfocus()
+    {
+        if (Control is NCardViewSortButton button)
+            button.Released -= OnReleased;
+    }
+
+    private void OnReleased(NClickableControl control)
+    {
+        var status = GetStatusString();
+        if (status != null)
+            SpeechManager.Output(status);
+    }
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {

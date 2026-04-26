@@ -136,21 +136,21 @@ public static class MapNodeAnnouncementFormatter
         if (players == null || players.Count == 0)
             return new List<string>();
 
-        var voters = new List<string>();
+        var voterPlayers = new List<MegaCrit.Sts2.Core.Entities.Players.Player>();
         foreach (var player in players)
         {
             try
             {
                 var vote = RunManager.Instance.MapSelectionSynchronizer.GetVote(player);
                 if (vote?.coord.Equals(node.Point.coord) == true)
-                    voters.Add(MultiplayerHelper.GetPlayerName(player));
+                    voterPlayers.Add(player);
             }
             catch (System.Exception e)
             {
                 Log.Info($"[AccessibilityMod] Failed to read map vote for {player.NetId}: {e.Message}");
             }
         }
-        return voters;
+        return MultiplayerHelper.GetPlayerNames(voterPlayers);
     }
 
     private static MapNode? GetDefaultTravelOrigin(MapNode node)
