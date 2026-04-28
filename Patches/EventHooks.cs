@@ -55,6 +55,12 @@ public static class EventHooks
         HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardSmithVfx), "Create",
             typeof(EventHooks), nameof(CardSmithVfxPostfix), "NCardSmithVfx.Create",
             parameterTypes: new[] { typeof(IEnumerable<CardModel>), typeof(bool) });
+        // NCardEnchantVfx.Create returns null on test mode and on cards owned
+        // by other players, so the postfix's __result filter naturally scopes
+        // the announcement to "the player saw the sparkle animation". Matches
+        // the project's "if it isn't visually shown we don't report it" rule.
+        HarmonyHelper.PatchIfFound(harmony, typeof(MegaCrit.Sts2.Core.Nodes.Vfx.NCardEnchantVfx), "Create",
+            typeof(EventHooks), nameof(CardEnchantVfxPostfix), "NCardEnchantVfx.Create");
         HarmonyHelper.PatchIfFound(harmony, typeof(CardModel), "SpendResources",
             typeof(EventHooks), nameof(CardPlayedPrefix), "CardModel.SpendResources", isPrefix: true);
         // CardCmd.PreviewInternal is the chokepoint every public Preview /
@@ -141,6 +147,34 @@ public static class EventHooks
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Card smith VFX hook error: {e.Message}");
+        }
+    }
+
+    public static void CardEnchantVfxPostfix(CardModel card, MegaCrit.Sts2.Core.Nodes.Vfx.NCardEnchantVfx? __result)
+    {
+        // VFX is suppressed in test mode and for non-local-player cards — Create
+        // returns null in those cases. Only announce when the player actually
+        // sees the sparkle animation.
+        if (__result == null) return;
+
+        try
+        {
+            var cardName = card.Title;
+            var enchantment = card.Enchantment;
+            if (string.IsNullOrEmpty(cardName) || enchantment == null) return;
+
+            var enchantmentName = enchantment.Title.GetFormattedText();
+            if (string.IsNullOrEmpty(enchantmentName)) return;
+
+            // Match the VFX label visibility: only surface the amount when the
+            // game would render it on screen.
+            int? amount = enchantment.ShowAmount ? enchantment.DisplayAmount : null;
+
+            EventDispatcher.Enqueue(new CardEnchantedEvent(cardName, enchantmentName, amount));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Card enchant VFX hook error: {e.Message}");
         }
     }
 
