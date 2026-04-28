@@ -5,7 +5,7 @@
   "NODE_TYPES.REST_SITE": "休息处",
   "NODE_TYPES.MONSTER": "怪物",
   "NODE_TYPES.ELITE": "精英",
-  "NODE_TYPES.BOSS": "Boss",
+  "NODE_TYPES.BOSS": "首领",
   "NODE_TYPES.ANCIENT": "仙古之民",
   "STATE.TRAVELABLE": "可前往",
   "STATE.TRAVELED": "已到达",
@@ -13,10 +13,14 @@
   "NAV.CHOICE": "选择",
   "NAV.PATH_ITEM": "{type}",
   "NAV.COORDINATES": "({col}, {row})",
+  "NAV.CURRENT_LOCATION": "你位于 {type}, {coordinates}",
+  "NAV.ON_PATH_TO": "在前往 {markers} 的路线上",
+  "NAV.DIVERGES_FROM": "偏离于 {markers}",
   "NAV.FREE_TRAVEL": "飞行",
   "NAV.BRANCH": "路线 {position} / {total}: {type} {coordinates}",
-  "NAV.NO_FORWARD": "前方无路可走",
-  "NAV.NO_BACKWARD": "无法返回",
+  "NAV.NO_FORWARD": "没有可以前进的路线",
+  "NAV.NO_BACKWARD": "没有可以后退的路线",
   "NAV.NO_MORE_BRANCHES": "没有更多分支",
-  "QUEST_MARKED": "任务"
+  "QUEST_MARKED": "任务",
+  "MARKERS.MARKED": "标记"
 }
