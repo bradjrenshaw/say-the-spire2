@@ -1,4 +1,4 @@
-## V0.5.0 (pre-release)
+## V0.5.1
 Due to the significant refactoring to how UI element configuration works, some of your saved settings will not carry over to this version of the mod. sorry for the inconvenience. All functionality is still present but you will have to reconfigure it.
 
 * The focus-string system (text read out when you focus abutton, card, etc) has been reworked from a fixed template into a composable set of "announcements" that you can toggle, reorder, and customize individually. Each piece of information an element reads out — label, type, HP, block, intents, tooltip, price, position, etc. — is now its own announcement with its own settings.
@@ -10,6 +10,9 @@ Due to the significant refactoring to how UI element configuration works, some o
 * Focused player creatures now read their current energy, stars, and cards-in-hand alongside HP and block.
 * The "Announce Intent Before HP" setting for creatures is gone — use Move Up on the Monster Intents row under UI/Creature/Announcements instead.
 * Fixed a bug where the events buffer would keep disappearing mid run.
+* Fixed a bug causing a crash in the beta version whenever the mod would try to view any information on creatures (players or monsters.) this only occurs for some users due to weirdness caused by inconsistent beta branch rollouts from Steam.
+* Added propper support for the card preview event (triggers when a card is briefly shown, such as when a card is enchanted with Replay via the Hidden Gem card.)
+* Added a Card Enchanted event for when a card gains an enchantment. Note that there doesn't seem to be any visual feedback for when cards gain afflictions from the game itself, so I didn't add a specific event for it.
 * Various fixes, thanks to @amerikrainian:
     * Fixed voters missing from event option and treasure room relics in multiplayer.
     * Fixed creature owner missing on summoned creatures in multiplayer.
@@ -17,6 +20,7 @@ Due to the significant refactoring to how UI element configuration works, some o
     * Fixed card upgrade buffer crash in beta branch.
     * Fixed card compendium sort buttons to properly read out ascending/descending state changes.
     * Fixed map screen stale data/crash bug in beta branch.
+
 
 ## V0.4.1
 * Fixed an incorrect localization string that was causing positions to be read out as "row y, column x" instead of "x, y". All positions should be  in the form column, row.
