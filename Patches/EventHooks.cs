@@ -57,6 +57,12 @@ public static class EventHooks
             parameterTypes: new[] { typeof(IEnumerable<CardModel>), typeof(bool) });
         HarmonyHelper.PatchIfFound(harmony, typeof(CardModel), "SpendResources",
             typeof(EventHooks), nameof(CardPlayedPrefix), "CardModel.SpendResources", isPrefix: true);
+        // CardCmd.PreviewInternal is the chokepoint every public Preview /
+        // PreviewCardPileAdd overload routes through, after the local-player +
+        // not-test-mode + not-ending guards. Postfix only fires when the
+        // preview actually displays.
+        HarmonyHelper.PatchIfFound(harmony, typeof(CardCmd), "PreviewInternal",
+            typeof(EventHooks), nameof(CardPreviewPostfix), "CardCmd.PreviewInternal");
 
         // Card discard tracking — mark cards before they hit the discard pile
         HarmonyHelper.PatchIfFound(harmony, typeof(CardCmd), "DiscardAndDraw",
@@ -135,6 +141,25 @@ public static class EventHooks
         catch (System.Exception e)
         {
             Log.Error($"[AccessibilityMod] Card smith VFX hook error: {e.Message}");
+        }
+    }
+
+    public static void CardPreviewPostfix(CardModel card, System.Threading.Tasks.TaskCompletionSource? __result)
+    {
+        // PreviewInternal returns null on its early-out paths (test mode, combat ending,
+        // not the local player's card, no pile). Skip those — only announce when the
+        // preview UI was actually created.
+        if (__result == null) return;
+
+        try
+        {
+            var name = card.Title;
+            if (string.IsNullOrEmpty(name)) return;
+            EventDispatcher.Enqueue(new CardPreviewEvent(name));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Card preview hook error: {e.Message}");
         }
     }
 

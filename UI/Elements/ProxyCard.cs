@@ -12,6 +12,7 @@ namespace SayTheSpire2.UI.Elements;
 
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
+    typeof(ModifiersAnnouncement),
     typeof(EnergyCostAnnouncement),
     typeof(SubtypeAnnouncement),
     typeof(TypeAnnouncement),
@@ -36,14 +37,15 @@ public class ProxyCard : ProxyElement
             yield break;
         }
 
-        // Label (with enchantment/affliction in parens when present)
-        var modifiers = new List<string>();
-        if (view.EnchantmentTitle is { Length: > 0 } ench) modifiers.Add(ench);
-        if (view.AfflictionTitle is { Length: > 0 } aff) modifiers.Add(aff);
-        var labelText = modifiers.Count > 0
-            ? $"{view.Title} ({string.Join(", ", modifiers)})"
-            : view.Title;
-        yield return new LabelAnnouncement(labelText);
+        yield return new LabelAnnouncement(view.Title);
+
+        // Replay / enchantment / affliction together — the announcement decides
+        // which parts to render based on per-element / global settings, and
+        // emits an empty message if nothing applies.
+        if (view.ReplayCount > 0
+            || !string.IsNullOrEmpty(view.EnchantmentTitle)
+            || !string.IsNullOrEmpty(view.AfflictionTitle))
+            yield return new ModifiersAnnouncement(view.ReplayCount, view.EnchantmentTitle, view.AfflictionTitle);
 
         // Energy + star cost (skipped when the card has neither)
         int? energyCost = null;
@@ -90,12 +92,6 @@ public class ProxyCard : ProxyElement
     {
         var view = GetView();
         if (view == null) return Control != null ? Message.Raw(CleanNodeName(Control.Name)) : null;
-
-        var modifiers = new List<string>();
-        if (view.EnchantmentTitle is { Length: > 0 } ench) modifiers.Add(ench);
-        if (view.AfflictionTitle is { Length: > 0 } aff) modifiers.Add(aff);
-        if (modifiers.Count > 0)
-            return Message.Raw($"{view.Title} ({string.Join(", ", modifiers)})");
         return Message.Raw(view.Title);
     }
 

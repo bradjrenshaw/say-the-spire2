@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
+using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
@@ -59,12 +61,33 @@ public class CardView
 
     public string Title => DisplayedModel.Title;
     public CardType Type => DisplayedModel.Type;
+    public CardRarity Rarity => DisplayedModel.Rarity;
 
     /// <summary>Stable key suitable for localization/type announcements ("attack", "skill", ...).</summary>
     public string TypeKey => Type.ToString().ToLowerInvariant();
 
     public string? EnchantmentTitle => DisplayedModel.Enchantment?.Title?.GetFormattedText();
     public string? AfflictionTitle => DisplayedModel.Affliction?.Title?.GetFormattedText();
+    public int ReplayCount => DisplayedModel.BaseReplayCount;
+
+    /// <summary>
+    /// The raw enchantment model for callers that need the full surface
+    /// (description, amount, status). Null when no enchantment is applied.
+    /// </summary>
+    public EnchantmentModel? Enchantment => DisplayedModel.Enchantment;
+
+    /// <summary>
+    /// The raw affliction model for callers that need amount / stackability
+    /// alongside the title and description. Null when no affliction is applied.
+    /// </summary>
+    public AfflictionModel? Affliction => DisplayedModel.Affliction;
+
+    /// <summary>
+    /// All hover tips contributed by this card model — keywords, powers,
+    /// referenced cards, etc. Holders don't add their own tips, so this is
+    /// the canonical source.
+    /// </summary>
+    public IEnumerable<IHoverTip> HoverTips => DisplayedModel.HoverTips;
 
     public CardEnergyCost? EnergyCost => DisplayedModel.EnergyCost;
     public bool HasStarCostX => DisplayedModel.HasStarCostX;

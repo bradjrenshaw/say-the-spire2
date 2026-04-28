@@ -27,6 +27,14 @@ You are performing a comprehensive audit of the entire codebase, not just a diff
 - Do similar subsystems use different patterns for the same problem? (e.g., some screens use GameScreen, others don't; some hooks use PatchIfFound, others inline the patching)
 - Are there older files that haven't been updated to use newer patterns?
 
+**View abstraction (data wrappers over game models):**
+- Game-model reads (CardModel, Creature, RelicModel, PotionModel, AbstractIntent, etc.) should go through their matching `Views/*View.cs` wrapper. Direct property access on the raw model outside the View file is the warning sign.
+- Scan proxies, buffers, events, screens, and patches for direct `card.X` / `creature.X` / `relic.X` / `potion.X` / `model.X` access. Each one is a candidate for migration to the matching View.
+- Exceptions where raw-model access is correct: handing the model to a game API we don't own (`cardBuffer.Bind(view.DisplayedModel)`, `intent.GetHoverTip(...)`, `holder.CardModel = ...`). Flag the exception explicitly with a comment when it's not obvious.
+- Missing accessors: if the same `model.X` appears in 2+ files outside the View, the View is missing that accessor — adding it is the fix.
+- Missing Views: if a game-model type is read from in 2+ places and there's no matching `*View.cs`, that's a candidate for a new View.
+- Why this matters: when the game shifts a model's surface between betas (which it does regularly), having one file to update prevents "fixed it in three places, missed the fourth" bugs.
+
 ### Localization & Message Usage
 
 **Message.Raw() misuse:**
