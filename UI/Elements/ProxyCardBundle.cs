@@ -5,6 +5,7 @@ using MegaCrit.Sts2.Core.Nodes.Cards;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -60,9 +61,9 @@ public class ProxyCardBundle : ProxyElement
         var cardNames = new List<string>();
         foreach (var card in bundle.Bundle)
         {
-            var title = card.Title;
-            if (!string.IsNullOrEmpty(title))
-                cardNames.Add(title);
+            var view = CardView.FromModel(card);
+            if (!string.IsNullOrEmpty(view.Title))
+                cardNames.Add(view.Title);
         }
 
         var cards = cardNames.Count > 0 ? string.Join(", ", cardNames) : LocalizationManager.GetOrDefault("ui", "LABELS.EMPTY", "empty");

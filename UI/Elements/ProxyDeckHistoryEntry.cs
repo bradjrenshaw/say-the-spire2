@@ -3,7 +3,6 @@ using System.Reflection;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
@@ -11,6 +10,7 @@ using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.UI.Announcements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -30,66 +30,66 @@ public class ProxyDeckHistoryEntry : ProxyElement
     public ProxyDeckHistoryEntry(Control control) : base(control) { }
 
     private NDeckHistoryEntry? Entry => Control as NDeckHistoryEntry;
-    private CardModel? Card => Entry?.Card;
+    private CardView? GetView()
+    {
+        var card = Entry?.Card;
+        return card == null ? null : CardView.FromModel(card);
+    }
     private int Amount => AmountField?.GetValue(Entry) as int? ?? 1;
 
     public override IEnumerable<Announcement> GetFocusAnnouncements()
     {
-        var model = Card;
-        if (model == null)
+        var view = GetView();
+        if (view == null)
         {
             if (Control != null)
                 yield return new LabelAnnouncement(CleanNodeName(Control.Name));
             yield break;
         }
 
-        // Label uses GetLabel since it folds in quantity + enchantment/affliction
+        // Label uses GetLabel since it folds in quantity + modifiers
         var label = GetLabel();
         if (label != null)
             yield return new LabelAnnouncement(label);
 
         int? energyCost = null;
         bool energyIsX = false;
-        if (model.EnergyCost != null)
+        if (view.EnergyCost != null)
         {
-            if (model.EnergyCost.CostsX) { energyCost = 0; energyIsX = true; }
-            else energyCost = model.EnergyCost.GetWithModifiers(CostModifiers.All);
+            if (view.EnergyCost.CostsX) { energyCost = 0; energyIsX = true; }
+            else energyCost = view.EnergyCost.GetWithModifiers(CostModifiers.All);
         }
 
         int? starCost = null;
         bool starIsX = false;
-        if (model.HasStarCostX) { starCost = 0; starIsX = true; }
-        else if (model.CurrentStarCost >= 0)
-        {
-            try { starCost = model.GetStarCostWithModifiers(); }
-            catch (System.Exception e) { Log.Info($"[AccessibilityMod] GetStarCostWithModifiers failed: {e.Message}"); starCost = model.CurrentStarCost; }
-        }
+        if (view.HasStarCostX) { starCost = 0; starIsX = true; }
+        else if (view.CurrentStarCost >= 0)
+            starCost = view.StarCostWithModifiers;
 
         if (energyCost.HasValue || starCost.HasValue)
             yield return new EnergyCostAnnouncement(energyCost, energyIsX, starCost, starIsX);
 
-        yield return new SubtypeAnnouncement(model.Type.ToString().ToLowerInvariant());
+        yield return new SubtypeAnnouncement(view.TypeKey);
         yield return new TypeAnnouncement("card");
 
-        var desc = model.GetDescriptionForPile(PileType.None);
-        if (!string.IsNullOrEmpty(desc))
-            yield return new TooltipAnnouncement(StripBbcode(desc));
+        if (!string.IsNullOrEmpty(view.Description))
+            yield return new TooltipAnnouncement(view.Description);
     }
 
     public override Message? GetLabel()
     {
-        var model = Card;
-        if (model == null)
+        var view = GetView();
+        if (view == null)
             return Control != null ? Message.Raw(CleanNodeName(Control.Name)) : null;
 
-        var title = model.Title;
+        var title = view.Title;
         var modifiers = new List<string>();
-        var enchantTitle = model.Enchantment?.Title?.GetFormattedText();
-        if (!string.IsNullOrEmpty(enchantTitle))
-            modifiers.Add(enchantTitle);
-        var afflictionTitle = model.Affliction?.Title?.GetFormattedText();
-        if (!string.IsNullOrEmpty(afflictionTitle))
-            modifiers.Add(afflictionTitle);
+        if (view.ReplayCount > 0)
+            modifiers.Add(Message.Localized("ui", "MODIFIER.REPLAY", new { count = view.ReplayCount }).Resolve());
+        if (!string.IsNullOrEmpty(view.EnchantmentTitle))
+            modifiers.Add(view.EnchantmentTitle!);
+        if (!string.IsNullOrEmpty(view.AfflictionTitle))
+            modifiers.Add(view.AfflictionTitle!);
         if (modifiers.Count > 0)
             title = $"{title} ({string.Join(", ", modifiers)})";
 
@@ -100,24 +100,21 @@ public class ProxyDeckHistoryEntry : ProxyElement
 
     public override Message? GetTooltip()
     {
-        var model = Card;
-        if (model == null)
-            return null;
-
-        var desc = model.GetDescriptionForPile(PileType.None);
-        return string.IsNullOrEmpty(desc) ? null : Message.Raw(StripBbcode(desc));
+        var view = GetView();
+        if (view == null) return null;
+        return string.IsNullOrEmpty(view.Description) ? null : Message.Raw(view.Description);
     }
 
     public override string? HandleBuffers(BufferManager buffers)
     {
-        var model = Card;
-        if (model == null)
+        var view = GetView();
+        if (view == null)
             return base.HandleBuffers(buffers);
 
         var cardBuffer = buffers.GetBuffer("card") as CardBuffer;
         if (cardBuffer != null)
         {
-            cardBuffer.Bind(model);
+            cardBuffer.Bind(view.DisplayedModel);
             cardBuffer.Update();
             buffers.EnableBuffer("card", true);
         }
@@ -125,7 +122,7 @@ public class ProxyDeckHistoryEntry : ProxyElement
         var upgradeBuffer = buffers.GetBuffer("upgrade") as UpgradeBuffer;
         if (upgradeBuffer != null)
         {
-            upgradeBuffer.Bind(model);
+            upgradeBuffer.Bind(view.DisplayedModel);
             upgradeBuffer.Update();
             buffers.EnableBuffer("upgrade", true);
         }
