@@ -48,6 +48,13 @@ You are the **convention enforcer** on a 3-agent code review team. Focus exclusi
 - FollowLatest set where appropriate.
 - AlwaysEnabledBuffers override on screens that need persistent buffers.
 
+### View Abstraction Rules (if reading game-model fields)
+- Card field reads should go through `CardView` (Title, Type, Rarity, EnergyCost, Enchantment, Affliction, ReplayCount, HoverTips, Description, etc.).
+- Creature field reads should go through `CreatureView` (Name, CurrentHp, MaxHp, Block, IsPlayer, IsMonster, MonsterIntents, OtherPlayerPetOwner, etc.).
+- Same principle for any other `Views/*View.cs` (RelicView, PotionView, IntentView, ...).
+- New direct `card.X` / `creature.X` / `relic.X` / `model.X` reads in proxies, buffers, events, or screens should either: (a) use an existing View accessor, (b) add a missing accessor to the View first and then use it, or (c) be handing the raw model to a game API we don't own — in which case `view.DisplayedModel` / `view.Entity` is the right escape hatch and the call site should make that clear.
+- New game-model types being read from multiple places: add a corresponding View before writing the consumers.
+
 ### Grid/Position Rules (if touching grid coordinates)
 - (x, y) cartesian order — column first, row second.
 - Verify navigation order matches visual order.

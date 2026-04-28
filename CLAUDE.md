@@ -104,6 +104,14 @@ These rules were discovered through bugs. Check against them before making chang
 - Event `GetMessage()` returns `Message?`. EventDispatcher passes the Message directly to SpeechManager.
 - Localization keys live in `Localization/eng/ui.json`. Language switches at runtime via `LocManager.SetLanguage` hook.
 
+**Views (data abstraction):**
+- `Views/CardView.cs`, `Views/CreatureView.cs`, `Views/IntentView.cs`, `Views/RelicView.cs`, `Views/PotionView.cs` are the canonical wrappers over their game-model counterparts. **Anything that reads from a game model should go through the matching View.** Direct `card.X` / `creature.X` / `relic.X` access outside these files is the smell.
+- Why: the game's model surface shifts between betas (e.g., `Creature.CombatState` going from concrete class to interface; `CardCmd.AddBadge` getting renamed). Centralizing reads in one View per model means a game update touches one file, not five.
+- A View accessor either exposes a typed shortcut (e.g., `CardView.EnchantmentTitle` returning `string?`) for common cases, or exposes the raw nested model (e.g., `CardView.Enchantment` returning `EnchantmentModel?`) for callers that need the full surface. Both shapes are fine; pick whichever fits the call site.
+- `view.DisplayedModel` / `view.Entity` is exposed for the boundary where we hand a raw model to a game API we don't own (game commands, `cardBuffer.Bind(model)`, holder methods that take `CardModel`). Use it sparingly; prefer adding a View accessor when the same access shows up in 2+ places.
+- New View types should follow the existing shape: private constructor, `FromControl(Control?)` factory that walks parent chains to find the relevant game node, `FromModel(...)` factory for model-only views, and properties that read live from the underlying model (no caching).
+- When introducing a new game-model type that multiple proxies/buffers/events read from, create a View **first**, then write the consumers against it.
+
 **Help system:**
 - `Screen.GetHelpMessages()` returns contextual help. `HelpScreenBuilder` walks screens deepest-first, deduplicating controls by action key.
 - `HelpMessage.Exclusive` flag: exclusive messages only show when their screen is the innermost active screen.
