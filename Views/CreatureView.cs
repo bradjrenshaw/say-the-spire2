@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -19,9 +21,31 @@ namespace SayTheSpire2.Views;
 /// </summary>
 public class CreatureView
 {
+    // Resolve Creature.CombatState reflectively. The game shifted from
+    // returning a concrete CombatState to an ICombatState interface across
+    // a beta update; embedding either return type in the mod's IL would
+    // throw MissingMethodException on the other version at JIT time. Name-
+    // based reflection sidesteps the signature check entirely.
+    private static readonly PropertyInfo? CombatStateProperty =
+        AccessTools.Property(typeof(Creature), "CombatState");
+
     public Creature Entity { get; }
 
     private CreatureView(Creature entity) { Entity = entity; }
+
+    /// <summary>
+    /// The allies of this creature's combat state, or an empty sequence
+    /// when not in combat. Reflection-based to avoid baking the
+    /// CombatState property's return type into the shipped DLL.
+    /// </summary>
+    public static IEnumerable<Creature> GetCombatStateAllies(Creature entity)
+    {
+        var combatState = CombatStateProperty?.GetValue(entity);
+        if (combatState == null) return Array.Empty<Creature>();
+        var alliesProp = AccessTools.Property(combatState.GetType(), "Allies");
+        return alliesProp?.GetValue(combatState) as IReadOnlyList<Creature>
+            ?? Array.Empty<Creature>();
+    }
 
     /// <summary>
     /// Walks up from a Godot control to find the enclosing NCreature and returns
@@ -89,7 +113,7 @@ public class CreatureView
             var intents = Monster.NextMove?.Intents;
             if (intents == null || intents.Count == 0) return Array.Empty<IntentView>();
 
-            var allies = Entity.CombatState?.Allies ?? Enumerable.Empty<Creature>();
+            var allies = GetCombatStateAllies(Entity);
             var result = new List<IntentView>(intents.Count);
             foreach (var intent in intents)
                 result.Add(IntentView.FromIntent(intent, Entity, allies));

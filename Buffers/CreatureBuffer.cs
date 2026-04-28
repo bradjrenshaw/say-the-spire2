@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.HoverTips;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
+using SayTheSpire2.Views;
 namespace SayTheSpire2.Buffers;
 
 public class CreatureBuffer : Buffer
@@ -52,10 +52,10 @@ public class CreatureBuffer : Buffer
                 var intents = entity.Monster.NextMove.Intents;
                 if (intents != null && intents.Count > 0)
                 {
-                    var allies = entity.CombatState?.Allies;
+                    var allies = CreatureView.GetCombatStateAllies(entity);
                     foreach (var intent in intents)
                     {
-                        var tip = intent.GetHoverTip(allies ?? Enumerable.Empty<Creature>(), entity);
+                        var tip = intent.GetHoverTip(allies, entity);
                         var intentText = tip.Title ?? intent.IntentType.ToString();
                         if (!string.IsNullOrEmpty(tip.Description))
                             intentText += ": " + tip.Description;
