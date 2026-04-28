@@ -65,6 +65,7 @@ public class CardView
 
     public string? EnchantmentTitle => DisplayedModel.Enchantment?.Title?.GetFormattedText();
     public string? AfflictionTitle => DisplayedModel.Affliction?.Title?.GetFormattedText();
+    public int ReplayCount => DisplayedModel.BaseReplayCount;
 
     public CardEnergyCost? EnergyCost => DisplayedModel.EnergyCost;
     public bool HasStarCostX => DisplayedModel.HasStarCostX;

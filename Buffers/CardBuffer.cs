@@ -125,6 +125,25 @@ public class CardBuffer : Buffer
             catch (Exception e) { Log.Error($"[AccessibilityMod] Card enchantment access failed: {e.Message}"); }
         }
 
+        // Affliction
+        if (model.Affliction != null)
+        {
+            try
+            {
+                var affliction = model.Affliction;
+                var afflictTitle = affliction.Title.GetFormattedText();
+                var afflictDesc = affliction.DynamicDescription.GetFormattedText();
+                if (!string.IsNullOrEmpty(afflictTitle) && !string.IsNullOrEmpty(afflictDesc))
+                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION", new { title = afflictTitle, description = ProxyElement.StripBbcode(afflictDesc) }).Resolve());
+                else if (!string.IsNullOrEmpty(afflictTitle))
+                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION_NO_DESC", new { title = afflictTitle }).Resolve());
+
+                if (affliction.IsStackable && affliction.Amount > 0)
+                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION_AMOUNT", new { amount = affliction.Amount }).Resolve());
+            }
+            catch (Exception e) { Log.Error($"[AccessibilityMod] Card affliction access failed: {e.Message}"); }
+        }
+
         // Hover tips (keywords, powers, etc.)
         try
         {
