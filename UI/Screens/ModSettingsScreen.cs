@@ -159,6 +159,7 @@ public class ModSettingsScreen : Screen
             resetButton.OnActivated = () =>
             {
                 ResetAllOverrides(_category);
+                ReorderRowsBySortPriority();
                 SpeechManager.Output(Message.Localized("ui", "SETTINGS.RESET_DONE"));
             };
             _navContainer.Add(resetButton);
@@ -253,6 +254,14 @@ public class ModSettingsScreen : Screen
                 case NullableBoolSetting n:
                     n.Reset();
                     break;
+                // The hidden "order" StringSetting on an announcements parent
+                // stores a CSV of announcement keys. Reset it to its default so
+                // a user with a stale saved order (e.g. from before a new
+                // announcement type was added) gets the canonical attribute
+                // order back when they click Reset.
+                case StringSetting s when s.Key == "order":
+                    s.Set(s.Default);
+                    break;
                 case CategorySetting c:
                     ResetAllOverrides(c);
                     break;
@@ -344,6 +353,56 @@ public class ModSettingsScreen : Screen
 
         PersistAnnouncementOrder();
         SpeakMoveFeedback(row);
+    }
+
+    /// <summary>
+    /// Re-sorts the existing reorderable rows in <see cref="_navContainer"/>
+    /// (and the underlying Godot VBox) to match each category's current
+    /// <see cref="Setting.SortPriority"/>. Called after Reset Defaults so the
+    /// UI immediately reflects the priorities that
+    /// <see cref="UI.Announcements.AnnouncementRegistry.ApplyOrderToSortPriorities"/>
+    /// re-derived. No-op on screens without reorderable rows.
+    /// </summary>
+    private void ReorderRowsBySortPriority()
+    {
+        if (!_category.HasResetAction) return;
+        if (_rowCategories.Count == 0) return;
+
+        // Indices of every RowContainer in the nav container, in current order.
+        var rowSlots = new System.Collections.Generic.List<int>();
+        for (int i = 0; i < _navContainer.Children.Count; i++)
+        {
+            if (_navContainer.Children[i] is RowContainer)
+                rowSlots.Add(i);
+        }
+
+        // Target row order, sorted by SortPriority (the categories were just
+        // reset so this matches the canonical attribute order).
+        var targetOrder = _rowCategories
+            .OrderBy(kv => kv.Value.SortPriority)
+            .Select(kv => kv.Key)
+            .ToList();
+
+        for (int slot = 0; slot < targetOrder.Count && slot < rowSlots.Count; slot++)
+        {
+            var targetRow = targetOrder[slot];
+            int targetIdx = rowSlots[slot];
+            int currentIdx = _navContainer.IndexOf(targetRow);
+            if (currentIdx == targetIdx) continue;
+
+            _navContainer.Swap(currentIdx, targetIdx);
+
+            // Mirror the swap in the Godot VBox so visual order tracks nav order.
+            if (_navContainer.Children[currentIdx] is RowContainer displaced
+                && _rowNodes.TryGetValue(targetRow, out var targetHbox)
+                && _rowNodes.TryGetValue(displaced, out var displacedHbox))
+            {
+                int targetPos = targetHbox.GetIndex();
+                int displacedPos = displacedHbox.GetIndex();
+                _itemList.MoveChild(targetHbox, displacedPos);
+                _itemList.MoveChild(displacedHbox, targetPos);
+            }
+        }
     }
 
     /// <summary>

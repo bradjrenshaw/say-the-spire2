@@ -127,7 +127,13 @@ public static class AnnouncementRegistry
             orderSetting = new StringSetting("order", "Announcement Order", defaultOrder) { Hidden = true };
             announcementsParent.Add(orderSetting);
         }
-        orderSetting.Changed += newOrder => ApplyOrderToSortPriorities(announcementsParent, newOrder);
+        orderSetting.Changed += newOrder => ApplyOrderToSortPriorities(announcementsParent, newOrder, announcementTypes);
+        // Apply the saved CSV's order onto SortPriority eagerly so the initial
+        // load reflects it. Without this, a CSV that's missing newly-added
+        // announcements (mod update after the user last saved their order)
+        // leaves those entries at their registration-time priority, colliding
+        // with whatever CSV-listed entry got that index.
+        ApplyOrderToSortPriorities(announcementsParent, orderSetting.Value, announcementTypes);
 
         for (int i = 0; i < announcementTypes.Count; i++)
         {
@@ -162,20 +168,74 @@ public static class AnnouncementRegistry
 
     /// <summary>
     /// Rewrites <see cref="Setting.SortPriority"/> on each CategorySetting
-    /// child of the announcements parent to match its position in the
-    /// comma-separated order. Categories not listed keep their current priority.
+    /// child of the announcements parent to match its position in the user's
+    /// saved order. Any announcement type not in the saved CSV (e.g. a new
+    /// one added by a mod update after the user last saved) is slotted at
+    /// its relative attribute-order position via
+    /// <see cref="MergeUserOrderWithAttrOrder"/>, not appended at the end.
     /// </summary>
-    private static void ApplyOrderToSortPriorities(CategorySetting announcementsParent, string orderCsv)
+    private static void ApplyOrderToSortPriorities(CategorySetting announcementsParent, string orderCsv,
+        IReadOnlyList<Type> attrOrder)
     {
-        if (string.IsNullOrWhiteSpace(orderCsv)) return;
-
-        var keys = orderCsv.Split(',');
-        for (int i = 0; i < keys.Length; i++)
+        var merged = MergeUserOrderWithAttrOrder(orderCsv, attrOrder);
+        for (int i = 0; i < merged.Count; i++)
         {
-            var key = keys[i].Trim();
+            var key = DeriveAnnouncementKey(merged[i]);
             if (announcementsParent.GetByKey(key) is CategorySetting cat)
                 cat.SortPriority = i;
         }
+    }
+
+    /// <summary>
+    /// Combines a user-saved announcement-order CSV with the canonical
+    /// attribute order. Walks the CSV first (preserving the user's chosen
+    /// sequence for entries they've reordered), then inserts each remaining
+    /// attribute-order entry immediately after the nearest preceding
+    /// attribute-order neighbor that's already in the result. New
+    /// announcements added in a mod update land at their intended slot
+    /// instead of being appended at the end.
+    /// </summary>
+    public static List<Type> MergeUserOrderWithAttrOrder(string? orderCsv, IReadOnlyList<Type> attrOrder)
+    {
+        var keyToType = new Dictionary<string, Type>();
+        foreach (var t in attrOrder)
+            keyToType[DeriveAnnouncementKey(t)] = t;
+
+        var result = new List<Type>(attrOrder.Count);
+        var seen = new HashSet<Type>();
+
+        if (!string.IsNullOrWhiteSpace(orderCsv))
+        {
+            foreach (var rawKey in orderCsv.Split(','))
+            {
+                var key = rawKey.Trim();
+                if (string.IsNullOrEmpty(key)) continue;
+                if (keyToType.TryGetValue(key, out var t) && seen.Add(t))
+                    result.Add(t);
+            }
+        }
+
+        for (int i = 0; i < attrOrder.Count; i++)
+        {
+            var t = attrOrder[i];
+            if (seen.Contains(t)) continue;
+
+            int insertAt = 0;
+            for (int j = i - 1; j >= 0; j--)
+            {
+                var neighbor = attrOrder[j];
+                if (seen.Contains(neighbor))
+                {
+                    insertAt = result.IndexOf(neighbor) + 1;
+                    break;
+                }
+            }
+
+            result.Insert(insertAt, t);
+            seen.Add(t);
+        }
+
+        return result;
     }
 
     /// <summary>
