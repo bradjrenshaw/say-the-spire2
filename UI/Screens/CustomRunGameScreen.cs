@@ -304,7 +304,8 @@ public class CustomRunGameScreen : GameScreen
 
     private void ConnectModifierListSignal()
     {
-        if (_modifiersList == null || !_connectedModifierListSignals.Add(_modifiersList.GetInstanceId()))
+        if (_modifiersList == null || !GodotObject.IsInstanceValid(_modifiersList)
+            || !_connectedModifierListSignals.Add(_modifiersList.GetInstanceId()))
             return;
 
         _modifiersList.ModifiersChanged += OnModifiersChanged;
@@ -314,6 +315,13 @@ public class CustomRunGameScreen : GameScreen
     {
         if (_modifiersList == null)
             return;
+
+        if (!GodotObject.IsInstanceValid(_modifiersList))
+        {
+            _connectedModifierListSignals.Clear();
+            _modifiersList = null;
+            return;
+        }
 
         if (_connectedModifierListSignals.Remove(_modifiersList.GetInstanceId()))
             _modifiersList.ModifiersChanged -= OnModifiersChanged;

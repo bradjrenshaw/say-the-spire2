@@ -29,7 +29,8 @@ public class ProxyTextInput : ProxyElement
 
     public override Message? GetLabel()
     {
-        if (Control == null) return OverrideLabel != null ? Message.Raw(OverrideLabel) : null;
+        if (Control == null || !GodotObject.IsInstanceValid(Control))
+            return OverrideLabel != null ? Message.Raw(OverrideLabel) : null;
         return Message.Raw(OverrideLabel ?? FindSiblingLabel(Control) ?? CleanNodeName(Control.Name));
     }
 
@@ -37,7 +38,7 @@ public class ProxyTextInput : ProxyElement
 
     public override Message? GetStatusString()
     {
-        if (Control is not LineEdit lineEdit)
+        if (Control == null || !GodotObject.IsInstanceValid(Control) || Control is not LineEdit lineEdit)
             return null;
 
         var text = string.IsNullOrWhiteSpace(lineEdit.Text) ? lineEdit.PlaceholderText : lineEdit.Text;
@@ -49,12 +50,18 @@ public class ProxyTextInput : ProxyElement
 
     protected override void OnFocus()
     {
+        if (Control == null || !GodotObject.IsInstanceValid(Control))
+            return;
+
         if (Control is LineEdit { Editable: true } lineEdit && !lineEdit.IsEditing())
             lineEdit.Edit();
     }
 
     protected override void OnUnfocus()
     {
+        if (Control == null || !GodotObject.IsInstanceValid(Control))
+            return;
+
         if (Control is LineEdit { Editable: true } lineEdit && lineEdit.IsEditing())
             lineEdit.Unedit();
     }
