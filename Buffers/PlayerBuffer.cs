@@ -1,10 +1,14 @@
+using System.Linq;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Multiplayer;
 using SayTheSpire2.UI;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.Buffers;
 
@@ -51,9 +55,10 @@ public class PlayerBuffer : Buffer
 
             PopulateForPlayer(player);
         }
-        catch
+        catch (System.Exception e)
         {
             // Combat state may not be accessible
+            Log.Info($"[AccessibilityMod] Player buffer populate failed: {e.Message}");
         }
     }
 
@@ -66,6 +71,13 @@ public class PlayerBuffer : Buffer
 
         if (creature.Block > 0)
             Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = creature.Block }).Resolve());
+
+        var facingTargets = CreatureView.FromEntity(creature).SurroundedFacingTargets;
+        if (facingTargets.Count > 0)
+        {
+            var targets = string.Join(", ", facingTargets.Select(c => MultiplayerHelper.GetCreatureName(c)));
+            Add(Message.Localized("ui", "CREATURE.FACING", new { targets }).Resolve());
+        }
 
         if (pcs != null)
             Add(ResourceHelper.GetResourceMessage(pcs).Resolve());
@@ -133,8 +145,9 @@ public class PlayerBuffer : Buffer
             if (first)
                 buffer.Add(line);
         }
-        catch
+        catch (System.Exception e)
         {
+            Log.Info($"[AccessibilityMod] Power hover tip lookup failed: {e.Message}");
             buffer.Add(line);
         }
     }

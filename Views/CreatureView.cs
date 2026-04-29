@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Multiplayer;
@@ -47,6 +48,16 @@ public class CreatureView
             ?? Array.Empty<Creature>();
     }
 
+    private static IReadOnlyList<Creature> GetCombatStateOpponents(Creature entity)
+    {
+        var combatState = CombatStateProperty?.GetValue(entity);
+        if (combatState == null) return Array.Empty<Creature>();
+
+        var getOpponents = AccessTools.Method(combatState.GetType(), "GetOpponentsOf", new[] { typeof(Creature) });
+        return getOpponents?.Invoke(combatState, new object[] { entity }) as IReadOnlyList<Creature>
+            ?? Array.Empty<Creature>();
+    }
+
     /// <summary>
     /// Walks up from a Godot control to find the enclosing NCreature and returns
     /// a view of its entity. Null if no NCreature ancestor or the entity is unset.
@@ -70,6 +81,27 @@ public class CreatureView
     public bool IsLocalPlayer => LocalContext.IsMe(Entity);
     public Player? Player => Entity.Player;
     public MonsterModel? Monster => Entity.Monster;
+
+    public IReadOnlyList<Creature> SurroundedFacingTargets
+    {
+        get
+        {
+            var surrounded = Entity.Powers.OfType<SurroundedPower>().FirstOrDefault();
+            if (surrounded == null) return Array.Empty<Creature>();
+
+            var opponents = GetCombatStateOpponents(Entity);
+            return surrounded.Facing switch
+            {
+                SurroundedPower.Direction.Right => opponents
+                    .Where(c => c.IsAlive && c.HasPower<BackAttackRightPower>())
+                    .ToList(),
+                SurroundedPower.Direction.Left => opponents
+                    .Where(c => c.IsAlive && c.HasPower<BackAttackLeftPower>())
+                    .ToList(),
+                _ => Array.Empty<Creature>(),
+            };
+        }
+    }
 
     /// <summary>
     /// The non-local player who owns this creature, when it's a pet in a real
