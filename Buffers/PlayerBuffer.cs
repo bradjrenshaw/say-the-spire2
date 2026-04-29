@@ -90,7 +90,7 @@ public class PlayerBuffer : Buffer
     public static void AddPowerToBuffer(Buffer buffer, PowerModel power)
     {
         var title = power.Title.GetFormattedText();
-        var amount = power.Amount;
+        var amount = power.DisplayAmount;
         var hasStacks = power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter;
         var line = hasStacks && amount > 0 ? $"{title} {amount}" : title;
         try

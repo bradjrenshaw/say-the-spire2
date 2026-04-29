@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
+using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.PotionLab;
 using MegaCrit.Sts2.Core.Nodes.Screens.RelicCollection;
@@ -72,6 +73,9 @@ public static class ProxyFactory
 
         if (control is NDeckHistoryEntry)
             return new ProxyDeckHistoryEntry(control);
+
+        if (control is NBadge)
+            return new ProxyBadge(control);
 
         if (control is NCardPoolFilter)
             return new ProxyCardPoolFilter(control);
