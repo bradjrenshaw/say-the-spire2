@@ -253,14 +253,17 @@ public class CombatScreen : Screen
         if (creature == null)
             return;
 
-        var parts = new List<Message>
-        {
-            Message.Raw(Multiplayer.MultiplayerHelper.GetCreatureName(creature)),
-            Message.Raw(creature.CurrentHp.ToString()),
-        };
+        var view = CreatureView.FromEntity(creature);
+        var parts = new List<Message> { Message.Raw(view.Name) };
 
-        if (creature.Block > 0)
-            parts.Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = creature.Block }));
+        var owner = OwnerMessage(view);
+        if (owner != null)
+            parts.Add(owner);
+
+        parts.Add(Message.Raw(view.CurrentHp.ToString()));
+
+        if (view.Block > 0)
+            parts.Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = view.Block }));
 
         SpeechManager.Output(Message.Join(", ", parts.ToArray()));
     }
@@ -275,7 +278,21 @@ public class CombatScreen : Screen
         if (intent.IsEmpty)
             return;
 
+        var view = CreatureView.FromEntity(creature);
+        var owner = OwnerMessage(view);
+        if (owner != null)
+            intent = Message.Join(", ", Message.Raw(view.Name), owner, intent);
+
         SpeechManager.Output(intent);
+    }
+
+    private static Message? OwnerMessage(CreatureView view)
+    {
+        var owner = view.OtherPlayerPetOwner;
+        return owner == null
+            ? null
+            : Message.Localized("ui", "MULTIPLAYER.PET_OWNER",
+                new { owner = Multiplayer.MultiplayerHelper.GetPlayerName(owner) });
     }
 
     private Creature? GetBoundCombatant(int index)

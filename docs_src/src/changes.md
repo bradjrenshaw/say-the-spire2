@@ -21,7 +21,6 @@ Due to the significant refactoring to how UI element configuration works, some o
     * Fixed card compendium sort buttons to properly read out ascending/descending state changes.
     * Fixed map screen stale data/crash bug in beta branch.
 
-
 ## V0.4.1
 * Fixed an incorrect localization string that was causing positions to be read out as "row y, column x" instead of "x, y". All positions should be  in the form column, row.
 * Fixed an issue with the hand card select screen where pressing down from the creature row would not focus the first selected card if the hand row was empty.
