@@ -114,7 +114,8 @@ public class ProxyDeckHistoryEntry : ProxyElement
         var cardBuffer = buffers.GetBuffer("card") as CardBuffer;
         if (cardBuffer != null)
         {
-            cardBuffer.Bind(view.DisplayedModel);
+            var floorText = RunHistoryAcquisitionText.FromFloors(Entry?.FloorsAddedToDeck);
+            cardBuffer.Bind(view.DisplayedModel, floorText != null ? new[] { floorText } : null);
             cardBuffer.Update();
             buffers.EnableBuffer("card", true);
         }

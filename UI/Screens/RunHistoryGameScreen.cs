@@ -6,7 +6,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Potions;
 using MegaCrit.Sts2.Core.Nodes.Relics;
+using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
+using MegaCrit.Sts2.Core.Saves.Runs;
 using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI;
@@ -29,6 +31,7 @@ public class RunHistoryGameScreen : GameScreen
     };
     private readonly Dictionary<Control, ProxyRunHistoryPlayerIcon> _playerProxyCache = new();
     private readonly Dictionary<Control, ProxyRunHistoryMapPoint> _mapProxyCache = new();
+    private List<SerializableBadge>? _selectedBadges;
     private string? _stateToken;
 
     public override Message? ScreenName => Ui("RUN_HISTORY.SCREEN_NAME");
@@ -56,6 +59,7 @@ public class RunHistoryGameScreen : GameScreen
         _root.Clear();
         _playerProxyCache.Clear();
         _mapProxyCache.Clear();
+        _selectedBadges = null;
         _stateToken = null;
     }
 
@@ -87,6 +91,7 @@ public class RunHistoryGameScreen : GameScreen
         if (focused is NRunHistoryPlayerIcon icon)
         {
             SelectPlayerMethod?.Invoke(_screen, new object[] { icon });
+            _selectedBadges = icon.Player.Badges.ToList();
             return true;
         }
 
@@ -107,6 +112,7 @@ public class RunHistoryGameScreen : GameScreen
         var players = NewRow(Ui("RUN_HISTORY.ROWS.PLAYERS"));
         var summary = NewRow(Ui("RUN_HISTORY.ROWS.SUMMARY"));
         var details = NewRow(Ui("RUN_HISTORY.ROWS.DETAILS"));
+        var badges = NewRow(Ui("RUN_HISTORY.ROWS.BADGES"));
         var map = NewRow(Ui("RUN_HISTORY.ROWS.MAP"));
         var potions = NewRow(Ui("RUN_HISTORY.ROWS.POTIONS"));
         var relics = NewRow(Ui("RUN_HISTORY.ROWS.RELICS"));
@@ -117,6 +123,7 @@ public class RunHistoryGameScreen : GameScreen
         RegisterPlayers(players);
         RegisterSummary(summary);
         RegisterDetails(details);
+        RegisterBadges(badges);
         RegisterMapHistory(map);
         RegisterPotions(potions);
         RegisterRelics(relics);
@@ -127,6 +134,7 @@ public class RunHistoryGameScreen : GameScreen
         AddIfNotEmpty(players);
         AddIfNotEmpty(summary);
         AddIfNotEmpty(details);
+        AddIfNotEmpty(badges);
         AddIfNotEmpty(map);
         AddIfNotEmpty(potions);
         AddIfNotEmpty(relics);
@@ -167,6 +175,8 @@ public class RunHistoryGameScreen : GameScreen
             container.Add(proxy);
             Register(icon, proxy);
         }
+
+        _selectedBadges ??= InferSelectedBadges();
     }
 
     private void RegisterSummary(ListContainer container)
@@ -183,6 +193,23 @@ public class RunHistoryGameScreen : GameScreen
         RegisterStatic(container, _screen.GetNodeOrNull<Control>("%SeedLabel"), Ui("RUN_HISTORY.FIELDS.SEED"));
         RegisterStatic(container, _screen.GetNodeOrNull<Control>("%GameModeLabel"), Ui("RUN_HISTORY.FIELDS.MODE"));
         RegisterStatic(container, _screen.GetNodeOrNull<Control>("%BuildLabel"), Ui("RUN_HISTORY.FIELDS.BUILD"));
+    }
+
+    private void RegisterBadges(ListContainer container)
+    {
+        var badgeControls = GetBadgeControls();
+        if (badgeControls.Count == 0)
+            return;
+
+        var allBadges = GetAllPlayerBadges();
+        for (var i = 0; i < badgeControls.Count; i++)
+        {
+            var badge = FindBadgeData(badgeControls[i], allBadges)
+                ?? _selectedBadges?.ElementAtOrDefault(i);
+            var proxy = new ProxyBadge(badgeControls[i], badge);
+            container.Add(proxy);
+            Register(badgeControls[i], proxy);
+        }
     }
 
     private void RegisterMapHistory(ListContainer container)
@@ -217,13 +244,16 @@ public class RunHistoryGameScreen : GameScreen
 
     private void RegisterRelics(ListContainer container)
     {
-        var relicsContainer = _screen.GetNodeOrNull<Control>("%RelicHistory")?.GetNodeOrNull<Control>("%RelicsContainer");
+        var relicHistory = _screen.GetNodeOrNull<Control>("%RelicHistory");
+        SetContainerLabelFromHeader(container, relicHistory?.GetNodeOrNull<Control>("Header"));
+
+        var relicsContainer = relicHistory?.GetNodeOrNull<Control>("%RelicsContainer");
         if (relicsContainer == null)
             return;
 
         foreach (var holder in relicsContainer.GetChildren().OfType<NRelicBasicHolder>())
         {
-            var proxy = new ProxyRelicHolder(holder);
+            var proxy = new ProxyRunHistoryRelicHolder(holder);
             container.Add(proxy);
             Register(holder, proxy);
         }
@@ -231,7 +261,10 @@ public class RunHistoryGameScreen : GameScreen
 
     private void RegisterDeck(ListContainer container)
     {
-        var cardContainer = _screen.GetNodeOrNull<Control>("%DeckHistory")?.GetNodeOrNull<Control>("%CardContainer");
+        var deckHistory = _screen.GetNodeOrNull<Control>("%DeckHistory");
+        SetContainerLabelFromHeader(container, deckHistory?.GetNodeOrNull<Control>("Header"));
+
+        var cardContainer = deckHistory?.GetNodeOrNull<Control>("%CardContainer");
         if (cardContainer == null)
             return;
 
@@ -301,12 +334,15 @@ public class RunHistoryGameScreen : GameScreen
         var cards = _screen.GetNodeOrNull<Control>("%DeckHistory")?.GetNodeOrNull<Control>("%CardContainer")?.GetChildCount() ?? 0;
         return string.Join("|",
             players, acts, potions, relics, cards,
+            GetBadgeToken(),
             GetStaticText(_screen.GetNodeOrNull<Control>("%HpLabel")) ?? "",
             GetStaticText(_screen.GetNodeOrNull<Control>("%GoldLabel")) ?? "",
             GetStaticText(_screen.GetNodeOrNull<Control>("%FloorNumLabel")) ?? "",
             GetStaticText(_screen.GetNodeOrNull<Control>("%RunTimeLabel")) ?? "",
             GetStaticText(_screen.GetNodeOrNull<Control>("%DateLabel")) ?? "",
-            GetStaticText(_screen.GetNodeOrNull<Control>("%SeedLabel")) ?? "");
+            GetStaticText(_screen.GetNodeOrNull<Control>("%SeedLabel")) ?? "",
+            GetStaticText(_screen.GetNodeOrNull<Control>("%RelicHistory")?.GetNodeOrNull<Control>("Header")) ?? "",
+            GetStaticText(_screen.GetNodeOrNull<Control>("%DeckHistory")?.GetNodeOrNull<Control>("Header")) ?? "");
     }
 
     private void WireFocusNeighbors()
@@ -317,6 +353,7 @@ public class RunHistoryGameScreen : GameScreen
             GetContainerControls("%PlayerIconContainer"),
             GetControls("%HpLabel", "%GoldLabel", "%FloorNumLabel", "%RunTimeLabel"),
             GetControls("%DateLabel", "%SeedLabel", "%GameModeLabel", "%BuildLabel"),
+            GetContainerControls("%BadgeContainer"),
             GetMapRows(),
             GetContainerControls("%PotionHolders"),
             GetContainerControls("%RelicHistory", "%RelicsContainer"),
@@ -356,10 +393,24 @@ public class RunHistoryGameScreen : GameScreen
             ?? new List<Control>();
     }
 
+    private List<NBadge> GetBadgeControls()
+    {
+        return _screen.GetNodeOrNull<Control>("%BadgeContainer")
+            ?.GetChildren().OfType<NBadge>().Where(control => control.Visible).ToList()
+            ?? new List<NBadge>();
+    }
+
     private List<Control> GetContainerControls(string parentPath, string childPath)
     {
         return _screen.GetNodeOrNull<Control>(parentPath)?.GetNodeOrNull<Control>(childPath)?.GetChildren().OfType<Control>().Where(control => control.Visible).ToList()
             ?? new List<Control>();
+    }
+
+    private static void SetContainerLabelFromHeader(ListContainer container, Control? header)
+    {
+        var text = GetStaticText(header);
+        if (!string.IsNullOrWhiteSpace(text))
+            container.ContainerLabel = Message.Raw(text);
     }
 
     private List<Control> GetMapRows()
@@ -411,8 +462,85 @@ public class RunHistoryGameScreen : GameScreen
             return true;
 
         _preferNavigationFocus = true;
+        _selectedBadges = null;
         control.EmitSignal(NClickableControl.SignalName.Released, control);
         return true;
+    }
+
+    private List<SerializableBadge>? InferSelectedBadges()
+    {
+        var icons = _screen.GetNodeOrNull<Control>("%PlayerIconContainer")
+            ?.GetChildren().OfType<NRunHistoryPlayerIcon>().ToList();
+        if (icons == null || icons.Count == 0)
+            return null;
+
+        if (icons.Count == 1)
+            return icons[0].Player.Badges.ToList();
+
+        var badgeCount = GetBadgeControls().Count;
+        var matches = icons.Where(icon => icon.Player.Badges.Count() == badgeCount).ToList();
+        return matches.Count == 1 ? matches[0].Player.Badges.ToList() : null;
+    }
+
+    private List<SerializableBadge> GetAllPlayerBadges()
+    {
+        return _screen.GetNodeOrNull<Control>("%PlayerIconContainer")
+            ?.GetChildren().OfType<NRunHistoryPlayerIcon>()
+            .SelectMany(icon => icon.Player.Badges)
+            .ToList()
+            ?? new List<SerializableBadge>();
+    }
+
+    private static SerializableBadge? FindBadgeData(NBadge control, IReadOnlyList<SerializableBadge> badges)
+    {
+        if (badges.Count == 0)
+            return null;
+
+        var iconPath = NormalizeResourcePath(control.GetNodeOrNull<TextureRect>("%Icon")?.Texture);
+        var holderPath = NormalizeResourcePath(control.GetNodeOrNull<TextureRect>("%BadgeHolder")?.Texture);
+
+        var exact = badges.FirstOrDefault(badge =>
+            MatchesBadgeIcon(iconPath, badge)
+            && MatchesBadgeRarity(holderPath, badge));
+        if (exact != null)
+            return exact;
+
+        return badges.FirstOrDefault(badge => MatchesBadgeIcon(iconPath, badge));
+    }
+
+    private string GetBadgeToken()
+    {
+        var visibleBadges = string.Join(",",
+            GetBadgeControls().Select(control =>
+                NormalizeResourcePath(control.GetNodeOrNull<TextureRect>("%Icon")?.Texture) ?? control.Name.ToString()));
+        var selectedBadges = _selectedBadges == null
+            ? ""
+            : string.Join(",", _selectedBadges.Select(badge => $"{badge.Id}:{badge.Rarity}"));
+        return $"{visibleBadges}|{selectedBadges}";
+    }
+
+    private static bool MatchesBadgeIcon(string? iconPath, SerializableBadge badge)
+    {
+        if (string.IsNullOrWhiteSpace(iconPath) || string.IsNullOrWhiteSpace(badge.Id))
+            return false;
+
+        return iconPath.Contains($"/badge_{badge.Id.ToLowerInvariant()}.png");
+    }
+
+    private static bool MatchesBadgeRarity(string? holderPath, SerializableBadge badge)
+    {
+        if (string.IsNullOrWhiteSpace(holderPath))
+            return false;
+
+        return holderPath.Contains($"/badge_{badge.Rarity.ToString().ToLowerInvariant()}.png");
+    }
+
+    private static string? NormalizeResourcePath(Resource? resource)
+    {
+        var path = resource?.ResourcePath;
+        return string.IsNullOrWhiteSpace(path)
+            ? null
+            : path.Replace('\\', '/').ToLowerInvariant();
     }
 
     private void EnsureFocus()

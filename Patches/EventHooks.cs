@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Logging;
@@ -95,6 +97,69 @@ public static class EventHooks
             typeof(EventHooks), nameof(InitializeRelicsPostfix), "NTreasureRoomRelicCollection.InitializeRelics");
         HarmonyHelper.PatchIfFound(harmony, typeof(Hook), "AfterRoomEntered",
             typeof(EventHooks), nameof(RoomEnteredPostfix), "Hook.AfterRoomEntered");
+
+        // Surrounded changes facing without changing power stacks, so creature
+        // power events cannot observe it. UpdateDirection carries the target
+        // that caused the turn, which is the useful information to announce.
+        HarmonyHelper.PatchIfFound(harmony, typeof(SurroundedPower), "UpdateDirection",
+            typeof(EventHooks), nameof(SurroundedUpdateDirectionPrefix), "SurroundedPower.UpdateDirection prefix",
+            isPrefix: true, parameterTypes: new[] { typeof(Creature) });
+        HarmonyHelper.PatchIfFound(harmony, typeof(SurroundedPower), "UpdateDirection",
+            typeof(EventHooks), nameof(SurroundedUpdateDirectionPostfix), "SurroundedPower.UpdateDirection postfix",
+            parameterTypes: new[] { typeof(Creature) });
+    }
+
+    public readonly struct SurroundedFacingState
+    {
+        public SurroundedFacingState(SurroundedPower.Direction oldFacing, Creature target)
+        {
+            OldFacing = oldFacing;
+            Target = target;
+        }
+
+        public SurroundedPower.Direction OldFacing { get; }
+        public Creature Target { get; }
+    }
+
+    public static void SurroundedUpdateDirectionPrefix(
+        SurroundedPower __instance,
+        Creature target,
+        out SurroundedFacingState __state)
+    {
+        __state = new SurroundedFacingState(__instance.Facing, target);
+    }
+
+    public static void SurroundedUpdateDirectionPostfix(
+        SurroundedPower __instance,
+        SurroundedFacingState __state,
+        ref Task __result)
+    {
+        try
+        {
+            __result = AnnounceSurroundedFacingAfterUpdate(__result, __instance, __state);
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Surrounded facing hook error: {e.Message}");
+        }
+    }
+
+    private static async Task AnnounceSurroundedFacingAfterUpdate(
+        Task original,
+        SurroundedPower power,
+        SurroundedFacingState state)
+    {
+        await original;
+
+        try
+        {
+            if (power.Facing == state.OldFacing) return;
+            EventDispatcher.Enqueue(new SurroundedFacingEvent(power.Owner, state.Target));
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Surrounded facing event error: {e.Message}");
+        }
     }
 
     public static void CardUpgradeCombatPostfix(IEnumerable<CardModel> cards)

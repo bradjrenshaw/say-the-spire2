@@ -111,7 +111,7 @@ public class ProxyRelicHolder : ProxyElement
         var relicBuffer = buffers.GetBuffer("relic") as RelicBuffer;
         if (relicBuffer != null)
         {
-            relicBuffer.Bind(view.Model);
+            relicBuffer.Bind(view.Model, GetBufferExtraLines(view));
             relicBuffer.Update();
             buffers.EnableBuffer("relic", true);
         }
@@ -135,5 +135,10 @@ public class ProxyRelicHolder : ProxyElement
         }
 
         return "relic";
+    }
+
+    protected virtual IEnumerable<string> GetBufferExtraLines(RelicView view)
+    {
+        yield break;
     }
 }

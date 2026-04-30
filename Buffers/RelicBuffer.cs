@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Relics;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
@@ -11,31 +12,44 @@ namespace SayTheSpire2.Buffers;
 public class RelicBuffer : Buffer
 {
     private RelicModel? _model;
+    private IReadOnlyList<string> _extraLines = Array.Empty<string>();
 
     public RelicBuffer() : base("relic") { }
 
     public void Bind(RelicModel model)
     {
         _model = model;
+        _extraLines = Array.Empty<string>();
+    }
+
+    public void Bind(RelicModel model, IEnumerable<string>? extraLines)
+    {
+        _model = model;
+        _extraLines = extraLines?
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => line.Trim())
+            .ToArray()
+            ?? Array.Empty<string>();
     }
 
     protected override void ClearBinding()
     {
         _model = null;
+        _extraLines = Array.Empty<string>();
         Clear();
     }
 
     public override void Update()
     {
         if (_model == null) return;
-        Repopulate(() => Populate(this, _model));
+        Repopulate(() => Populate(this, _model, _extraLines));
     }
 
     /// <summary>
     /// Single source of truth for populating any buffer with relic data.
     /// Used by RelicBuffer.Update(), ProxyRelicHolder, merchant slots, reward buttons, etc.
     /// </summary>
-    public static void Populate(Buffer buffer, RelicModel model)
+    public static void Populate(Buffer buffer, RelicModel model, IEnumerable<string>? extraLines = null)
     {
         var title = model.Title.GetFormattedText();
         var rarity = model.Rarity;
@@ -73,6 +87,15 @@ public class RelicBuffer : Buffer
             }
         }
         catch (Exception e) { Log.Error($"[AccessibilityMod] Relic hover tips access failed: {e.Message}"); }
+
+        if (extraLines == null)
+            return;
+
+        foreach (var line in extraLines)
+        {
+            if (!string.IsNullOrWhiteSpace(line))
+                buffer.Add(line.Trim());
+        }
     }
 
     /// <summary>
