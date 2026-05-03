@@ -1,3 +1,14 @@
+## V0.5.2
+* Added partial Russian localization (thanks to @darrthscorrp.)
+* Restored the missing owner readout on summoned creatures (such as Osty). this regression was introduced in the previous patch.
+* Various fixes thanks to @amerikrainian:
+    * Added badges and relic acquisition info to run history
+    * Fixed powers sometimes not showing their correct current value (for example Hardened Shell.)
+    * Added facing direction in the player buffer and a facing changed event for fights where you are surrounded (for example the crab boss in Act 2.)
+    * Fixed custom runs becoming unresponsive if you used either the Draft or Sealed Deck modifiers.
+
+
+
 ## V0.5.1
 Due to the significant refactoring to how UI element configuration works, some of your saved settings will not carry over to this version of the mod. sorry for the inconvenience. All functionality is still present but you will have to reconfigure it.
 

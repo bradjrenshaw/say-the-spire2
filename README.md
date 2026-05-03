@@ -18,15 +18,16 @@ Installation and usage documentation can be found [here](https://bradjrenshaw.gi
 
 ## Known Issues
 
-* Multiplayer Support is currently missing some information, such as player intents.
 * Some users had issues dismissing the tutorial popups when playing their first run. This may be a game bug or possibly the UI just being nonintuitive, but I am investigating. If this happens, close and reopen your game and it should fix it.
-* the End of Run screen might sometimes act oddly and not correctly narrate focus. All of the information is accessible though.
-* The compendium screens (card library, run history, etc) are not accessible.
+* The End of Run screen is missing much more information than expected; this is being worked on.
 * The credits are not yet read.
 
+
 ## Credits
+
 I would like to thank everyone who has tested the mod so far, the feedback has been invaluable and the mod is much better as a result. I would also like to thank those who have directly contributed to the mod:
 
-* Rashad Naqeeb for contributing the Jaws configuration files
-* QgSama for contributing the Simplified Chinese localization.
+* Rashad Naqeeb for contributing the Jaws configuration files.
 * Amerikrainian for various code contributions, including new map features and a number of multiplayer improvements.
+* QgSama for contributing the Simplified Chinese localization.
+* Darrthscorrp for contributing the Russian localization.
