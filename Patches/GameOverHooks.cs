@@ -1,7 +1,8 @@
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Models.Badges;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using SayTheSpire2.UI.Screens;
+using System.Threading.Tasks;
 
 namespace SayTheSpire2.Patches;
 
@@ -11,25 +12,53 @@ public static class GameOverHooks
     {
         HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "InitializeBannerAndQuote",
             typeof(GameOverHooks), nameof(GameOverBannerPostfix), "GameOver banner");
-        // Beta 2026-04-23: NGameOverScreen.AddBadge is gone; badges are now
-        // built via NBadge.Create(Badge). Patch the new factory and read the
-        // title off the resulting NBadge instance.
-        HarmonyHelper.PatchIfFound(harmony, typeof(NBadge), "Create",
-            typeof(GameOverHooks), nameof(CreateBadgePostfix), "GameOver badge", parameterTypes: [typeof(Badge)]);
-        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "AnimateScoreBar",
-            typeof(GameOverHooks), nameof(AnimateScoreBarPrefix), "GameOver AnimateScoreBar", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "AnimateRunSummary",
+            typeof(GameOverHooks), nameof(AnimateRunSummaryPrefix), "GameOver AnimateRunSummary start", isPrefix: true);
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "AnimateRunSummary",
+            typeof(GameOverHooks), nameof(AnimateRunSummaryPostfix), "GameOver AnimateRunSummary settled");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NGameOverScreen), "_ExitTree",
+            typeof(GameOverHooks), nameof(GameOverExitPostfix), "GameOver exit");
     }
 
     public static void GameOverBannerPostfix(NGameOverScreen __instance)
     {
         if (GameOverScreen.Current == null)
-            ScreenManager.PushScreen(new GameOverScreen());
+            ScreenManager.PushScreen(new GameOverScreen(__instance));
         GameOverScreen.Current?.OnBannerAndQuote(__instance);
     }
 
-    public static void CreateBadgePostfix(NBadge? __result)
-        => GameOverScreen.Current?.OnBadge(__result);
+    public static void GameOverExitPostfix()
+    {
+        if (GameOverScreen.Current != null)
+            ScreenManager.RemoveScreen(GameOverScreen.Current);
+    }
 
-    public static void AnimateScoreBarPrefix(NGameOverScreen __instance)
-        => GameOverScreen.Current?.OnScore(__instance);
+    public static void AnimateRunSummaryPrefix(NGameOverScreen __instance)
+        => GameOverScreen.Current?.OnSummaryAnimationStarted(__instance);
+
+    public static void AnimateRunSummaryPostfix(NGameOverScreen __instance, ref Task __result)
+    {
+        try
+        {
+            __result = NotifyWhenSummarySettles(__result, __instance);
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] GameOver summary settled hook error: {e.Message}");
+        }
+    }
+
+    private static async Task NotifyWhenSummarySettles(Task original, NGameOverScreen instance)
+    {
+        await original;
+
+        try
+        {
+            GameOverScreen.Current?.OnSummarySettled(instance);
+        }
+        catch (System.Exception e)
+        {
+            Log.Error($"[AccessibilityMod] GameOver summary settled callback error: {e.Message}");
+        }
+    }
 }

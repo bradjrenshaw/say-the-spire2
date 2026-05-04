@@ -445,10 +445,14 @@
   "SORT.ASCENDING": "Ascending",
 
   "GAME_OVER.SCORE": "Score: {score}",
+  "GAME_OVER.ROWS.SCORES": "Scores",
+  "GAME_OVER.ROWS.BADGES": "Badges",
+  "GAME_OVER.ROWS.DISCOVERIES": "Discoveries",
 
   "MOD.VERSION_ANNOUNCE": "Say the Spire {version}",
 
   "CONTAINERS.CARD_LIBRARY": "Card Library",
+  "CONTAINERS.GAME_OVER": "Game Over",
   "CONTAINERS.FILTERS": "Filters",
   "CONTAINERS.HAND": "Hand",
   "CONTAINERS.SELECTED": "Selected",
