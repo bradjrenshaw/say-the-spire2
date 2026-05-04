@@ -28,6 +28,8 @@ public static class OverlayHooks
             typeof(OverlayHooks), nameof(OverlayPushPostfix), "Overlay Push");
         HarmonyHelper.PatchIfFound(harmony, typeof(NOverlayStack), "Remove",
             typeof(OverlayHooks), nameof(OverlayRemovePostfix), "Overlay Remove");
+        HarmonyHelper.PatchIfFound(harmony, typeof(NCardRewardSelectionScreen), "RefreshOptions",
+            typeof(OverlayHooks), nameof(CardRewardRefreshPostfix), "Card Reward RefreshOptions");
 
         // Targeting focus (foul potion in shop)
         var startTargeting = AccessTools.Method(typeof(NTargetManager), "StartTargeting",
@@ -117,6 +119,15 @@ public static class OverlayHooks
         {
             ScreenManager.RemoveScreen(RewardsGameScreen.Current);
         }
+    }
+
+    public static void CardRewardRefreshPostfix(NCardRewardSelectionScreen __instance)
+    {
+        try
+        {
+            CardRewardGameScreen.Current?.RefreshFromGame(__instance);
+        }
+        catch (System.Exception e) { Log.Error($"[AccessibilityMod] Card reward refresh postfix failed: {e.Message}"); }
     }
 
     public static void StartTargetingPostfix(TargetType validTargetsType)
