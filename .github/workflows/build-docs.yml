@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} is generating docs for github pages.
 on:
   workflow_dispatch:
   release:
-    types: [published]
+    types: [released]
 jobs:
   build:
     permissions:
@@ -28,4 +28,5 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/deploy-pages@v4
+      - id: deployment
+        uses: actions/deploy-pages@v4
