@@ -57,16 +57,12 @@ public class CardRewardGameScreen : GameScreen
 
         var optionControls = RegisterCards(options);
         var alternatives = GetAlternatives();
-        Control? skipControl = alternatives.Count > 0 ? alternatives[0] : null;
-        optionControls.AddRange(RegisterAlternatives(options, alternatives, startIndex: skipControl == null ? 0 : 1));
+        optionControls.AddRange(RegisterAlternatives(options, alternatives));
 
         if (options.Children.Count > 0)
             root.Add(options);
 
-        if (skipControl != null)
-            RegisterSkip(root, skipControl);
-
-        WireFocusNeighbors(optionControls, skipControl);
+        WireFocusNeighbors(optionControls);
 
         RootElement = root;
         Log.Info($"[AccessibilityMod] CardRewardGameScreen built: {optionControls.Count} row options, {alternatives.Count} alternatives");
@@ -118,12 +114,11 @@ public class CardRewardGameScreen : GameScreen
         return buttons;
     }
 
-    private List<Control> RegisterAlternatives(ListContainer row, List<NCardRewardAlternativeButton> alternatives, int startIndex)
+    private List<Control> RegisterAlternatives(ListContainer row, List<NCardRewardAlternativeButton> alternatives)
     {
         var controls = new List<Control>();
-        for (var i = startIndex; i < alternatives.Count; i++)
+        foreach (var button in alternatives)
         {
-            var button = alternatives[i];
             var proxy = new ProxyButton(button);
             row.Add(proxy);
             Register(button, proxy);
@@ -133,19 +128,11 @@ public class CardRewardGameScreen : GameScreen
         return controls;
     }
 
-    private void RegisterSkip(ListContainer root, Control skipControl)
-    {
-        var proxy = new ProxyButton(skipControl);
-        root.Add(proxy);
-        Register(skipControl, proxy);
-    }
-
-    private static void WireFocusNeighbors(List<Control> options, Control? skipControl)
+    private static void WireFocusNeighbors(List<Control> options)
     {
         if (options.Count == 0)
             return;
 
-        var bottom = skipControl?.GetPath();
         for (var i = 0; i < options.Count; i++)
         {
             var self = options[i].GetPath();
@@ -155,16 +142,7 @@ public class CardRewardGameScreen : GameScreen
             options[i].FocusNeighborLeft = left.GetPath();
             options[i].FocusNeighborRight = right.GetPath();
             options[i].FocusNeighborTop = self;
-            options[i].FocusNeighborBottom = bottom ?? self;
-        }
-
-        if (skipControl != null)
-        {
-            var self = skipControl.GetPath();
-            skipControl.FocusNeighborLeft = self;
-            skipControl.FocusNeighborRight = self;
-            skipControl.FocusNeighborTop = options[0].GetPath();
-            skipControl.FocusNeighborBottom = self;
+            options[i].FocusNeighborBottom = self;
         }
     }
 
