@@ -462,6 +462,7 @@ public static class InputManager
                 if (action.HasControllerModifier)
                 {
                     _activeActions.Add(action);
+                    EnsureFocusMode(action);
                     if (!anyConsumed)
                     {
                         bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustPressed);
@@ -483,6 +484,7 @@ public static class InputManager
         if (unmatchedFallback != null)
         {
             _activeActions.Add(unmatchedFallback);
+            EnsureFocusMode(unmatchedFallback);
             if (!anyConsumed)
             {
                 bool consumed = ScreenManager.DispatchAction(unmatchedFallback, InputActionState.JustPressed);
