@@ -4,16 +4,20 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Events;
+using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.Events.Custom;
 using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens;
-using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
+using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Speech;
@@ -143,15 +147,12 @@ public static class OverlayHooks
             if (validTargetsType != TargetType.TargetedNoCreature) return;
             if (!RunManager.Instance.IsInProgress) return;
 
-            var runState = RunManager.Instance.DebugOnlyGetState();
-            if (runState == null) return;
-            var room = runState.CurrentRoom;
-            if (room?.RoomType != MegaCrit.Sts2.Core.Rooms.RoomType.Shop) return;
-
-            var merchantRoom = NMerchantRoom.Instance;
-            if (merchantRoom == null) return;
-
-            var merchantButton = merchantRoom.MerchantButton;
+            // Real shops expose the merchant via NMerchantRoom.Instance. The
+            // fake-merchant event reuses the same NMerchantButton inside an
+            // NFakeMerchant node but runs in a Monster-type room, so the
+            // singleton is null there — fall back to a tree walk.
+            var merchantButton = NMerchantRoom.Instance?.MerchantButton
+                ?? FindFakeMerchant()?.MerchantButton;
             if (merchantButton == null) return;
 
             var control = (Control)merchantButton;
@@ -164,6 +165,17 @@ public static class OverlayHooks
         {
             Log.Error($"[AccessibilityMod] StartTargeting focus error: {e.Message}");
         }
+    }
+
+    private static NFakeMerchant? FindFakeMerchant()
+    {
+        // Mirrors the game's own resolution path in FoulPotion.OnUse: the fake
+        // merchant runs as an EventRoom, and the NFakeMerchant control is hung
+        // off the local mutable event's Node property.
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState?.CurrentRoom is not EventRoom eventRoom) return null;
+        if (eventRoom.CanonicalEvent is not FakeMerchant) return null;
+        return eventRoom.LocalMutableEvent?.Node as NFakeMerchant;
     }
 
     public static void BundlePreviewPostfix(NChooseABundleSelectionScreen __instance, NCardBundle bundleNode)
