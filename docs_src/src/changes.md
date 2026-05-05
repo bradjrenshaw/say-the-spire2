@@ -1,12 +1,13 @@
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)
-* Restored the missing owner readout on summoned creatures (such as Osty). this regression was introduced in the previous patch.
+* Restored the missing owner readout on summoned creatures (such as Osty). this regression was accidentally introduced in the previous patch.
 * Various fixes thanks to @amerikrainian:
     * Added badges and relic acquisition info to run history
     * Fixed powers sometimes not showing their correct current value (for example Hardened Shell.)
     * Added facing direction in the player buffer and a facing changed event for fights where you are surrounded (for example the crab boss in Act 2.)
     * Fixed custom runs becoming unresponsive if you used either the Draft or Sealed Deck modifiers.
-
+    * Added focusable buttons for the alternative card reward options (skip, reroll, sacrifice, etc.) this behavior was already supported but you needed to use a shortcut to access them. The buttons have been added for a better user experience.
+    * The proceed button is now focusable in the rewards list (can be pressed instead of using the proceed shortcut.)
 
 
 ## V0.5.1
