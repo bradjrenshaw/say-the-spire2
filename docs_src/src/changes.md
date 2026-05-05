@@ -1,6 +1,7 @@
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)
 * Restored the missing owner readout on summoned creatures (such as Osty). this regression was accidentally introduced in the previous patch.
+* Finally fixed a bug where you could not properly target the fake merchant with a foul potion.
 * Various fixes thanks to @amerikrainian:
     * Added badges and relic acquisition info to run history
     * Fixed powers sometimes not showing their correct current value (for example Hardened Shell.)
