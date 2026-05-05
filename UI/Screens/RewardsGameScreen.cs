@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Rewards;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using SayTheSpire2.Help;
@@ -86,6 +87,7 @@ public class RewardsGameScreen : Screen
         var container = _screen.GetNodeOrNull<Control>("%RewardsContainer");
         if (container == null) return;
 
+        Control? lastReward = null;
         foreach (var child in container.GetChildren())
         {
             if (child is NRewardButton button && button.Visible)
@@ -94,6 +96,7 @@ public class RewardsGameScreen : Screen
                 _root.Add(proxy);
                 _elementCache[button] = proxy;
                 ConnectFocusSignal(button, proxy);
+                lastReward = button;
             }
             else if (child is Control control && control.Visible)
             {
@@ -104,7 +107,28 @@ public class RewardsGameScreen : Screen
                     _root.Add(proxy);
                     _elementCache[inner] = proxy;
                     ConnectFocusSignal(inner, proxy);
+                    lastReward = inner;
                 }
+            }
+        }
+
+        var proceedButton = _screen.GetNodeOrNull<NProceedButton>("ProceedButton");
+        if (proceedButton is { Visible: true, IsEnabled: true })
+        {
+            proceedButton.FocusMode = Control.FocusModeEnum.All;
+            var proxy = new ProxyButton(proceedButton);
+            _root.Add(proxy);
+            _elementCache[proceedButton] = proxy;
+            ConnectFocusSignal(proceedButton, proxy);
+            if (lastReward != null)
+            {
+                var proceedPath = proceedButton.GetPath();
+                var rewardPath = lastReward.GetPath();
+                lastReward.FocusNeighborBottom = proceedPath;
+                proceedButton.FocusNeighborTop = rewardPath;
+                proceedButton.FocusNeighborBottom = proceedPath;
+                proceedButton.FocusNeighborLeft = proceedPath;
+                proceedButton.FocusNeighborRight = proceedPath;
             }
         }
     }
@@ -122,6 +146,10 @@ public class RewardsGameScreen : Screen
         var container = _screen.GetNodeOrNull<Control>("%RewardsContainer");
         if (container == null) return "";
         var buttons = container.GetChildren().OfType<Control>().Where(c => c.Visible);
-        return string.Join("|", buttons.Select(b => $"{b.GetInstanceId()}:{b.Visible}"));
+        var proceedButton = _screen.GetNodeOrNull<NProceedButton>("ProceedButton");
+        var proceedToken = proceedButton == null
+            ? "proceed:null"
+            : $"proceed:{proceedButton.GetInstanceId()}:{proceedButton.Visible}:{proceedButton.IsEnabled}:{proceedButton.IsSkip}:{proceedButton.FocusMode}";
+        return string.Join("|", buttons.Select(b => $"{b.GetInstanceId()}:{b.Visible}")) + "|" + proceedToken;
     }
 }
