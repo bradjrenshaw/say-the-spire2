@@ -366,9 +366,6 @@ public static class ModEntry
         ScreenManager.RegisterGameScreen<NMainMenu>(
             () => new MainMenuScreen());
 
-        ScreenManager.RegisterGameScreen<NGameOverScreen>(
-            () => new GameOverScreen());
-
         ScreenManager.RegisterGameScreen<NTimelineScreen>(
             () => new TimelineGameScreen((NTimelineScreen)getContext()!));
 

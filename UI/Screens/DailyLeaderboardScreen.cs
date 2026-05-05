@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using MegaCrit.Sts2.Core.Nodes.Screens.DailyRun;
 using SayTheSpire2.Input;
@@ -13,6 +14,7 @@ public class DailyLeaderboardScreen : Screen
 {
     private readonly DailyLeaderboardAdapter _adapter;
     private readonly Control? _returnFocus;
+    private readonly IReadOnlyList<UIElement> _extraActions;
     private readonly ListContainer _root = new()
     {
         ContainerLabel = Message.Localized("ui", "DAILY_RUN.LEADERBOARD"),
@@ -38,10 +40,14 @@ public class DailyLeaderboardScreen : Screen
 
     public override Message? ScreenName => Message.Localized("ui", "DAILY_RUN.LEADERBOARD");
 
-    public DailyLeaderboardScreen(NDailyRunLeaderboard leaderboard, Control? returnFocus = null)
+    public DailyLeaderboardScreen(
+        NDailyRunLeaderboard leaderboard,
+        Control? returnFocus = null,
+        IEnumerable<UIElement>? extraActions = null)
     {
         _adapter = new DailyLeaderboardAdapter(leaderboard);
         _returnFocus = returnFocus;
+        _extraActions = extraActions?.ToList() ?? new List<UIElement>();
         _root.Add(_rows);
         _root.Add(_extras);
         RootElement = _root;
@@ -200,6 +206,12 @@ public class DailyLeaderboardScreen : Screen
                 tooltip: () => Ui("DAILY_RUN_LEADERBOARD.SCORE_WARNING_TOOLTIP"));
             _extras.Add(warning);
             _focusables.Add(warning);
+        }
+
+        foreach (var action in _extraActions)
+        {
+            _extras.Add(action);
+            _focusables.Add(action);
         }
 
         _lastStateToken = _adapter.GetStateToken();

@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Nodes.Events.Custom.CrystalSphere;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Screens;
+using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardSelection;
 using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Runs;
@@ -116,6 +117,11 @@ public static class OverlayHooks
             && RewardsGameScreen.Current != null)
         {
             ScreenManager.RemoveScreen(RewardsGameScreen.Current);
+        }
+        else if (screen is NGameOverScreen
+            && GameOverScreen.Current != null)
+        {
+            ScreenManager.RemoveScreen(GameOverScreen.Current);
         }
     }
 
