@@ -105,8 +105,20 @@ public class GameOverScreen : GameScreen
 
     public override void OnUpdate()
     {
+        if (!GodotObject.IsInstanceValid(_screen))
+        {
+            ScreenManager.RemoveScreen(this);
+            return;
+        }
+
+        if (_leaderboard != null && !GodotObject.IsInstanceValid(_leaderboard))
+            _leaderboard = null;
+
         _leaderboard ??= _screen.GetNodeOrNull<NDailyRunLeaderboard>("%DailyRunLeaderboard");
-        if (_leaderboard?.Visible == true && ActiveChild is not DailyLeaderboardScreen)
+        if (_leaderboard != null
+            && GodotObject.IsInstanceValid(_leaderboard)
+            && _leaderboard.Visible
+            && ActiveChild is not DailyLeaderboardScreen)
             PushGameOverLeaderboard();
     }
 
