@@ -411,7 +411,7 @@ public static class InputManager
                     bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustPressed);
                     if (consumed)
                         anyConsumed = true;
-                    else if (action.GameAction != null)
+                    else if (action.GameAction != null && !IsFocusedControlLockedClick(action))
                         InjectGameAction(action.GameAction, pressed: true);
                 }
             }
@@ -431,7 +431,7 @@ public static class InputManager
         {
             _activeActions.Remove(action);
             bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustReleased);
-            if (!consumed && action.GameAction != null)
+            if (!consumed && action.GameAction != null && !IsFocusedControlLockedClick(action))
                 InjectGameAction(action.GameAction, pressed: false);
         }
     }
@@ -468,7 +468,7 @@ public static class InputManager
                         bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustPressed);
                         if (consumed)
                             anyConsumed = true;
-                        else if (action.GameAction != null)
+                        else if (action.GameAction != null && !IsFocusedControlLockedClick(action))
                             InjectGameAction(action.GameAction, pressed: true);
                     }
                     unmatchedFallback = null;
@@ -490,7 +490,7 @@ public static class InputManager
                 bool consumed = ScreenManager.DispatchAction(unmatchedFallback, InputActionState.JustPressed);
                 if (consumed)
                     anyConsumed = true;
-                else if (unmatchedFallback.GameAction != null)
+                else if (unmatchedFallback.GameAction != null && !IsFocusedControlLockedClick(unmatchedFallback))
                     InjectGameAction(unmatchedFallback.GameAction, pressed: true);
             }
         }
@@ -531,7 +531,7 @@ public static class InputManager
         {
             _activeActions.Remove(action);
             bool consumed = ScreenManager.DispatchAction(action, InputActionState.JustReleased);
-            if (!consumed && action.GameAction != null)
+            if (!consumed && action.GameAction != null && !IsFocusedControlLockedClick(action))
                 InjectGameAction(action.GameAction, pressed: false);
             if (consumed)
                 anyConsumed = true;
@@ -639,5 +639,21 @@ public static class InputManager
             Pressed = pressed
         };
         Godot.Input.ParseInputEvent(inputEventAction);
+    }
+
+    /// <summary>
+    /// Activate-style actions (ui_accept / ui_select) on a Godot-disabled
+    /// NClickableControl. The game uses FocusMode = None to block clicks on
+    /// locked controls; we restore FocusMode.All so screen readers can
+    /// announce them, but must reinstate the click-block here so locked
+    /// buttons whose Released signal doesn't gate on IsEnabled (e.g. the
+    /// Daily / Custom run buttons in NSingleplayerSubmenu) don't fire.
+    /// </summary>
+    private static bool IsFocusedControlLockedClick(InputAction action)
+    {
+        if (action.Key != "ui_accept" && action.Key != "ui_select")
+            return false;
+        var focused = _controllerManager?.GetViewport()?.GuiGetFocusOwner();
+        return focused is NClickableControl c && !c.IsEnabled;
     }
 }
