@@ -52,7 +52,10 @@ public class ProxyCrystalSphereCell : ProxyElement
 
     public override Message? GetStatusString()
     {
-        var item = Entity?.Item;
+        var entity = Entity;
+        if (entity == null || entity.IsHidden) return null;
+
+        var item = entity.Item;
         if (item == null) return null;
 
         var range = GetItemRangeString(item);
