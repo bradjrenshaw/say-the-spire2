@@ -22,6 +22,8 @@ public class DefaultScreen : Screen
         ClaimAction("help");
         ClaimAction("dev_console");
         ClaimAction("feedback");
+        ClaimAction("nav_home");
+        ClaimAction("nav_end");
     }
 
     public override bool OnActionJustPressed(InputAction action)
@@ -56,6 +58,12 @@ public class DefaultScreen : Screen
                 return true;
             case "feedback":
                 OpenFeedbackScreen();
+                return true;
+            case "nav_home":
+                ContainerNavigation.JumpToFirst();
+                return true;
+            case "nav_end":
+                ContainerNavigation.JumpToLast();
                 return true;
         }
 

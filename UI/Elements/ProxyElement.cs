@@ -8,8 +8,6 @@ public abstract class ProxyElement : UIElement
 {
     private static readonly Regex CamelCasePattern = new(@"([a-z])([A-Z])", RegexOptions.Compiled);
 
-    protected Control? Control { get; private set; }
-
     public string? OverrideLabel { get; set; }
 
     public override bool IsVisible =>

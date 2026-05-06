@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Godot;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
@@ -9,6 +10,15 @@ namespace SayTheSpire2.UI.Elements;
 public abstract class UIElement
 {
     public Container? Parent { get; set; }
+
+    /// <summary>
+    /// The Godot control this element wraps or was registered against, if any.
+    /// Set by ProxyElement subclasses at construction time and by screens'
+    /// registry-write sites for non-proxy registrations (ActionElement etc.).
+    /// Null for elements that are purely logical — e.g., NavigableContainer
+    /// children whose focus is bookkept rather than driven through Godot.
+    /// </summary>
+    public Control? Control { get; set; }
 
     public virtual bool IsVisible => true;
 

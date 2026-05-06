@@ -183,6 +183,10 @@ public static class InputManager
 
     private static void RegisterModActions()
     {
+        _actions.Add(new InputAction("nav_home", Ui("UI_NAV.HOME", "Jump to First Element"))
+            .AddBinding(Key.Home));
+        _actions.Add(new InputAction("nav_end", Ui("UI_NAV.END", "Jump to Last Element"))
+            .AddBinding(Key.End));
         _actions.Add(new InputAction("buffer_next_item", "Buffer Next Item").AddBinding(Key.Up, ctrl: true)
             .AddBinding(ControllerInput.RightStickUp));
         _actions.Add(new InputAction("buffer_prev_item", "Buffer Previous Item").AddBinding(Key.Down, ctrl: true)

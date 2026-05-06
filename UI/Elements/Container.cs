@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Godot;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
 
@@ -80,4 +81,23 @@ public abstract class Container : UIElement
     }
 
     public abstract Message? GetPositionString(UIElement child);
+
+    /// <summary>
+    /// Move focus to the given child. Default behavior: GrabFocus on the
+    /// child's backing Godot Control if any (works for proxy-style elements
+    /// whose focus is driven through the engine), or fall back to
+    /// <see cref="UIManager.SetFocusedElement"/> for purely logical elements.
+    /// <para>
+    /// <see cref="NavigableContainer"/> overrides this to route through its
+    /// own SetFocusTo so its internal _focusedChild stays in sync — settings
+    /// elements track focus logically rather than via Godot's focus owner.
+    /// </para>
+    /// </summary>
+    public virtual void FocusChild(UIElement child)
+    {
+        if (child.Control != null && GodotObject.IsInstanceValid(child.Control))
+            child.Control.GrabFocus();
+        else
+            UIManager.SetFocusedElement(child);
+    }
 }

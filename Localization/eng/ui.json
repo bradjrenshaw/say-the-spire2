@@ -207,6 +207,8 @@
   "RUN_HISTORY.FLOOR_WITH_ROOM": "Floor {floor}, {room}",
   "RUN_HISTORY.OBTAINED_ON_FLOOR": "Obtained on floor {floor}",
   "RUN_HISTORY.OBTAINED_ON_FLOORS": "Obtained on floors {floors}",
+  "UI_NAV.HOME": "Jump to First Element",
+  "UI_NAV.END": "Jump to Last Element",
   "UI_ENHANCEMENTS.CATEGORY": "UI Enhancements",
   "UI_ENHANCEMENTS.COMBAT": "Combat Screen",
   "UI_ENHANCEMENTS.HAND_SELECT": "Hand Select Screen",

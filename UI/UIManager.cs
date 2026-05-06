@@ -12,6 +12,15 @@ public static class UIManager
 {
     private static UIElement? _currentElement;
     private static Control? _currentControl;
+
+    /// <summary>
+    /// The element the mod considers focused. Truth-source across both focus
+    /// modalities — Godot-driven (set via SetFocusedControl) and logical (set
+    /// via SetFocusedElement from NavigableContainer-style screens). Used by
+    /// ContainerNavigation so Home/End operates on the right container even
+    /// when Godot's focus owner is stale.
+    /// </summary>
+    public static UIElement? CurrentElement => _currentElement;
     private static Control? _lastAnnouncedControl;
     private static UIElement? _lastAnnouncedElement;
     private static string? _lastAnnouncedText;

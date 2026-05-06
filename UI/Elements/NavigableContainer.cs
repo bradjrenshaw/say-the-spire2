@@ -16,6 +16,17 @@ public class NavigableContainer : ListContainer
     public UIElement? FocusedChild =>
         _focusedChild != null && IndexOf(_focusedChild) >= 0 ? _focusedChild : null;
 
+    /// <summary>
+    /// Routes container-level focus moves (e.g. Home / End from
+    /// ContainerNavigation) through the same SetFocusTo path that arrow-key
+    /// navigation uses, so _focusedChild stays consistent and the
+    /// announcement notify fires.
+    /// </summary>
+    public override void FocusChild(UIElement child)
+    {
+        SetFocusTo(child);
+    }
+
     public bool HandleAction(InputAction action)
     {
         switch (action.Key)

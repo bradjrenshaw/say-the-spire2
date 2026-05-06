@@ -33,6 +33,7 @@ public abstract class GameScreen : Screen
     protected void Register(Control control, UIElement element)
     {
         _registry[control] = element;
+        element.Control = control;
     }
 
     protected void ClearRegistry()
