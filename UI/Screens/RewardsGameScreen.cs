@@ -120,7 +120,7 @@ public class RewardsGameScreen : Screen
             _root.Add(proxy);
             _elementCache[proceedButton] = proxy;
             ConnectFocusSignal(proceedButton, proxy);
-            if (lastReward != null)
+            if (lastReward != null && Settings.UIEnhancementsSettings.Rewards.Get())
             {
                 var proceedPath = proceedButton.GetPath();
                 var rewardPath = lastReward.GetPath();

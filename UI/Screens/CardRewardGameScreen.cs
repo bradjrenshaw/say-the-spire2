@@ -62,7 +62,8 @@ public class CardRewardGameScreen : GameScreen
         if (options.Children.Count > 0)
             root.Add(options);
 
-        WireFocusNeighbors(optionControls);
+        if (Settings.UIEnhancementsSettings.CardReward.Get())
+            WireFocusNeighbors(optionControls);
 
         RootElement = root;
         Log.Info($"[AccessibilityMod] CardRewardGameScreen built: {optionControls.Count} row options, {alternatives.Count} alternatives");

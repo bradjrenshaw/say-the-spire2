@@ -123,6 +123,8 @@ public static class ModEntry
         Events.EventDispatcher.Profiling = profiling.Value;
         profiling.Changed += v => Events.EventDispatcher.Profiling = v;
 
+        Settings.UIEnhancementsSettings.Register(advancedCategory);
+
         // Map settings
         var mapCategory = new Settings.CategorySetting("map", Ui("MAP.SETTINGS.CATEGORY", "Map"));
         Settings.ModSettings.Root.Add(mapCategory);
