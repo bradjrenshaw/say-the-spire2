@@ -254,6 +254,9 @@ public class RunScreen : Screen
             SyncContainer(_potionContainer, potionHolders);
             SyncContainer(_relicContainer, relicNodes?.OfType<Control>());
 
+            if (!Settings.UIEnhancementsSettings.RunTopBar.Get())
+                return;
+
             // Wire potions: left/right between middle elements only,
             // leave first/last edges alone (game links them to gold/room icon)
             for (int i = 0; i < potionHolders.Count; i++)

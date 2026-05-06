@@ -23,6 +23,15 @@ public static class UIEnhancementsSettings
     public static BoolSetting CustomRunLoad { get; private set; } = null!;
     public static BoolSetting DailyRun { get; private set; } = null!;
     public static BoolSetting DailyRunLoad { get; private set; } = null!;
+    public static BoolSetting CardLibrary { get; private set; } = null!;
+    public static BoolSetting Compendium { get; private set; } = null!;
+    public static BoolSetting RunHistory { get; private set; } = null!;
+    public static BoolSetting Stats { get; private set; } = null!;
+    public static BoolSetting Timeline { get; private set; } = null!;
+    public static BoolSetting RunTopBar { get; private set; } = null!;
+    public static BoolSetting GameOver { get; private set; } = null!;
+    public static BoolSetting MerchantTargeting { get; private set; } = null!;
+    public static BoolSetting BundlePreview { get; private set; } = null!;
 
     public static void Register(CategorySetting parent)
     {
@@ -53,6 +62,24 @@ public static class UIEnhancementsSettings
             "card_reward", "UI_ENHANCEMENTS.CARD_REWARD", "Card Reward Screen");
         Rewards = AddToggle(category,
             "rewards", "UI_ENHANCEMENTS.REWARDS", "Rewards Screen");
+        CardLibrary = AddToggle(category,
+            "card_library", "UI_ENHANCEMENTS.CARD_LIBRARY", "Card Library");
+        Compendium = AddToggle(category,
+            "compendium", "UI_ENHANCEMENTS.COMPENDIUM", "Compendium Menu");
+        RunHistory = AddToggle(category,
+            "run_history", "UI_ENHANCEMENTS.RUN_HISTORY", "Run History");
+        Stats = AddToggle(category,
+            "stats", "UI_ENHANCEMENTS.STATS", "Stats Screen");
+        Timeline = AddToggle(category,
+            "timeline", "UI_ENHANCEMENTS.TIMELINE", "Timeline");
+        RunTopBar = AddToggle(category,
+            "run_top_bar", "UI_ENHANCEMENTS.RUN_TOP_BAR", "Run Top Bar");
+        GameOver = AddToggle(category,
+            "game_over", "UI_ENHANCEMENTS.GAME_OVER", "Game Over Screen");
+        MerchantTargeting = AddToggle(category,
+            "merchant_targeting", "UI_ENHANCEMENTS.MERCHANT_TARGETING", "Merchant Targeting Auto-focus");
+        BundlePreview = AddToggle(category,
+            "bundle_preview", "UI_ENHANCEMENTS.BUNDLE_PREVIEW", "Card Bundle Preview");
     }
 
     private static BoolSetting AddToggle(CategorySetting parent, string key, string locKey, string fallback)

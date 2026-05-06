@@ -141,7 +141,8 @@ public class RunHistoryGameScreen : GameScreen
         AddIfNotEmpty(deck);
         AddIfNotEmpty(quote);
 
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.RunHistory.Get())
+            WireFocusNeighbors();
     }
 
     private static ListContainer NewRow(Message label) => new()

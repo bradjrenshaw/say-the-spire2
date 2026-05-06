@@ -6,9 +6,9 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Logging;
+using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens.DailyRun;
 using MegaCrit.Sts2.Core.Nodes.Screens.GameOverScreen;
-using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
@@ -88,7 +88,8 @@ public class GameOverScreen : GameScreen
         AddRowIfNotEmpty(_scores);
         AddRowIfNotEmpty(_badges);
         AddRowIfNotEmpty(_discoveries);
-        WireFocusOrder();
+        if (Settings.UIEnhancementsSettings.GameOver.Get())
+            WireFocusOrder();
     }
 
     public override void OnPush()

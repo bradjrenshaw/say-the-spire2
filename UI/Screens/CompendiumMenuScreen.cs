@@ -36,7 +36,8 @@ public class CompendiumMenuScreen : GameScreen
         RegisterButton("%StatisticsButton");
         RegisterButton("%RunHistoryButton");
         RegisterButton("%ConfirmButton");
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.Compendium.Get())
+            WireFocusNeighbors();
     }
 
     private void RegisterButton(string nodePath)

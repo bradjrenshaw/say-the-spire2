@@ -98,7 +98,8 @@ public class TimelineGameScreen : GameScreen
             var columns = GetSortedColumns();
             if (columns == null) return;
 
-            FixFocusNeighbors(columns);
+            if (Settings.UIEnhancementsSettings.Timeline.Get())
+                FixFocusNeighbors(columns);
             BuildContainerTree(columns);
         }
         catch (System.Exception ex)

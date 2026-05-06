@@ -144,6 +144,7 @@ public static class OverlayHooks
     {
         try
         {
+            if (!SayTheSpire2.Settings.UIEnhancementsSettings.MerchantTargeting.Get()) return;
             if (validTargetsType != TargetType.TargetedNoCreature) return;
             if (!RunManager.Instance.IsInProgress) return;
 
@@ -182,6 +183,7 @@ public static class OverlayHooks
     {
         try
         {
+            if (!SayTheSpire2.Settings.UIEnhancementsSettings.BundlePreview.Get()) return;
             var cardsField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundlePreviewCards");
             var previewCards = cardsField?.GetValue(__instance) as Control;
             if (previewCards == null || previewCards.GetChildCount() == 0) return;
@@ -245,6 +247,7 @@ public static class OverlayHooks
     {
         try
         {
+            if (!SayTheSpire2.Settings.UIEnhancementsSettings.BundlePreview.Get()) return;
             var cardsField = AccessTools.Field(typeof(NChooseABundleSelectionScreen), "_bundlePreviewCards");
             var previewCards = cardsField?.GetValue(__instance) as Control;
             if (previewCards != null)

@@ -126,7 +126,8 @@ public class CardLibraryGameScreen : GameScreen
 
     public override void OnUpdate()
     {
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.CardLibrary.Get())
+            WireFocusNeighbors();
 
         var token = BuildStateToken();
         if (token == _stateToken)
@@ -172,7 +173,8 @@ public class CardLibraryGameScreen : GameScreen
         RegisterSearch();
         RegisterFilters();
         RegisterCards();
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.CardLibrary.Get())
+            WireFocusNeighbors();
     }
 
     private void RegisterSearch()

@@ -78,7 +78,8 @@ public class StatsGameScreen : GameScreen
 
         RegisterOverallStats(grid);
         RegisterCharacterStats(grid);
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.Stats.Get())
+            WireFocusNeighbors();
     }
 
     private void RegisterOverallStats(NGeneralStatsGrid grid)
