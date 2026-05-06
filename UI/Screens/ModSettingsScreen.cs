@@ -93,6 +93,13 @@ public class ModSettingsScreen : Screen
         ClaimAction("ui_select");
         ClaimAction("ui_cancel");
         ClaimAction("mega_pause_and_back");
+        ClaimAction("mega_top_panel");
+        ClaimAction("mega_peek");
+        ClaimAction("mega_view_draw_pile");
+        ClaimAction("mega_view_discard_pile");
+        ClaimAction("mega_view_deck_and_tab_left");
+        ClaimAction("mega_view_exhaust_pile_and_tab_right");
+        ClaimAction("mega_view_map");
         ClaimAction("mod_settings");
 
         BuildControls();
