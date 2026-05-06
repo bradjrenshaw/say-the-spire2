@@ -239,13 +239,16 @@ public class CharacterSelectGameScreen : GameScreen
         foreach (var (ctrl, _) in GetRegisteredControls())
             charButtons.Add(ctrl);
 
-        for (int i = 0; i < charButtons.Count; i++)
+        if (Settings.UIEnhancementsSettings.CharacterSelect.Get())
         {
-            var self = charButtons[i].GetPath();
-            charButtons[i].FocusNeighborLeft = i > 0 ? charButtons[i - 1].GetPath() : self;
-            charButtons[i].FocusNeighborRight = i < charButtons.Count - 1 ? charButtons[i + 1].GetPath() : self;
-            charButtons[i].FocusNeighborTop = self;
-            charButtons[i].FocusNeighborBottom = self;
+            for (int i = 0; i < charButtons.Count; i++)
+            {
+                var self = charButtons[i].GetPath();
+                charButtons[i].FocusNeighborLeft = i > 0 ? charButtons[i - 1].GetPath() : self;
+                charButtons[i].FocusNeighborRight = i < charButtons.Count - 1 ? charButtons[i + 1].GetPath() : self;
+                charButtons[i].FocusNeighborTop = self;
+                charButtons[i].FocusNeighborBottom = self;
+            }
         }
 
         MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] Lobby BuildRegistry: {charButtons.Count} controls");

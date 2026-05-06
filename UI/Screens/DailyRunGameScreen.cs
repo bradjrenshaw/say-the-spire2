@@ -208,7 +208,8 @@ public class DailyRunGameScreen : GameScreen
             typeKey: () => "button",
             isVisible: () => IsVisible(_backButton)));
 
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.DailyRun.Get())
+            WireFocusNeighbors();
     }
 
     private void ResolveControls()

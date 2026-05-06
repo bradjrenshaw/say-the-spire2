@@ -206,7 +206,8 @@ public class CustomRunLoadGameScreen : GameScreen
         if (_backButton != null && IsUsable(_backButton))
             RegisterMain(_backButton, GetOrCreate(_backButton, CreateBackButtonElement));
 
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.CustomRunLoad.Get())
+            WireFocusNeighbors();
     }
 
     private void ResolveControls()

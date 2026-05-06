@@ -18,6 +18,11 @@ public static class UIEnhancementsSettings
     public static BoolSetting HandSelect { get; private set; } = null!;
     public static BoolSetting CrystalSphere { get; private set; } = null!;
     public static BoolSetting RestSite { get; private set; } = null!;
+    public static BoolSetting CharacterSelect { get; private set; } = null!;
+    public static BoolSetting CustomRun { get; private set; } = null!;
+    public static BoolSetting CustomRunLoad { get; private set; } = null!;
+    public static BoolSetting DailyRun { get; private set; } = null!;
+    public static BoolSetting DailyRunLoad { get; private set; } = null!;
 
     public static void Register(CategorySetting parent)
     {
@@ -34,6 +39,16 @@ public static class UIEnhancementsSettings
             "crystal_sphere", "UI_ENHANCEMENTS.CRYSTAL_SPHERE", "Crystal Sphere");
         RestSite = AddToggle(category,
             "rest_site", "UI_ENHANCEMENTS.REST_SITE", "Rest Site");
+        CharacterSelect = AddToggle(category,
+            "character_select", "UI_ENHANCEMENTS.CHARACTER_SELECT", "Character Select");
+        CustomRun = AddToggle(category,
+            "custom_run", "UI_ENHANCEMENTS.CUSTOM_RUN", "Custom Run Setup");
+        CustomRunLoad = AddToggle(category,
+            "custom_run_load", "UI_ENHANCEMENTS.CUSTOM_RUN_LOAD", "Custom Run Load");
+        DailyRun = AddToggle(category,
+            "daily_run", "UI_ENHANCEMENTS.DAILY_RUN", "Daily Run Setup");
+        DailyRunLoad = AddToggle(category,
+            "daily_run_load", "UI_ENHANCEMENTS.DAILY_RUN_LOAD", "Daily Run Load");
         CardReward = AddToggle(category,
             "card_reward", "UI_ENHANCEMENTS.CARD_REWARD", "Card Reward Screen");
         Rewards = AddToggle(category,

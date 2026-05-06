@@ -180,7 +180,8 @@ public class CustomRunGameScreen : GameScreen
             RegisterMain(_backButton, GetOrCreate(_backButton, CreateBackButtonElement));
 
         ConnectModifierListSignal();
-        WireFocusNeighbors();
+        if (Settings.UIEnhancementsSettings.CustomRun.Get())
+            WireFocusNeighbors();
     }
 
     private void ResolveControls()
