@@ -110,6 +110,9 @@ public class CrystalSphereGameScreen : Screen
                 // Keep all cells focusable
                 cell.FocusMode = Control.FocusModeEnum.All;
 
+                if (!Settings.UIEnhancementsSettings.CrystalSphere.Get())
+                    continue;
+
                 // Wire focus neighbors — no wrapping, clamp to edges
                 cell.FocusNeighborTop = (row > 0 ? _cells[row - 1, col] : cell)?.GetPath();
                 cell.FocusNeighborBottom = (row < _rows - 1 ? _cells[row + 1, col] : cell)?.GetPath();

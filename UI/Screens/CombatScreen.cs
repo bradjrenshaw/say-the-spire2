@@ -542,6 +542,9 @@ public class CombatScreen : Screen
 
             SyncAllContainers(combatRoom, potionHolders, relicNodes, orbNodes, hand);
 
+            if (!Settings.UIEnhancementsSettings.Combat.Get())
+                return;
+
             if (_isTargeting)
             {
                 // During targeting, lock creatures to their own row

@@ -14,6 +14,10 @@ public static class UIEnhancementsSettings
 {
     public static BoolSetting CardReward { get; private set; } = null!;
     public static BoolSetting Rewards { get; private set; } = null!;
+    public static BoolSetting Combat { get; private set; } = null!;
+    public static BoolSetting HandSelect { get; private set; } = null!;
+    public static BoolSetting CrystalSphere { get; private set; } = null!;
+    public static BoolSetting RestSite { get; private set; } = null!;
 
     public static void Register(CategorySetting parent)
     {
@@ -22,6 +26,14 @@ public static class UIEnhancementsSettings
             LocalizationManager.GetOrDefault("ui", "UI_ENHANCEMENTS.CATEGORY", "UI Enhancements"));
         parent.Add(category);
 
+        Combat = AddToggle(category,
+            "combat", "UI_ENHANCEMENTS.COMBAT", "Combat Screen");
+        HandSelect = AddToggle(category,
+            "hand_select", "UI_ENHANCEMENTS.HAND_SELECT", "Hand Select Screen");
+        CrystalSphere = AddToggle(category,
+            "crystal_sphere", "UI_ENHANCEMENTS.CRYSTAL_SPHERE", "Crystal Sphere");
+        RestSite = AddToggle(category,
+            "rest_site", "UI_ENHANCEMENTS.REST_SITE", "Rest Site");
         CardReward = AddToggle(category,
             "card_reward", "UI_ENHANCEMENTS.CARD_REWARD", "Card Reward Screen");
         Rewards = AddToggle(category,

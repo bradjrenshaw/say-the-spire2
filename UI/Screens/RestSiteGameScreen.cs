@@ -80,13 +80,16 @@ public class RestSiteGameScreen : GameScreen
         }
 
         // Constrain focus so it can't escape the rest site buttons
-        for (int i = 0; i < buttons.Count; i++)
+        if (Settings.UIEnhancementsSettings.RestSite.Get())
         {
-            var self = buttons[i].GetPath();
-            buttons[i].FocusNeighborTop = self;
-            buttons[i].FocusNeighborBottom = self;
-            buttons[i].FocusNeighborLeft = i > 0 ? buttons[i - 1].GetPath() : self;
-            buttons[i].FocusNeighborRight = i < buttons.Count - 1 ? buttons[i + 1].GetPath() : self;
+            for (int i = 0; i < buttons.Count; i++)
+            {
+                var self = buttons[i].GetPath();
+                buttons[i].FocusNeighborTop = self;
+                buttons[i].FocusNeighborBottom = self;
+                buttons[i].FocusNeighborLeft = i > 0 ? buttons[i - 1].GetPath() : self;
+                buttons[i].FocusNeighborRight = i < buttons.Count - 1 ? buttons[i + 1].GetPath() : self;
+            }
         }
     }
 }
