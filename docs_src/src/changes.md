@@ -5,6 +5,7 @@
 * Fixed the Crystal Sphere event leaking size information about entirely hidden objects.
 * Cards, relics, and potions shown on the epoch unlock screens are now focusable with keyboard / controller and read out via the screen reader.
 * Added a "Keep Summoned Creatures Focusable" setting to the UI Enhancements category (defaults to enabled.) When enabled, it prevents the game from arbitrarily hiding summoned creatures (this usually occurs in multiplayer.)
+* The credits screen now reads aloud automatically as it scrolls. Each section is announced as it enters the viewport, with two-column rows interleaved so roles pair with names instead of being read column-at-a-time.
 
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)
