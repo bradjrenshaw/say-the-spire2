@@ -16,3 +16,7 @@ installer/Cargo.lock
 # Build artifacts
 *.zip
 *.exe
+
+# Python
+__pycache__/
+*.pyc
