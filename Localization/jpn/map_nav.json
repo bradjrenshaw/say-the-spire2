@@ -1,1 +1,26 @@
-{}
+{
+  "NODE_TYPES.UNKNOWN": "不明",
+  "NODE_TYPES.SHOP": "ショップ",
+  "NODE_TYPES.TREASURE": "宝箱",
+  "NODE_TYPES.REST_SITE": "休憩所",
+  "NODE_TYPES.MONSTER": "モンスター",
+  "NODE_TYPES.ELITE": "エリート",
+  "NODE_TYPES.BOSS": "ボス",
+  "NODE_TYPES.ANCIENT": "エンシェント",
+  "STATE.TRAVELABLE": "移動可能",
+  "STATE.TRAVELED": "通過済み",
+  "STATE.UNTRAVELABLE": "移動不可",
+  "NAV.CHOICE": "分岐",
+  "NAV.PATH_ITEM": "{type}",
+  "NAV.COORDINATES": "({col}, {row})",
+  "NAV.CURRENT_LOCATION": "現在地: {type}, {coordinates}",
+  "NAV.ON_PATH_TO": "{markers} への経路上",
+  "NAV.DIVERGES_FROM": "{markers} から分岐",
+  "NAV.FREE_TRAVEL": "飛行",
+  "NAV.BRANCH": "経路 {position}/{total}: {type} {coordinates}",
+  "NAV.NO_FORWARD": "前方に経路なし",
+  "NAV.NO_BACKWARD": "後方に経路なし",
+  "NAV.NO_MORE_BRANCHES": "他に分岐なし",
+  "QUEST_MARKED": "クエスト",
+  "MARKERS.MARKED": "マーク済み"
+}
