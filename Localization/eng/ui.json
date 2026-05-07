@@ -458,6 +458,7 @@
   "SCREENS.MOD_MENU": "Mod Menu",
   "SCREENS.SETTINGS": "Settings",
   "SCREENS.TIMELINE": "Timeline",
+  "SCREENS.EPOCH_UNLOCKS": "Epoch Unlocks",
   "SCREENS.REST_SITE": "Rest Site",
   "SCREENS.HAND_SELECT": "Hand",
   "SCREENS.DIALOG": "Dialog",
@@ -657,5 +658,5 @@
   "SPEECH.SAPI.RATE": "Rate",
   "SPEECH.SAPI.VOLUME": "Volume",
   "SPEECH.SAPI.VOICE": "Voice",
-  "SPEECH.TOLK.TRY_SAPI": "Fall back to SAPI"
+  "SPEECH.PRISM.BACKEND": "Backend"
 }

@@ -1,12 +1,16 @@
 use std::fs;
 use std::path::Path;
 
-use super::paths::{appdata_mod_dir, MOD_FILES, ROOT_FILES};
+use super::paths::{appdata_mod_dir, LEGACY_FILES, MOD_FILES, ROOT_FILES};
 
 pub fn uninstall_mod(game_path: &Path) -> Vec<String> {
     let mut removed = Vec::new();
 
-    for f in MOD_FILES.iter().chain(ROOT_FILES.iter()) {
+    for f in MOD_FILES
+        .iter()
+        .chain(ROOT_FILES.iter())
+        .chain(LEGACY_FILES.iter())
+    {
         let fp = game_path.join(f);
         if fp.exists() {
             if fs::remove_file(&fp).is_ok() {

@@ -3,6 +3,7 @@
 * Home and end now work on many game screens to jump to the first or last element of the current container (hand, menu items, etc.) This will not work on certain screens or in places where it wouldn't make sense (for example when hovering the hp label in combat.)
 * Fixed the Crystal Sphere event leaking size information about entirely hidden objects.
 * Cards, relics, and potions shown on the epoch unlock screens are now focusable with keyboard / controller and read out via the screen reader.
+* Replaced the Tolk screen-reader bridge with Prism. Speech now routes through a unified abstraction that supports NVDA, JAWS, OneCore, SAPI, and other backends; you can pin a specific backend in the speech settings.
 
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)

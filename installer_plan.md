@@ -52,14 +52,11 @@ A standalone wxPython GUI app that installs, updates, and uninstalls the SayTheS
 ### Mod Files
 The release zip mirrors the game directory structure and is extracted directly to `<game>/`:
 ```
-Tolk.dll                          # native x64 Tolk library (game root)
-nvdaControllerClient64.dll        # NVDA screen reader support (game root)
-SAAPI64.dll                       # System Access screen reader support (game root)
+prism.dll                         # native Prism library (game root)
 mods/
   SayTheSpire2.dll                # mod assembly
   SayTheSpire2.pck                # Godot PCK with localization/manifest
   System.Speech.dll               # Windows SAPI dependency
-  TolkDotNet.dll                  # .NET bindings for Tolk
 ```
 
 ## UI Layout (wxPython)

@@ -15,7 +15,7 @@ public static class SpeechManager
 
     public static readonly IReadOnlyList<ISpeechHandler> Handlers = new List<ISpeechHandler>
     {
-        new TolkHandler(),
+        new PrismHandler(),
         new SapiHandler(),
         new ClipboardHandler(),
     };

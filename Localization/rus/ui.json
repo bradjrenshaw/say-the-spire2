@@ -605,6 +605,5 @@
   "SPEECH.HANDLER": "Speech Handler",
   "SPEECH.SAPI.RATE": "Rate",
   "SPEECH.SAPI.VOLUME": "Volume",
-  "SPEECH.SAPI.VOICE": "Voice",
-  "SPEECH.TOLK.TRY_SAPI": "Fall back to SAPI"
+  "SPEECH.SAPI.VOICE": "Voice"
 }

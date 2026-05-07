@@ -27,8 +27,8 @@ Not all sources are available for every event — the mod only shows sources tha
 
 ## Speech Settings
 
-- **Speech Handler**: Choose between Auto, Tolk (NVDA/JAWS), SAPI, or Clipboard
-- Per-handler settings (rate, volume, etc.)
+- **Speech Handler**: Choose between Auto, Prism (unified screen reader / TTS abstraction with NVDA/JAWS/SAPI/OneCore/etc. backends), SAPI, or Clipboard
+- Per-handler settings (Prism backend selection, SAPI rate/volume/voice, etc.)
 
 ## Map Settings
 
