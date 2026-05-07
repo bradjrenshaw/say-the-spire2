@@ -16,7 +16,7 @@
   "NAV.CURRENT_LOCATION": "Вы в комнате {type}, {coordinates}",
   "NAV.ON_PATH_TO": "на пути к {markers}",
   "NAV.DIVERGES_FROM": "мимо {markers}",
-  "NAV.FREE_TRAVEL": "fly",
+  "NAV.FREE_TRAVEL": "полёт",
   "NAV.BRANCH": "путь {position} из {total}: {type} {coordinates}",
   "NAV.NO_FORWARD": "Дальше не пройти",
   "NAV.NO_BACKWARD": "Назад дороги нет",
