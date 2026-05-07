@@ -32,6 +32,7 @@ public static class UIEnhancementsSettings
     public static BoolSetting GameOver { get; private set; } = null!;
     public static BoolSetting MerchantTargeting { get; private set; } = null!;
     public static BoolSetting BundlePreview { get; private set; } = null!;
+    public static BoolSetting KeepSummonsFocusable { get; private set; } = null!;
 
     public static void Register(CategorySetting parent)
     {
@@ -80,6 +81,8 @@ public static class UIEnhancementsSettings
             "merchant_targeting", "UI_ENHANCEMENTS.MERCHANT_TARGETING", "Merchant Targeting Auto-focus");
         BundlePreview = AddToggle(category,
             "bundle_preview", "UI_ENHANCEMENTS.BUNDLE_PREVIEW", "Card Bundle Preview");
+        KeepSummonsFocusable = AddToggle(category,
+            "keep_summons_focusable", "UI_ENHANCEMENTS.KEEP_SUMMONS_FOCUSABLE", "Keep Summoned Creatures Focusable");
     }
 
     private static BoolSetting AddToggle(CategorySetting parent, string key, string locKey, string fallback)

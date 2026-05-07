@@ -1,9 +1,10 @@
 ## V0.5.3
+* Replaced the Tolk screen-reader library with Prism. Prism is similar to Tolk but supports more screenreaders and is actively being updated. Please let me know if there are any issues with your prefered output method.
 * You can now adjust the mod enhancements to UI from the advanced settings category. This allows you to toggle settings that adjust game UI focus, such as focus rewiring on the combat screen. It is highly recommended that you leave all of these enabled.
 * Home and end now work on many game screens to jump to the first or last element of the current container (hand, menu items, etc.) This will not work on certain screens or in places where it wouldn't make sense (for example when hovering the hp label in combat.)
 * Fixed the Crystal Sphere event leaking size information about entirely hidden objects.
 * Cards, relics, and potions shown on the epoch unlock screens are now focusable with keyboard / controller and read out via the screen reader.
-* Replaced the Tolk screen-reader bridge with Prism. Speech now routes through a unified abstraction that supports NVDA, JAWS, OneCore, SAPI, and other backends; you can pin a specific backend in the speech settings.
+* Added a "Keep Summoned Creatures Focusable" setting to the UI Enhancements category (defaults to enabled.) When enabled, it prevents the game from arbitrarily hiding summoned creatures (this usually occurs in multiplayer.)
 
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)

@@ -230,6 +230,7 @@
   "UI_ENHANCEMENTS.GAME_OVER": "Game Over Screen",
   "UI_ENHANCEMENTS.MERCHANT_TARGETING": "Merchant Targeting Auto-focus",
   "UI_ENHANCEMENTS.BUNDLE_PREVIEW": "Card Bundle Preview",
+  "UI_ENHANCEMENTS.KEEP_SUMMONS_FOCUSABLE": "Keep Summoned Creatures Focusable",
   "MAP.SETTINGS.CATEGORY": "Map",
   "MAP.SETTINGS.AUTO_ADVANCE": "Automatically Follow Paths until Choice Node",
   "MAP.SETTINGS.AUTO_ADVANCE_BACKWARD": "Automatically Follow Paths Backward until Choice Node",

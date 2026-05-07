@@ -542,6 +542,40 @@ public class CombatScreen : Screen
 
             SyncAllContainers(combatRoom, potionHolders, relicNodes, orbNodes, hand);
 
+            // The game makes summoned pets non-interactable when they belong to
+            // remote players (NCombatRoom.OnCreatureNodeCreated → ToggleIsInteractable(false)),
+            // which both strips them of focusability and excludes them from the
+            // left/right wraparound chain in NCombatRoom.UpdateCreatureNavigation.
+            // Force their focus mode back to All and rebuild the chain to include
+            // them, ordered by X position so dpad-left/right walks the row visually.
+            // Skipped during targeting because the game's targeting whitelist
+            // legitimately needs to lock focus to valid targets only.
+            if (!_isTargeting && Settings.UIEnhancementsSettings.KeepSummonsFocusable.Get())
+            {
+                foreach (var creature in combatRoom.CreatureNodes)
+                {
+                    if (creature?.Hitbox == null) continue;
+                    if (creature.Entity.PetOwner == null) continue;
+                    if (creature.Entity.IsDead) continue;
+                    creature.Hitbox.FocusMode = Control.FocusModeEnum.All;
+                }
+
+                var chain = combatRoom.CreatureNodes
+                    .Where(c => c?.Hitbox != null && !c.Entity.IsDead
+                        && c.Hitbox.FocusMode == Control.FocusModeEnum.All)
+                    .OrderBy(c => c.Hitbox.GlobalPosition.X)
+                    .ToList();
+
+                for (int i = 0; i < chain.Count; i++)
+                {
+                    var hitbox = chain[i].Hitbox;
+                    var left = i > 0 ? chain[i - 1] : chain[^1];
+                    var right = i < chain.Count - 1 ? chain[i + 1] : chain[0];
+                    hitbox.FocusNeighborLeft = left.Hitbox.GetPath();
+                    hitbox.FocusNeighborRight = right.Hitbox.GetPath();
+                }
+            }
+
             if (!Settings.UIEnhancementsSettings.Combat.Get())
                 return;
 
