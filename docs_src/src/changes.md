@@ -1,6 +1,8 @@
 ## V0.5.3
 * You can now adjust the mod enhancements to UI from the advanced settings category. This allows you to toggle settings that adjust game UI focus, such as focus rewiring on the combat screen. It is highly recommended that you leave all of these enabled.
-* Home and end now work on many game screens to jump to the first or last element of the current container (hand, etc.)
+* Home and end now work on many game screens to jump to the first or last element of the current container (hand, menu items, etc.) This will not work on certain screens or in places where it wouldn't make sense (for example when hovering the hp label in combat.)
+* Fixed the Crystal Sphere event leaking size information about entirely hidden objects.
+* Cards, relics, and potions shown on the epoch unlock screens are now focusable with keyboard / controller and read out via the screen reader.
 
 ## V0.5.2
 * Added partial Russian localization (thanks to @darrthscorrp.)

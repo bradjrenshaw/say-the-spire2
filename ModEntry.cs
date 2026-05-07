@@ -76,6 +76,7 @@ public static class ModEntry
         ScreenHooks.Initialize(_harmony);
         GameOverHooks.Initialize(_harmony);
         TimelineHooks.Initialize(_harmony);
+        UnlockHooks.Initialize(_harmony);
         SettingsScreenHooks.Initialize(_harmony);
         CardPileHooks.Initialize(_harmony);
         HandSelectHooks.Initialize(_harmony);
