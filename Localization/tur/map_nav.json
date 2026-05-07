@@ -1,1 +1,26 @@
-{}
+{
+  "NODE_TYPES.UNKNOWN": "Bilinmeyen",
+  "NODE_TYPES.SHOP": "Dükkan",
+  "NODE_TYPES.TREASURE": "Hazine",
+  "NODE_TYPES.REST_SITE": "Dinlenme Yeri",
+  "NODE_TYPES.MONSTER": "Canavar",
+  "NODE_TYPES.ELITE": "Elit",
+  "NODE_TYPES.BOSS": "Boss",
+  "NODE_TYPES.ANCIENT": "Kadim",
+  "STATE.TRAVELABLE": "ulaşılabilir",
+  "STATE.TRAVELED": "geçildi",
+  "STATE.UNTRAVELABLE": "ulaşılamaz",
+  "NAV.CHOICE": "seçim",
+  "NAV.PATH_ITEM": "{type}",
+  "NAV.COORDINATES": "({col}, {row})",
+  "NAV.CURRENT_LOCATION": "{type} konumundasın, {coordinates}",
+  "NAV.ON_PATH_TO": "{markers} yoluna",
+  "NAV.DIVERGES_FROM": "{markers} yolundan ayrılıyor",
+  "NAV.FREE_TRAVEL": "uçuş",
+  "NAV.BRANCH": "yol {position}/{total}: {type} {coordinates}",
+  "NAV.NO_FORWARD": "İleri yol yok",
+  "NAV.NO_BACKWARD": "Geri yol yok",
+  "NAV.NO_MORE_BRANCHES": "Başka dallanma yok",
+  "QUEST_MARKED": "Görev",
+  "MARKERS.MARKED": "İşaretli"
+}
