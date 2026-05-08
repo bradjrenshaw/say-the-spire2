@@ -33,6 +33,7 @@ public class CompendiumMenuScreen : GameScreen
         RegisterButton("%CardLibraryButton");
         RegisterButton("%RelicCollectionButton");
         RegisterButton("%PotionLabButton");
+        RegisterButton("%BestiaryButton");
         RegisterButton("%StatisticsButton");
         RegisterButton("%RunHistoryButton");
         RegisterButton("%ConfirmButton");
