@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Nodes.Screens.Bestiary;
+using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
@@ -92,11 +93,7 @@ public class ProxyBestiaryEntry : ProxyElement
     /// </summary>
     public override Message? GetTooltip()
     {
-        var bestiary = NBestiary.Instance;
-        if (bestiary == null) return null;
-
-        var epithet = ReadLabelText(EpithetField.GetValue(bestiary));
-        var description = ReadLabelText(DescriptionLabelField.GetValue(bestiary));
+        var (epithet, description) = ReadDetailLabels();
 
         var parts = new List<Message>();
         if (!string.IsNullOrWhiteSpace(epithet))
@@ -106,6 +103,50 @@ public class ProxyBestiaryEntry : ProxyElement
 
         if (parts.Count == 0) return null;
         return Message.Join(", ", parts.ToArray());
+    }
+
+    /// <summary>
+    /// Populates the UI buffer with one item per piece of bestiary info so the
+    /// user can navigate them with the buffer-review controls:
+    /// <c>1)</c> name, <c>2)</c> room type and locked/under-construction status,
+    /// <c>3)</c> epithet, <c>4)</c> description.
+    /// </summary>
+    public override string? HandleBuffers(BufferManager buffers)
+    {
+        var uiBuffer = buffers.GetBuffer("ui");
+        if (uiBuffer == null) return base.HandleBuffers(buffers);
+
+        uiBuffer.Clear();
+
+        var label = GetLabel()?.Resolve();
+        if (!string.IsNullOrEmpty(label))
+            uiBuffer.Add(label);
+
+        var view = View;
+        if (view != null)
+        {
+            var typeText = LocalizationManager.GetOrDefault(
+                "ui", $"TYPES.{view.TypeKey.ToUpperInvariant()}", view.TypeKey);
+            var status = GetStatusString()?.Resolve();
+            uiBuffer.Add(string.IsNullOrEmpty(status) ? typeText : $"{typeText}, {status}");
+        }
+
+        var (epithet, description) = ReadDetailLabels();
+        if (!string.IsNullOrWhiteSpace(epithet))
+            uiBuffer.Add(epithet);
+        if (!string.IsNullOrWhiteSpace(description))
+            uiBuffer.Add(description);
+
+        buffers.EnableBuffer("ui", true);
+        return "ui";
+    }
+
+    private (string? epithet, string? description) ReadDetailLabels()
+    {
+        var bestiary = NBestiary.Instance;
+        if (bestiary == null) return (null, null);
+        return (ReadLabelText(EpithetField.GetValue(bestiary)),
+                ReadLabelText(DescriptionLabelField.GetValue(bestiary)));
     }
 
     private static string? ReadLabelText(object? node) => node switch
