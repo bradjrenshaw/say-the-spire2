@@ -13,6 +13,7 @@ namespace SayTheSpire2.Settings;
 public static class UIEnhancementsSettings
 {
     public static BoolSetting CardReward { get; private set; } = null!;
+    public static BoolSetting CardRewardAlternatives { get; private set; } = null!;
     public static BoolSetting Rewards { get; private set; } = null!;
     public static BoolSetting Combat { get; private set; } = null!;
     public static BoolSetting HandSelect { get; private set; } = null!;
@@ -61,8 +62,10 @@ public static class UIEnhancementsSettings
             "daily_run_load", "UI_ENHANCEMENTS.DAILY_RUN_LOAD", "Daily Run Load");
         CardReward = AddToggle(category,
             "card_reward", "UI_ENHANCEMENTS.CARD_REWARD", "Card Reward Screen");
+        CardRewardAlternatives = AddToggle(category,
+            "card_reward_alternatives", "UI_ENHANCEMENTS.CARD_REWARD_ALTERNATIVES", "Card Reward Alternatives (Skip/Reroll)");
         Rewards = AddToggle(category,
-            "rewards", "UI_ENHANCEMENTS.REWARDS", "Rewards Screen");
+            "rewards", "UI_ENHANCEMENTS.REWARDS", "Rewards Screen Skip Button");
         CardLibrary = AddToggle(category,
             "card_library", "UI_ENHANCEMENTS.CARD_LIBRARY", "Card Library");
         Compendium = AddToggle(category,

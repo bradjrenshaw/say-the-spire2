@@ -57,7 +57,9 @@ public class CardRewardGameScreen : GameScreen
 
         var optionControls = RegisterCards(options);
         var alternatives = GetAlternatives();
-        optionControls.AddRange(RegisterAlternatives(options, alternatives));
+        var alternativesIncluded = Settings.UIEnhancementsSettings.CardRewardAlternatives.Get();
+        if (alternativesIncluded)
+            optionControls.AddRange(RegisterAlternatives(options, alternatives));
 
         if (options.Children.Count > 0)
             root.Add(options);
@@ -66,7 +68,7 @@ public class CardRewardGameScreen : GameScreen
             WireFocusNeighbors(optionControls);
 
         RootElement = root;
-        Log.Info($"[AccessibilityMod] CardRewardGameScreen built: {optionControls.Count} row options, {alternatives.Count} alternatives");
+        Log.Info($"[AccessibilityMod] CardRewardGameScreen built: {optionControls.Count} row options, {alternatives.Count} alternatives ({(alternativesIncluded ? "included" : "excluded")})");
     }
 
     private List<Control> RegisterCards(ListContainer container)

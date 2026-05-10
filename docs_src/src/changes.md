@@ -1,6 +1,8 @@
 ## V1.0.3
 * Fixed a bug where the Say the Spire version announcement in the main menu could repeat infinitely if the logo was skipped and there was no mod update available.
 * Added buttons in the mod menu for Discord and Patreon.
+* Clarified the label for the Combat Rewards Screen under advanced mod settings/UI Enhancements to explicitly say what it does (specifically adds the skip button.)
+* Split the card rewards screen UI enhancements toggle into two: One for the focus fix and one specifically for the card reward alternatives (skip, reroll, sacrifice, etc.)
 
 ## V1.0.2
 * Fixed a bug where you could focus unreachable map nodes with the game cursor (thanks @amerikrainian for the pr).
