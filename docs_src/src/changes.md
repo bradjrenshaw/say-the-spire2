@@ -1,3 +1,8 @@
+## V1.0.3
+* Fixed a bug where the Say the Spire version announcement in the main menu could repeat infinitely if the logo was skipped and there was no mod update available.
+* Added buttons in the mod menu for Discord and Patreon.
+
+
 ## V1.0.2
 * Fixed a bug where you could focus unreachable map nodes with the game cursor (thanks @amerikrainian for the pr).
 * Fixed a bug where sliders in the game settings screen could have incorrect position readouts (language dropdown was reading as "15 of 15" even though it was first in the list, for example.)
