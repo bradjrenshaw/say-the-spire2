@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
@@ -152,6 +153,9 @@ public static class FocusHooks
 
     public static void SetEnabledPostfix(NClickableControl __instance, bool enabled)
     {
+        if (__instance is NMapPoint)
+            return;
+
         // Keep disabled controls focusable so screen readers can still read them
         if (!enabled && __instance.FocusMode == Control.FocusModeEnum.None)
             __instance.FocusMode = Control.FocusModeEnum.All;
@@ -159,6 +163,9 @@ public static class FocusHooks
 
     public static void DisablePostfix(NClickableControl __instance)
     {
+        if (__instance is NMapPoint)
+            return;
+
         // Same intent as SetEnabledPostfix — Disable bypasses SetEnabled in
         // some screens (e.g. NBestiaryEntry).
         if (__instance.FocusMode == Control.FocusModeEnum.None)
