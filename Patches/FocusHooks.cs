@@ -151,6 +151,14 @@ public static class FocusHooks
         }
     }
 
+    // NMapPoint exception: when the game disables a map point, it's signaling
+    // "not part of the reachable graph" — not "temporarily unavailable" the way
+    // disabled buttons usually are. The mod navigates the map through its own
+    // POI/branch buffer cursor, so leaving unreachable points at FocusMode.None
+    // keeps Godot's left/right traversal from landing on them. Other screens
+    // with custom non-Godot navigation should add a similar exclusion if they
+    // run into the same issue.
+
     public static void SetEnabledPostfix(NClickableControl __instance, bool enabled)
     {
         if (__instance is NMapPoint)

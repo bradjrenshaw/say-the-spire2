@@ -57,7 +57,6 @@ public class SettingsGameScreen : GameScreen
     {
         var root = new ListContainer { AnnounceName = false, AnnouncePosition = false };
         var tabManager = _screen.GetNodeOrNull("SettingsTabManager");
-        var positioners = new List<(NDropdownPositioner positioner, ListContainer container)>();
 
         foreach (var (tabName, panelPath) in TabPanels)
         {
@@ -74,29 +73,22 @@ public class SettingsGameScreen : GameScreen
                 AnnouncePosition = true,
             };
 
-            RegisterControlsRecursive(panel, tabContainer, positioners);
+            RegisterControlsRecursive(panel, tabContainer);
             root.Add(tabContainer);
-        }
-
-        // Second pass: register positioner dropdowns last so their labels win
-        foreach (var (positioner, container) in positioners)
-        {
-            RegisterDropdownPositioner(positioner, container);
         }
 
         RootElement = root;
     }
 
-    private void RegisterControlsRecursive(
-        Node parent,
-        ListContainer container,
-        List<(NDropdownPositioner, ListContainer)> positioners)
+    private void RegisterControlsRecursive(Node parent, ListContainer container)
     {
         foreach (var child in parent.GetChildren().OfType<Control>())
         {
             if (child is NDropdownPositioner positioner)
             {
-                positioners.Add((positioner, container));
+                // Register inline so the positioner dropdown lands at its
+                // visual position in the container, not at the end.
+                RegisterDropdownPositioner(positioner, container);
             }
             else if (IsSettingsOption(child))
             {
@@ -105,7 +97,7 @@ public class SettingsGameScreen : GameScreen
             }
             else
             {
-                RegisterControlsRecursive(child, container, positioners);
+                RegisterControlsRecursive(child, container);
             }
         }
     }
