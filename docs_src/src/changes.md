@@ -1,3 +1,8 @@
+## V1.0.2
+* Fixed a bug where you could focus unreachable map nodes with the game cursor (thanks @amerikrainian for the pr).
+* Fixed a bug where sliders in the game settings screen could have incorrect position readouts (language dropdown was reading as "15 of 15" even though it was first in the list, for example.)
+* Fixed the Check for Updates at Launch checkbox in mod settings being at the wrong position in the list; it is now positioned at the bottom.
+
 ## V1.0.1
 This is an emergency patch to fix an issue where you could not select characters other than Ironclad. This was caused by a change in the game's controller logic on the character select screen interacting with our mod's controller focusing logic in an unintended way.
 
