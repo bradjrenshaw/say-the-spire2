@@ -23,3 +23,6 @@ __pycache__/
 
 # Extracted game locale (pulled from the game's pck for terminology cross-check)
 game_locale/
+
+# Output of scripts/download_stats.py (local-only report)
+download_stats.html
