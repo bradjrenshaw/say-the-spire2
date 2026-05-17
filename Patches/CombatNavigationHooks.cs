@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Nodes.Combat;
@@ -85,9 +86,19 @@ public static class CombatNavigationHooks
         }
     }
 
-    public static void ShufflePrefix()
-        => CombatScreen.Current?.OnShuffleStarting();
+    // The game's CardPileCmd.Shuffle runs for every player in a multiplayer
+    // session; visually only the local player's draw pile becoming empty is
+    // surfaced to the user, so we filter remote-player shuffles out before
+    // forwarding to CombatScreen.
+    public static void ShufflePrefix(Player player)
+    {
+        if (!MultiplayerHelper.IsLocalPlayer(player)) return;
+        CombatScreen.Current?.OnShuffleStarting();
+    }
 
-    public static void ShufflePostfix(Task __result)
-        => CombatScreen.Current?.OnShuffleStarted(__result);
+    public static void ShufflePostfix(Player player, Task __result)
+    {
+        if (!MultiplayerHelper.IsLocalPlayer(player)) return;
+        CombatScreen.Current?.OnShuffleStarted(__result);
+    }
 }

@@ -39,10 +39,26 @@ internal class CombatCreatureHandlers
     public void OnPowerDecreased(PowerModel power, bool silent)
     {
         Log.Info($"[EventDebug] CreatureHandler.PowerDecreased: {_creature.Name} {power.Title.GetFormattedText()} amount={power.Amount} silent={silent} handler={GetHashCode()}");
-        // Skip if amount hit 0 — the PowerRemoved event will fire next and handle it.
-        // Allow negative amounts (non-stacking powers use -1).
-        if (!silent && power.Amount != 0)
-            EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Decreased));
+        if (silent || power.Amount == 0) return;
+        // Single-stack powers (Shrink, etc.) fire PowerDecreased when they're
+        // first applied with a negative sentinel amount because the game's
+        // InvokePowerModified treats the negative delta as a decrease. There
+        // is no meaningful "decreased" state for these — they're either
+        // applied or removed. PowerApplied (subscribed separately) handles
+        // the initial announcement.
+        if (power.StackType != MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter) return;
+        EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Decreased));
+    }
+
+    public void OnPowerApplied(PowerModel power)
+    {
+        Log.Info($"[EventDebug] CreatureHandler.PowerApplied: {_creature.Name} {power.Title.GetFormattedText()} handler={GetHashCode()}");
+        // Counter-stack powers already get a usable PowerIncreased event (with
+        // the +N stack count), so we'd double-announce if we also fired here.
+        // Only Single-stack powers need the Applied path — for those the
+        // matching PowerDecreased was skipped above.
+        if (power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter) return;
+        EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Applied));
     }
 
     public void OnPowerRemoved(PowerModel power)

@@ -353,7 +353,10 @@ public class CombatScreen : Screen
         {
             if (sb.Length > 0) sb.Append(", ");
             var title = power.Title.GetFormattedText();
-            if (power.DisplayAmount != 0)
+            // Only stacking (Counter) powers have meaningful numeric amounts.
+            // Single-stack powers like Shrink use Amount=-1 as a sentinel for
+            // "active indefinitely" — never spoken as "-1".
+            if (power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter && power.DisplayAmount != 0)
                 sb.Append($"{title} {power.DisplayAmount}");
             else
                 sb.Append(title);
@@ -791,6 +794,7 @@ public class CombatScreen : Screen
 
         creature.BlockChanged += handlers.OnBlockChanged;
         creature.CurrentHpChanged += handlers.OnCurrentHpChanged;
+        creature.PowerApplied += handlers.OnPowerApplied;
         creature.PowerIncreased += handlers.OnPowerIncreased;
         creature.PowerDecreased += handlers.OnPowerDecreased;
         creature.PowerRemoved += handlers.OnPowerRemoved;
@@ -805,6 +809,7 @@ public class CombatScreen : Screen
         {
             creature.BlockChanged -= handlers.OnBlockChanged;
             creature.CurrentHpChanged -= handlers.OnCurrentHpChanged;
+            creature.PowerApplied -= handlers.OnPowerApplied;
             creature.PowerIncreased -= handlers.OnPowerIncreased;
             creature.PowerDecreased -= handlers.OnPowerDecreased;
             creature.PowerRemoved -= handlers.OnPowerRemoved;

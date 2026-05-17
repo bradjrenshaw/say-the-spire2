@@ -7,7 +7,19 @@ using SayTheSpire2.Settings;
 
 namespace SayTheSpire2.Events;
 
-public enum PowerEventType { Applied, Increased, Decreased, Removed }
+public enum PowerEventType
+{
+    /// <summary>
+    /// Power was just added to the creature (game's PowerApplied event).
+    /// Used for Single-stack powers like Shrink where the apply path can't
+    /// be inferred from PowerIncreased. Counter-stack powers use Increased
+    /// instead so the stack count is included.
+    /// </summary>
+    Applied,
+    Increased,
+    Decreased,
+    Removed,
+}
 
 [EventSettings("power", "Powers", category: "Combat", hasSourceFilter: true)]
 public class PowerEvent : GameEvent
@@ -32,6 +44,7 @@ public class PowerEvent : GameEvent
     {
         return _eventType switch
         {
+            PowerEventType.Applied => Message.Localized("ui", "EVENT.POWER_GAINED_NO_AMOUNT", new { creature = _creatureName, power = _powerName }),
             PowerEventType.Increased when _hasStacks && _amount > 0 => Message.Localized("ui", "EVENT.POWER_GAINED", new { creature = _creatureName, amount = _amount, power = _powerName }),
             PowerEventType.Increased => Message.Localized("ui", "EVENT.POWER_GAINED_NO_AMOUNT", new { creature = _creatureName, power = _powerName }),
             PowerEventType.Decreased => Message.Localized("ui", "EVENT.POWER_DECREASED", new { creature = _creatureName, power = _powerName }),
