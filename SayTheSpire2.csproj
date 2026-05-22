@@ -15,6 +15,7 @@
     <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2</GameDir>
     <GameDataDir>$(GameDir)\data_sts2_windows_x86_64</GameDataDir>
     <ModsDir>$(GameDir)\mods</ModsDir>
+    <TolkBuildDir>$(MSBuildProjectDirectory)\tolk build</TolkBuildDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -43,6 +44,13 @@
   <PropertyGroup>
     <PrismNativeDir>$(NuGetPackageRoot)prismatoid\0.3.0\runtimes\win-x64\native</PrismNativeDir>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="TolkDotNet">
+      <HintPath>tolk build\TolkDotNet.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Tests\**" />
@@ -188,6 +196,10 @@ public class CreatePck : Task
     <Copy SourceFiles="$(OutputPath)$(ModName).dll" DestinationFolder="$(ModsDir)" />
     <Copy SourceFiles="$(OutputPath)System.Speech.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(OutputPath)System.Speech.dll')" />
     <Copy SourceFiles="$(PrismNativeDir)\prism.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(PrismNativeDir)\prism.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\TolkDotNet.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(TolkBuildDir)\TolkDotNet.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\x64\Tolk.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\Tolk.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\x64\nvdaControllerClient64.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\nvdaControllerClient64.dll')" />
+    <Copy SourceFiles="$(TolkBuildDir)\x64\SAAPI64.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\SAAPI64.dll')" />
     <Message Text="Mod deployed to $(ModsDir)" Importance="high" />
   </Target>
 
@@ -261,6 +273,10 @@ public class CreateReleaseZip : Task
       <ReleaseFile Include="$(OutputPath)$(ModName).pck" ArcName="mods/$(ModName).pck" />
       <ReleaseFile Include="$(OutputPath)System.Speech.dll" ArcName="mods/System.Speech.dll" />
       <ReleaseFile Include="$(PrismNativeDir)\prism.dll" ArcName="prism.dll" />
+      <ReleaseFile Include="$(TolkBuildDir)\TolkDotNet.dll" ArcName="mods/TolkDotNet.dll" />
+      <ReleaseFile Include="$(TolkBuildDir)\x64\Tolk.dll" ArcName="Tolk.dll" />
+      <ReleaseFile Include="$(TolkBuildDir)\x64\nvdaControllerClient64.dll" ArcName="nvdaControllerClient64.dll" />
+      <ReleaseFile Include="$(TolkBuildDir)\x64\SAAPI64.dll" ArcName="SAAPI64.dll" />
       <ReleaseFile Include="$(MSBuildProjectDirectory)\jaws\SlayTheSpire2.JCF" ArcName="jaws/SlayTheSpire2.JCF" />
       <ReleaseFile Include="$(MSBuildProjectDirectory)\jaws\SlayTheSpire2.JDF" ArcName="jaws/SlayTheSpire2.JDF" />
       <ReleaseFile Include="$(MSBuildProjectDirectory)\jaws\SlayTheSpire2.jkm" ArcName="jaws/SlayTheSpire2.jkm" />

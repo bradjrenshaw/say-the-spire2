@@ -221,7 +221,7 @@ These private fields/properties are accessed via reflection. A game update renam
 - `NMultiplayerLoadGameScreen._runLobby` — multiplayer load game lobby
 - `NRunHistory.SelectPlayer` (method) — run history player selection
 - `NBestiary._bestiaryList`, `._moveList`, `._selectedEntry`, `._epithet`, `._descriptionLabel` — bestiary screen state
-- `NBestiaryEntry._monsterType` — entry's room-type qualifier (boss / elite / monster)
+- `NBestiaryEntry.Entry` (property of type `BestiaryEntry`) — wraps the monster/encounter model and `roomType` qualifier (boss / elite / monster). `NBestiaryEntry.IsDiscovered` replaces the old `IsUnknown`. The old `_monsterType` field and `Monster` / `IsUnknown` / `UnderConstructionName` properties were removed in the late-May beta.
 
 **Daily leaderboard (DailyLeaderboardAdapter.cs):**
 - `NDailyRunLeaderboard._scoreContainer`, `._loadingIndicator`, `._noScoresIndicator`, `._noFriendsIndicator`, `._noScoreUploadIndicator` — leaderboard state indicators

@@ -12,21 +12,20 @@ pub const MOD_FILES: &[&str] = &[
     "mods/SayTheSpire2.dll",
     "mods/SayTheSpire2.pck",
     "mods/System.Speech.dll",
+    "mods/TolkDotNet.dll",
 ];
 
 pub const ROOT_FILES: &[&str] = &[
     "prism.dll",
+    "Tolk.dll",
+    "nvdaControllerClient64.dll",
+    "SAAPI64.dll",
 ];
 
 /// Files we used to ship but no longer install. Uninstall and update flows
 /// still remove these so users upgrading from older versions don't end up
 /// with stale binaries cluttering the game directory.
-pub const LEGACY_FILES: &[&str] = &[
-    "mods/TolkDotNet.dll",
-    "Tolk.dll",
-    "nvdaControllerClient64.dll",
-    "SAAPI64.dll",
-];
+pub const LEGACY_FILES: &[&str] = &[];
 
 pub fn user_data_dir() -> PathBuf {
     if cfg!(target_os = "windows") {
@@ -89,21 +88,17 @@ mod tests {
         assert!(MOD_FILES.contains(&"mods/SayTheSpire2.dll"));
         assert!(MOD_FILES.contains(&"mods/SayTheSpire2.pck"));
         assert!(MOD_FILES.contains(&"mods/System.Speech.dll"));
-        assert_eq!(MOD_FILES.len(), 4);
+        assert!(MOD_FILES.contains(&"mods/TolkDotNet.dll"));
+        assert_eq!(MOD_FILES.len(), 5);
     }
 
     #[test]
     fn root_files_contains_expected_entries() {
         assert!(ROOT_FILES.contains(&"prism.dll"));
-        assert_eq!(ROOT_FILES.len(), 1);
-    }
-
-    #[test]
-    fn legacy_files_contains_tolk_entries() {
-        assert!(LEGACY_FILES.contains(&"mods/TolkDotNet.dll"));
-        assert!(LEGACY_FILES.contains(&"Tolk.dll"));
-        assert!(LEGACY_FILES.contains(&"nvdaControllerClient64.dll"));
-        assert!(LEGACY_FILES.contains(&"SAAPI64.dll"));
+        assert!(ROOT_FILES.contains(&"Tolk.dll"));
+        assert!(ROOT_FILES.contains(&"nvdaControllerClient64.dll"));
+        assert!(ROOT_FILES.contains(&"SAAPI64.dll"));
+        assert_eq!(ROOT_FILES.len(), 4);
     }
 
     #[test]

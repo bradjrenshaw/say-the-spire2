@@ -74,9 +74,7 @@ public class ProxyBestiaryEntry : ProxyElement
 
         if (view.IsUnknown)
             return Message.Localized("ui", "LABELS.LOCKED");
-        if (view.IsUnderConstruction)
-            return Message.Raw(view.UnderConstructionName);
-        return Message.Raw(view.MonsterTitle);
+        return Message.Raw(view.EntryTitle);
     }
 
     public override string? GetTypeKey() => View?.TypeKey;
