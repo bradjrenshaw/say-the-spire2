@@ -1,5 +1,5 @@
 ## V1.1.0
-* Re-added Tolk as a selectable speech handler, alongside Prism. Some users have reported lag after upgrading to 1.0 which was when Prism was introduced and the game does feel more responsive when I use the Tolk handler. Let me know what you all think of this.
+* Re-added Tolk as a selectable speech handler, alongside Prism. Some users have reported lag after upgrading to 1.0 which was when Prism was introduced and the game does feel more responsive when I use the Tolk handler. If you are experiencing lag, try switching to Tolk and let me know if it improves (the default speech method is still Prism for now.)
 * Fixed an issue preventing the bestiary screen from working in the most recent beta.
 * Buffer items are now individually configurable as Announcements, the same way focus-string pieces have been. You can choose whether or not certain buffer items are visible at all or reorder them as you can the focus string announcements on UI elements.
 * The Escape key (Pause / Back action) now closes the mod menu and mod settings menu, in addition to Cancel (Backspace / Controller B).
@@ -8,7 +8,8 @@
 * Split off cards, relics, potions, and orbs' description text into its own announcement (Description) instead of reusing the generic Tooltip announcement.
 * Added a Description / Collapse repeated icons toggle that condenses runs of the same icon into a count — for example "Energy Energy Energy" becomes "3 Energy". On by default; configure under Announcements / Description, or per element under UI / Card / Announcements / Description (same for Relic, Potion, and Orb).
 * Hover tips are now only included within the buffer they are a part of. Previously hover tips for cards, relics, etc would spawn additional buffers. While this did technically work, the buffers would be inaccurate in some instances and the behavior was confusing.
-* The first card in a card rewards screen is now always focused (in the beta the controller focus was behaving inconsistently.)
+* The first card in a card rewards screen is now always focused (in the beta the control focus was behaving inconsistently.)
+* Fixed a bug where power gained/lost events would be duplicated if the power was stackless.
 
 ## V1.0.4
 * Added back the travel announcement (for example, "Traveling to Combat 5, 3") that fires when you begin moving to a map node, in both singleplayer and multiplayer. It can be toggled under Events / Map / Travel.
