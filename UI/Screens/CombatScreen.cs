@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Cards;
@@ -17,6 +19,7 @@ using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Multiplayer;
+using MegaCrit.Sts2.Core.Nodes.Orbs;
 using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
@@ -241,10 +244,27 @@ public class CombatScreen : Screen
         sig = sig * FNV_PRIME ^ (_isTargeting ? 0x100UL : 0UL);
 
         // Relic count: cheap List<>.Count read on the game's relic inventory.
-        // Orb / potion counts cascade off hand changes in practice, so we
-        // don't pay for separate reads here.
         var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
         sig = sig * FNV_PRIME ^ (ulong)(relicNodes?.Count ?? 0);
+
+        // Local player's orb slots — fold each NOrb node's instance id, not
+        // just the count. Channeling an orb REPLACES a slot's NOrb instance
+        // with a fresh one (NOrbManager.AddOrbAnim creates a new node and frees
+        // the old), and evoking does the reverse; both keep the slot COUNT the
+        // same while swapping the underlying control. A count-only fold misses
+        // the swap, so our container keeps holding the freed NOrb and the focus
+        // (which lands on the live instance) can't match it. Folding identities
+        // flips the sig on any swap, re-running the sync to the live instances.
+        // Allocation-free: struct enumerator over the game's List<NOrb>.
+        foreach (var c in combatRoom.CreatureNodes)
+        {
+            if (c?.OrbManager == null || !c.Entity.IsPlayer || !LocalContext.IsMe(c.Entity))
+                continue;
+            if (OrbManagerOrbsField.GetValue(c.OrbManager) is IEnumerable<NOrb> orbs)
+                foreach (var orb in orbs)
+                    sig = sig * FNV_PRIME ^ (ulong)orb.GetInstanceId();
+            break;
+        }
 
         sig = sig * FNV_PRIME ^ (Settings.UIEnhancementsSettings.Combat.Get() ? 0x200UL : 0UL);
         sig = sig * FNV_PRIME ^ (Settings.UIEnhancementsSettings.KeepSummonsFocusable.Get() ? 0x400UL : 0UL);
@@ -659,6 +679,39 @@ public class CombatScreen : Screen
         }
     }
 
+    private static readonly FieldInfo OrbManagerOrbsField =
+        AccessTools.Field(typeof(NOrbManager), "_orbs");
+
+    /// <summary>
+    /// The local player's orb-slot controls, read from the game's logical
+    /// <c>NOrbManager._orbs</c> list rather than the "%Orbs" scene node.
+    /// The game populates <c>_orbs</c> synchronously the moment an orb is
+    /// channeled and wires controller-nav from it (<c>UpdateControllerNavigation</c>
+    /// uses <c>_orbs[i].GetPath()</c>), but the actual reparenting into "%Orbs"
+    /// happens through deferred <c>AddChildSafely</c>/<c>RemoveChildSafely</c>
+    /// calls that don't settle until the turn transition. Reading the tree node
+    /// therefore missed the orb for the whole grant turn; reading <c>_orbs</c>
+    /// sees it the same frame the game does. The slots are real, tree-attached
+    /// controls (focusable mid-turn), just not yet under "%Orbs".
+    /// </summary>
+    private static List<Control> GetLocalPlayerOrbs(NCombatRoom combatRoom)
+    {
+        var orbs = new List<Control>();
+        foreach (var c in combatRoom.CreatureNodes)
+        {
+            if (c?.OrbManager == null || !c.Entity.IsPlayer
+                || !LocalContext.IsMe(c.Entity))
+                continue;
+            if (OrbManagerOrbsField.GetValue(c.OrbManager) is IEnumerable<NOrb> list)
+            {
+                foreach (var orb in list)
+                    if (GodotObject.IsInstanceValid(orb)) orbs.Add(orb);
+            }
+            break;
+        }
+        return orbs;
+    }
+
     private static (List<Control> potions, List<Control>? relics, List<Control> orbs, NPlayerHand? hand)
         CollectFocusRows(NCombatRoom combatRoom)
     {
@@ -681,28 +734,12 @@ public class CombatScreen : Screen
         // Relics
         var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes?.OfType<Control>().ToList();
 
-        // Orbs — collect from local player's orb manager
-        var orbNodes = new List<Control>();
-        foreach (var c in combatRoom.CreatureNodes)
-        {
-            if (c != null && c.Entity.IsPlayer && c.OrbManager != null
-                && MegaCrit.Sts2.Core.Context.LocalContext.IsMe(c.Entity))
-            {
-                var defaultOwner = c.OrbManager.DefaultFocusOwner;
-                if (defaultOwner != null && defaultOwner != c.Hitbox)
-                {
-                    foreach (var child in c.OrbManager.GetChildren())
-                    {
-                        foreach (var orb in child.GetChildren())
-                        {
-                            if (orb is Control orbCtrl)
-                                orbNodes.Add(orbCtrl);
-                        }
-                    }
-                }
-                break;
-            }
-        }
+        // Orbs — read the local player's orb slots from the game's logical
+        // NOrbManager._orbs list (see GetLocalPlayerOrbs). Non-Defect
+        // characters get a slot here only when a card grants them an orb
+        // mid-combat, and the orb lands in _orbs before it reparents into the
+        // "%Orbs" scene node, so we must read the logical list to catch it.
+        var orbNodes = GetLocalPlayerOrbs(combatRoom);
 
         return (potionHolders, relicNodes, orbNodes, combatRoom.Ui?.Hand);
     }

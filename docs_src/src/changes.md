@@ -14,6 +14,7 @@
 * Fixed a bug where power gained/lost events would be duplicated if the power was stackless.
 * Fixed a bug where you could not easily refocus the rewards list after combat if you focused a potion or relic.
 * Fixed a bug where the rest site screen would refocus itself after you completed your last rest site action, reading out all of the intro text and currently focused button even though it no longer could be interacted with.
+* Fixed a bug where channeling an orb mid-turn (the Defect filling a slot, or a card granting a non-Defect character an orb) would leave the orb unreadable — focusing it gave no position ("X of Y") and up/down navigation to the relics and creature rows didn't work until the next turn. The game swaps in a brand-new node when an orb is channeled, which our combat focus wiring wasn't detecting.
 
 ## V1.0.4
 * Added back the travel announcement (for example, "Traveling to Combat 5, 3") that fires when you begin moving to a map node, in both singleplayer and multiplayer. It can be toggled under Events / Map / Travel.
