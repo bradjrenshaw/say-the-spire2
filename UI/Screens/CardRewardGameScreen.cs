@@ -13,6 +13,8 @@ public class CardRewardGameScreen : GameScreen
     public static CardRewardGameScreen? Current { get; private set; }
 
     private readonly NCardRewardSelectionScreen _screen;
+    private bool _pendingForceLeftFocus;
+    private List<Control> _leftToRightOptions = new();
 
     public override Message? ScreenName => Message.Localized("ui", "SCREENS.CARD_REWARD");
 
@@ -25,12 +27,28 @@ public class CardRewardGameScreen : GameScreen
     {
         base.OnPush();
         Current = this;
+        // Beta-2026-05 regression: the game auto-focuses the middle card
+        // instead of the left one when controller is in use. Queue a one-shot
+        // override that fires on the next OnUpdate, after the game's own
+        // _Ready has had a frame to set its focus. Only runs while the
+        // CardReward UI enhancement is enabled.
+        _pendingForceLeftFocus = true;
     }
 
     public override void OnPop()
     {
         base.OnPop();
         if (Current == this) Current = null;
+        _pendingForceLeftFocus = false;
+    }
+
+    public override void OnUpdate()
+    {
+        if (_pendingForceLeftFocus && Settings.UIEnhancementsSettings.CardReward.Get())
+        {
+            _pendingForceLeftFocus = false;
+            ForceLeftmostFocus();
+        }
     }
 
     public void RefreshFromGame(NCardRewardSelectionScreen screen)
@@ -39,6 +57,18 @@ public class CardRewardGameScreen : GameScreen
             return;
 
         BuildRegistry();
+    }
+
+    private void ForceLeftmostFocus()
+    {
+        if (_leftToRightOptions.Count == 0) return;
+        var target = _leftToRightOptions[0];
+        if (target == null || !GodotObject.IsInstanceValid(target) || !target.Visible) return;
+        try { target.GrabFocus(); }
+        catch (System.Exception e)
+        {
+            Log.Info($"[AccessibilityMod] CardRewardGameScreen leftmost-focus override failed: {e.Message}");
+        }
     }
 
     protected override void BuildRegistry()
@@ -56,6 +86,11 @@ public class CardRewardGameScreen : GameScreen
         };
 
         var optionControls = RegisterCards(options);
+        // Capture the card-only list before alternatives are appended — the
+        // left-focus override should land on the leftmost card, not on a
+        // Skip/Reroll button if those happen to come first.
+        _leftToRightOptions = new List<Control>(optionControls);
+
         var alternatives = GetAlternatives();
         var alternativesIncluded = Settings.UIEnhancementsSettings.CardRewardAlternatives.Get();
         if (alternativesIncluded)

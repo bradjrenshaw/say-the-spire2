@@ -10,7 +10,7 @@ namespace SayTheSpire2.Settings;
 /// should no longer propagate. Only the category-level "Reset to defaults"
 /// clears back to null.
 /// </summary>
-public class NullableStringSetting : Setting
+public class NullableStringSetting : Setting, INullableSetting
 {
     public StringSetting Fallback { get; }
     public string? LocalValue { get; private set; }

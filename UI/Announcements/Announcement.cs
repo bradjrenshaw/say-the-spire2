@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SayTheSpire2.Localization;
 
 namespace SayTheSpire2.UI.Announcements;
@@ -7,6 +8,17 @@ namespace SayTheSpire2.UI.Announcements;
 /// per semantic concept (HpAnnouncement, IntentsAnnouncement, LabelAnnouncement,
 /// ...) — the class owns the rendering logic for that concept and is reused
 /// everywhere that concept appears.
+///
+/// <para>The same Announcement renders in two contexts:</para>
+/// <list type="bullet">
+/// <item><see cref="Render"/> — the focus context. Returns a single Message
+/// that the focus composer comma-joins with siblings into one spoken
+/// sentence.</item>
+/// <item><see cref="RenderBuffer"/> — the buffer context. Returns 1+ Messages
+/// that the buffer composer writes as separate browsable entries. Default
+/// implementation yields the focus Render result so most announcements need
+/// no override; multi-line entries (hover tips groups, extras) override.</item>
+/// </list>
 /// </summary>
 public abstract class Announcement
 {
@@ -22,6 +34,18 @@ public abstract class Announcement
     /// — announcements that don't declare custom settings can ignore the param.
     /// </summary>
     public abstract Message Render(AnnouncementContext ctx);
+
+    /// <summary>
+    /// The announcement's rendered text as one-or-more buffer entries. Each
+    /// yielded Message becomes a separate browsable buffer line. Default
+    /// behavior is to yield the focus Render result so simple announcements
+    /// inherit reasonable behavior; override when the buffer wants different
+    /// wording or multiple lines.
+    /// </summary>
+    public virtual IEnumerable<Message> RenderBuffer(AnnouncementContext ctx)
+    {
+        yield return Render(ctx);
+    }
 
     /// <summary>
     /// Punctuation appended to this announcement's rendered text before the

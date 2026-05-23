@@ -62,6 +62,19 @@ public static class AnnouncementRegistry
                 Log.Error($"[AccessibilityMod] Per-element override registration failed for {elementType.Name}: {e.Message}");
             }
         }
+
+        // Per-buffer overrides for every Buffer subclass with [BufferAnnouncementOrder].
+        foreach (var bufferType in assembly.GetTypes()
+            .Where(t => !t.IsAbstract
+                     && typeof(SayTheSpire2.Buffers.Buffer).IsAssignableFrom(t)
+                     && t.GetCustomAttribute<BufferAnnouncementOrderAttribute>() != null))
+        {
+            try { RegisterBufferOverrides(bufferType); }
+            catch (Exception e)
+            {
+                Log.Error($"[AccessibilityMod] Per-buffer override registration failed for {bufferType.Name}: {e.Message}");
+            }
+        }
     }
 
     private static void RegisterGlobal(Type announcementType)
@@ -169,6 +182,88 @@ public static class AnnouncementRegistry
             }
         }
     }
+
+    private static void RegisterBufferOverrides(Type bufferType)
+    {
+        var orderAttr = bufferType.GetCustomAttribute<BufferAnnouncementOrderAttribute>();
+        if (orderAttr == null) return;
+
+        var bufferKey = DeriveBufferKey(bufferType);
+        var bufferDisplay = SnakeToTitleCase(bufferKey);
+
+        // The per-buffer "Announcements" subcategory that holds the override
+        // entries. HasResetAction surfaces the "Reset to defaults" button.
+        // No leading slash on the loc-key path: the "buffers" root category
+        // doesn't exist yet (unlike "ui" which is created earlier with its
+        // own loc key), so the first segment carries SETTINGS.BUFFERS_ROOT.
+        var announcementsParent = ModSettingsRegistry.EnsureCategory(
+            $"buffers.{bufferKey}.announcements",
+            $"Buffers/{bufferDisplay}/Announcements",
+            $"SETTINGS.BUFFERS_ROOT/SETTINGS.BUFFERS.{bufferKey.ToUpperInvariant()}/{RootLocKey}");
+        announcementsParent.HasResetAction = true;
+
+        var announcementTypes = orderAttr.Types.Distinct().ToList();
+
+        var orderSetting = announcementsParent.GetByKey("order") as StringSetting;
+        if (orderSetting == null)
+        {
+            var defaultOrder = string.Join(",", announcementTypes.Select(DeriveAnnouncementKey));
+            orderSetting = new StringSetting("order", "Announcement Order", defaultOrder) { Hidden = true };
+            announcementsParent.Add(orderSetting);
+        }
+        orderSetting.Changed += newOrder => ApplyOrderToSortPriorities(announcementsParent, newOrder, announcementTypes);
+        ApplyOrderToSortPriorities(announcementsParent, orderSetting.Value, announcementTypes);
+
+        for (int i = 0; i < announcementTypes.Count; i++)
+        {
+            var announcementType = announcementTypes[i];
+            var announcementKey = DeriveAnnouncementKey(announcementType);
+            var announcementDisplay = DeriveDisplayName(StripSuffix(announcementType.Name, "Announcement"));
+            var announcementCategoryLocKey = $"SETTINGS.ANNOUNCEMENTS.{announcementKey.ToUpperInvariant()}";
+
+            var announcementCategory = ModSettingsRegistry.EnsureCategory(
+                $"buffers.{bufferKey}.announcements.{announcementKey}",
+                $"Buffers/{bufferDisplay}/Announcements/{announcementDisplay}",
+                $"SETTINGS.BUFFERS_ROOT/SETTINGS.BUFFERS.{bufferKey.ToUpperInvariant()}/{RootLocKey}/{announcementCategoryLocKey}");
+            announcementCategory.SortPriority = i;
+
+            // Mirror every setting on the global announcement category as a
+            // per-buffer Nullable* override — same shape as the per-element
+            // overrides, just resolving through the BufferKey cascade.
+            var globalCategory = ModSettings.GetSetting<CategorySetting>($"announcements.{announcementKey}");
+            if (globalCategory == null) continue;
+
+            foreach (var globalChild in globalCategory.Children)
+            {
+                if (announcementCategory.GetByKey(globalChild.Key) != null)
+                    continue;
+                // include_suffix controls the punctuation the focus composer
+                // inserts between an announcement and the next. Buffers put
+                // each yielded message on its own browsable line, so suffix
+                // punctuation is meaningless here — skip the override so it
+                // doesn't clutter the per-buffer settings tree.
+                if (BufferIrrelevantSettingKeys.Contains(globalChild.Key))
+                    continue;
+
+                var overrideSetting = CreateOverride(globalChild);
+                if (overrideSetting != null)
+                    announcementCategory.Add(overrideSetting);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Setting keys on the global announcement category that are
+    /// focus-context concepts and shouldn't surface as per-buffer overrides.
+    /// </summary>
+    private static readonly HashSet<string> BufferIrrelevantSettingKeys = new()
+    {
+        "include_suffix",
+    };
+
+    /// <summary>Converts e.g. <c>CardBuffer</c> to <c>card</c>.</summary>
+    public static string DeriveBufferKey(Type bufferType) =>
+        ToSnakeCase(StripSuffix(bufferType.Name, "Buffer"));
 
     /// <summary>
     /// Rewrites <see cref="Setting.SortPriority"/> on each CategorySetting

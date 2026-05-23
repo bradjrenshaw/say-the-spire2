@@ -10,7 +10,7 @@ namespace SayTheSpire2.Settings;
 /// string = explicit override. Options mirror the fallback's options list
 /// (stays in sync when the fallback's options change at runtime).
 /// </summary>
-public class NullableChoiceSetting : Setting
+public class NullableChoiceSetting : Setting, INullableSetting
 {
     public ChoiceSetting Fallback { get; }
     public string? LocalValue { get; private set; }

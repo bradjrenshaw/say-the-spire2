@@ -1,11 +1,20 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Creatures;
-using MegaCrit.Sts2.Core.HoverTips;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(LabelAnnouncement),
+    typeof(HpAnnouncement),
+    typeof(BlockAnnouncement),
+    typeof(MonsterIntentsAnnouncement),
+    typeof(PowersAnnouncement)
+)]
 public class CreatureBuffer : Buffer
 {
     private Creature? _creature;
@@ -26,56 +35,49 @@ public class CreatureBuffer : Buffer
     public override void Update()
     {
         if (_creature == null) return;
-        Repopulate(Populate);
+        Repopulate(() => Populate(this, _creature));
     }
 
-    private void Populate()
+    public static void Populate(Buffer buffer, Creature creature)
     {
-        var entity = _creature;
-        if (entity == null) return;
+        var attrOrder = typeof(CreatureBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
 
-        // Name
-        Add(MultiplayerHelper.GetCreatureName(entity));
+        BufferAnnouncementComposer.Compose(buffer, "creature", attrOrder, BuildAnnouncements(creature));
+    }
 
-        // HP
-        Add(Message.Localized("ui", "RESOURCE.HP", new { current = entity.CurrentHp, max = entity.MaxHp }).Resolve());
+    private static IEnumerable<Announcement> BuildAnnouncements(Creature creature)
+    {
+        yield return new LabelAnnouncement(MultiplayerHelper.GetCreatureName(creature));
+        yield return new HpAnnouncement(creature.CurrentHp, creature.MaxHp);
 
-        // Block
-        if (entity.Block > 0)
-            Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = entity.Block }).Resolve());
+        if (creature.Block > 0)
+            yield return new BlockAnnouncement(creature.Block);
 
-        // Intents for monsters
-        if (entity.IsMonster && entity.Monster != null)
+        IReadOnlyList<IntentView> intents = Array.Empty<IntentView>();
+        if (creature.IsMonster && creature.Monster != null)
         {
             try
             {
-                var intents = entity.Monster.NextMove.Intents;
-                if (intents != null && intents.Count > 0)
+                var rawIntents = creature.Monster.NextMove.Intents;
+                if (rawIntents != null && rawIntents.Count > 0)
                 {
-                    var allies = CreatureView.GetCombatStateAllies(entity);
-                    foreach (var intent in intents)
-                    {
-                        var tip = intent.GetHoverTip(allies, entity);
-                        var intentText = tip.Title ?? intent.IntentType.ToString();
-                        if (!string.IsNullOrEmpty(tip.Description))
-                            intentText += ": " + tip.Description;
-                        Add(intentText);
-                    }
+                    var allies = CreatureView.GetCombatStateAllies(creature);
+                    intents = rawIntents
+                        .Select(i => IntentView.FromIntent(i, creature, allies))
+                        .ToList();
                 }
             }
             catch
             {
-                // Intent access may fail outside combat
+                // Intent access may fail outside combat — leave intents empty.
             }
         }
+        yield return new MonsterIntentsAnnouncement(intents);
 
-        // Powers (buffs/debuffs)
-        if (entity.Powers.Count > 0)
-        {
-            foreach (var power in entity.Powers)
-            {
-                PlayerBuffer.AddPowerToBuffer(this, power);
-            }
-        }
+        if (creature.Powers.Count > 0)
+            yield return new PowersAnnouncement(creature.Powers);
     }
 }

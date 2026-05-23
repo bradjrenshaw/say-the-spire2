@@ -1,11 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Potions;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
+using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(HeaderAnnouncement),
+    typeof(DescriptionAnnouncement),
+    typeof(HoverTipsAnnouncement)
+)]
 public class PotionBuffer : Buffer
 {
     private PotionModel? _model;
@@ -31,38 +40,51 @@ public class PotionBuffer : Buffer
 
     /// <summary>
     /// Single source of truth for populating any buffer with potion data.
+    /// Runs through <see cref="BufferAnnouncementComposer"/> so the user's
+    /// per-buffer settings (reorder, toggle individual entries) take effect
+    /// here exactly like they do on the card buffer.
     /// </summary>
     public static void Populate(Buffer buffer, PotionModel model)
     {
-        var title = model.Title.GetFormattedText();
-        var rarity = model.Rarity;
-        if (rarity != PotionRarity.None)
-            buffer.Add($"{title}, {rarity}");
-        else
-            buffer.Add(title);
+        var attrOrder = typeof(PotionBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
 
-        var desc = model.DynamicDescription.GetFormattedText();
+        BufferAnnouncementComposer.Compose(buffer, "potion", attrOrder, BuildAnnouncements(model));
+    }
+
+    private static IEnumerable<Announcement> BuildAnnouncements(PotionModel model)
+    {
+        yield return new HeaderAnnouncement(BuildHeader(model));
+
+        var desc = BuildDescription(model);
         if (!string.IsNullOrEmpty(desc))
-            buffer.Add(ProxyElement.StripBbcode(desc));
+            yield return new DescriptionAnnouncement(desc);
 
-        // Hover tips: skip first (it's the potion itself), rest are keywords
+        IEnumerable<IHoverTip> tips = Array.Empty<IHoverTip>();
+        try { tips = model.HoverTips.OfType<IHoverTip>().ToList(); }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Potion hover tips access failed: {e.Message}"); }
+        // skipFirst: the potion model's first hover tip is the potion itself,
+        // which would duplicate the header / description.
+        yield return new HoverTipsAnnouncement(tips, skipFirst: true);
+    }
+
+    private static string BuildHeader(PotionModel model)
+    {
+        var title = model.Title.GetFormattedText();
+        return model.Rarity != PotionRarity.None
+            ? $"{title}, {model.Rarity}"
+            : title;
+    }
+
+    private static string? BuildDescription(PotionModel model)
+    {
         try
         {
-            bool first = true;
-            foreach (var tip in model.HoverTips)
-            {
-                if (first) { first = false; continue; }
-                if (tip is HoverTip hoverTip)
-                {
-                    var tipTitle = hoverTip.Title;
-                    var tipDesc = hoverTip.Description;
-                    if (!string.IsNullOrEmpty(tipTitle) && !string.IsNullOrEmpty(tipDesc))
-                        buffer.Add($"{tipTitle}: {ProxyElement.StripBbcode(tipDesc)}");
-                    else if (!string.IsNullOrEmpty(tipTitle))
-                        buffer.Add(tipTitle);
-                }
-            }
+            var desc = model.DynamicDescription.GetFormattedText();
+            return string.IsNullOrEmpty(desc) ? null : ProxyElement.StripBbcode(desc);
         }
-        catch (Exception e) { Log.Error($"[AccessibilityMod] Potion hover tips access failed: {e.Message}"); }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Potion description access failed: {e.Message}"); return null; }
     }
 }

@@ -1,17 +1,26 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
-using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
-using SayTheSpire2.UI;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.Views;
 
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(HpAnnouncement),
+    typeof(BlockAnnouncement),
+    typeof(FacingAnnouncement),
+    typeof(ResourcesAnnouncement),
+    typeof(GoldAnnouncement),
+    typeof(PilesAnnouncement),
+    typeof(PowersAnnouncement)
+)]
 public class PlayerBuffer : Buffer
 {
     private Player? _boundPlayer;
@@ -53,105 +62,54 @@ public class PlayerBuffer : Buffer
             }
             if (player == null) return;
 
-            PopulateForPlayer(player);
+            Populate(this, player);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            // Combat state may not be accessible
             Log.Info($"[AccessibilityMod] Player buffer populate failed: {e.Message}");
         }
     }
 
-    private void PopulateForPlayer(Player player)
+    public static void Populate(Buffer buffer, Player player)
+    {
+        var attrOrder = typeof(PlayerBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
+
+        BufferAnnouncementComposer.Compose(buffer, "player", attrOrder, BuildAnnouncements(player));
+    }
+
+    private static IEnumerable<Announcement> BuildAnnouncements(Player player)
     {
         var creature = player.Creature;
         var pcs = player.PlayerCombatState;
 
-        Add(Message.Localized("ui", "RESOURCE.HP", new { current = creature.CurrentHp, max = creature.MaxHp }).Resolve());
+        yield return new HpAnnouncement(creature.CurrentHp, creature.MaxHp);
 
         if (creature.Block > 0)
-            Add(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = creature.Block }).Resolve());
+            yield return new BlockAnnouncement(creature.Block);
 
         var facingTargets = CreatureView.FromEntity(creature).SurroundedFacingTargets;
         if (facingTargets.Count > 0)
         {
             var targets = string.Join(", ", facingTargets.Select(c => MultiplayerHelper.GetCreatureName(c)));
-            Add(Message.Localized("ui", "CREATURE.FACING", new { targets }).Resolve());
+            yield return new FacingAnnouncement(targets);
         }
 
         if (pcs != null)
-            Add(ResourceHelper.GetResourceMessage(pcs).Resolve());
+            yield return new ResourcesAnnouncement(pcs);
 
-        Add(Message.Localized("ui", "RESOURCE.GOLD", new { amount = player.Gold }).Resolve());
+        yield return new GoldAnnouncement(player.Gold);
 
         if (pcs != null)
-        {
-            var piles = Message.Localized("ui", "RESOURCE.DRAW_HAND_DISCARD", new { draw = pcs.DrawPile.Cards.Count, hand = pcs.Hand.Cards.Count, discard = pcs.DiscardPile.Cards.Count });
-            if (pcs.ExhaustPile.Cards.Count > 0)
-                piles = Message.Join(", ", piles, Message.Localized("ui", "RESOURCE.EXHAUST", new { count = pcs.ExhaustPile.Cards.Count }));
-            Add(piles.Resolve());
-        }
+            yield return new PilesAnnouncement(
+                pcs.DrawPile.Cards.Count,
+                pcs.Hand.Cards.Count,
+                pcs.DiscardPile.Cards.Count,
+                pcs.ExhaustPile.Cards.Count);
 
         if (creature.Powers.Count > 0)
-        {
-            foreach (var power in creature.Powers)
-                AddPowerToBuffer(this, power);
-        }
-    }
-
-    public static void AddPowerToBuffer(Buffer buffer, PowerModel power)
-    {
-        var title = power.Title.GetFormattedText();
-        var amount = power.DisplayAmount;
-        var hasStacks = power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter;
-        var line = hasStacks && amount > 0 ? $"{title} {amount}" : title;
-        try
-        {
-            bool first = true;
-            foreach (var tip in power.HoverTips)
-            {
-                if (tip is HoverTip ht)
-                {
-                    var desc = ht.Description;
-                    if (first)
-                    {
-                        if (!string.IsNullOrEmpty(desc))
-                            line += ": " + desc;
-                        buffer.Add(line);
-                        first = false;
-                    }
-                    else
-                    {
-                        var extraTitle = ht.Title;
-                        var extraLine = !string.IsNullOrEmpty(extraTitle) && !string.IsNullOrEmpty(desc)
-                            ? $"{extraTitle}: {desc}"
-                            : !string.IsNullOrEmpty(extraTitle) ? extraTitle
-                            : desc;
-                        buffer.Add(extraLine);
-                    }
-                }
-                else if (tip is CardHoverTip cardTip)
-                {
-                    if (first)
-                    {
-                        buffer.Add(line);
-                        first = false;
-                    }
-                    if (cardTip.Card != null)
-                    {
-                        var formatted = CardBuffer.FormatHoverTip(cardTip.Card);
-                        if (!string.IsNullOrEmpty(formatted))
-                            buffer.Add(formatted);
-                    }
-                }
-            }
-            if (first)
-                buffer.Add(line);
-        }
-        catch (System.Exception e)
-        {
-            Log.Info($"[AccessibilityMod] Power hover tip lookup failed: {e.Message}");
-            buffer.Add(line);
-        }
+            yield return new PowersAnnouncement(creature.Powers);
     }
 }

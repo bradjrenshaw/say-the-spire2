@@ -1,10 +1,16 @@
-## V1.0.4
-* Re-added Tolk as a selectable speech handler, alongside Prism. Some users have reported lag after upgrading to 1.0; switch via Speech / Speech Handler to compare. Auto-detect now tries Prism, then Tolk, then SAPI, then Clipboard.
+## V1.1.0
+* Re-added Tolk as a selectable speech handler, alongside Prism. Some users have reported lag after upgrading to 1.0 which was when Prism was introduced and the game does feel more responsive when I use the Tolk handler. Let me know what you all think of this.
+* Fixed an issue preventing the bestiary screen from working in the most recent beta.
+* Buffer items are now individually configurable as Announcements, the same way focus-string pieces have been. You can choose whether or not certain buffer items are visible at all or reorder them as you can the focus string announcements on UI elements.
 * The Escape key (Pause / Back action) now closes the mod menu and mod settings menu, in addition to Cancel (Backspace / Controller B).
-* Fixed a bug where the position info on main-menu buttons ("3 of 6") could go stale after the button set changed mid-screen (for example, the Resume button disappearing after you cancel a run).
-* Closing the mod settings menu back to the mod menu (with documentation, etc.) no longer says "Closed". The "Closed" announcement is now reserved for actually leaving the mod menu entirely.
-* Split off cards, relics, potions, and orbs' description text into its own announcement (Description) instead of reusing the generic Tooltip announcement. Added a Description / Collapse repeated icons toggle that condenses runs of the same icon into a count — for example "Energy Energy Energy" becomes "3 Energy". On by default; configure under Announcements / Description, or per element under UI / Card / Announcements / Description (same for Relic, Potion, and Orb).
-* Cross-referenced cards on hover tips (relics, event options, rewards, powers) are now described inline in the host element's buffer instead of getting fanned out into a separate card buffer. Previously you had to know that certain elements split their info across multiple buffers; now every focused element's hover tips live in one buffer.
+* Removed an extraneous closed announcement after exiting the mod settings screen to the mod menu.
+* Fixed a bug where the position info on main menu buttons ("3 of 6") would be inaccurate if the menu options changed (for example if you cancelled a run from the main menu.)
+* Split off cards, relics, potions, and orbs' description text into its own announcement (Description) instead of reusing the generic Tooltip announcement.
+* Added a Description / Collapse repeated icons toggle that condenses runs of the same icon into a count — for example "Energy Energy Energy" becomes "3 Energy". On by default; configure under Announcements / Description, or per element under UI / Card / Announcements / Description (same for Relic, Potion, and Orb).
+* Hover tips are now only included within the buffer they are a part of. Previously hover tips for cards, relics, etc would spawn additional buffers. While this did technically work, the buffers would be inaccurate in some instances and the behavior was confusing.
+* The first card in a card rewards screen is now always focused (in the beta the controller focus was behaving inconsistently.)
+
+## V1.0.4
 * Added back the travel announcement (for example, "Traveling to Combat 5, 3") that fires when you begin moving to a map node, in both singleplayer and multiplayer. It can be toggled under Events / Map / Travel.
 * Added commas between every part of an element's focus readout. Previously the label, type, subtype, and position pieces were space-joined to whatever came next, which could run two words together. This can be configured for all elements via the announcements mod settings category, or configured per element type as usual.
 * Fixed a number of strings in the mod settings that were not being localized into other languages.

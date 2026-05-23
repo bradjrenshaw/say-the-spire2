@@ -7,10 +7,20 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.UI.Elements;
 using SayTheSpire2.Views;
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(HeaderAnnouncement),
+    typeof(CostsAnnouncement),
+    typeof(DescriptionAnnouncement),
+    typeof(EnchantmentAnnouncement),
+    typeof(AfflictionAnnouncement),
+    typeof(HoverTipsAnnouncement),
+    typeof(ExtrasAnnouncement)
+)]
 public class CardBuffer : Buffer
 {
     private CardModel? _model;
@@ -49,16 +59,60 @@ public class CardBuffer : Buffer
 
     /// <summary>
     /// Single source of truth for populating any buffer with card data.
-    /// Used by CardBuffer.Update(), and by other proxies that need card info
-    /// (e.g., relic hover tips that reference cards). Reads everything via
-    /// CardView so the verbose buffer and the focus path agree on which
-    /// fields exist and where they come from.
+    /// Used by CardBuffer.Update(), UpgradeBuffer, and any other place that
+    /// needs to render a CardModel as a buffer. The announcement list and
+    /// order both flow through the user's "card" buffer settings, so a
+    /// reorder/toggle in mod settings applies everywhere uniformly.
     /// </summary>
-    public static void Populate(Buffer buffer, CardModel model, IEnumerable<string>? extraLines = null)
+    /// <param name="descriptionOverride">
+    /// When non-null, used in place of the card's pile description. Lets the
+    /// upgrade buffer inject the diff-style upgrade-preview text without
+    /// duplicating the rest of the buffer-population logic. Receives the
+    /// same bbcode-strip pass as a regular description.
+    /// </param>
+    public static void Populate(Buffer buffer, CardModel model, IEnumerable<string>? extraLines = null,
+        string? descriptionOverride = null)
     {
         var view = CardView.FromModel(model);
+        var attrOrder = typeof(CardBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
 
-        // Name, type, and rarity
+        BufferAnnouncementComposer.Compose(buffer, "card", attrOrder, BuildAnnouncements(view, extraLines, descriptionOverride));
+    }
+
+    private static IEnumerable<Announcement> BuildAnnouncements(CardView view, IEnumerable<string>? extraLines,
+        string? descriptionOverride)
+    {
+        yield return new HeaderAnnouncement(BuildHeader(view));
+        yield return new CostsAnnouncement(BuildCosts(view));
+
+        var desc = string.IsNullOrEmpty(descriptionOverride)
+            ? BuildDescription(view)
+            : ProxyElement.StripBbcode(descriptionOverride);
+        if (!string.IsNullOrEmpty(desc))
+            yield return new DescriptionAnnouncement(desc);
+
+        var enchantment = BuildEnchantment(view);
+        if (enchantment != null)
+            yield return enchantment;
+
+        var affliction = BuildAffliction(view);
+        if (affliction != null)
+            yield return affliction;
+
+        IEnumerable<MegaCrit.Sts2.Core.HoverTips.IHoverTip> tips = Array.Empty<MegaCrit.Sts2.Core.HoverTips.IHoverTip>();
+        try { tips = view.HoverTips.OfType<MegaCrit.Sts2.Core.HoverTips.IHoverTip>().ToList(); }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card hover tips access failed: {e.Message}"); }
+        yield return new HoverTipsAnnouncement(tips);
+
+        if (extraLines != null)
+            yield return new ExtrasAnnouncement(extraLines);
+    }
+
+    private static string BuildHeader(CardView view)
+    {
         var typeText = LocalizationManager.GetOrDefault("ui", $"TYPES.{view.Type.ToString().ToUpperInvariant()}", view.Type.ToString());
         var header = $"{view.Title}, {typeText}";
         if (view.Rarity != CardRarity.None)
@@ -66,10 +120,12 @@ public class CardBuffer : Buffer
             var rarityText = LocalizationManager.GetOrDefault("ui", $"RARITIES.{view.Rarity.ToString().ToUpperInvariant()}", view.Rarity.ToString());
             header += $", {rarityText}";
         }
-        buffer.Add(header);
+        return header;
+    }
 
-        // Costs (energy + stars on one line)
-        var costs = new System.Collections.Generic.List<Message>();
+    private static string? BuildCosts(CardView view)
+    {
+        var costs = new List<Message>();
         if (view.EnergyCost != null)
         {
             if (view.EnergyCost.CostsX)
@@ -77,113 +133,58 @@ public class CardBuffer : Buffer
             else
             {
                 try { costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = view.EnergyCost.GetWithModifiers(CostModifiers.All) })); }
-                catch (System.Exception e) { Log.Info($"[AccessibilityMod] Energy cost modifier failed: {e.Message}"); costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = view.EnergyCost.Canonical })); }
+                catch (Exception e) { Log.Info($"[AccessibilityMod] Energy cost modifier failed: {e.Message}"); costs.Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = view.EnergyCost.Canonical })); }
             }
         }
         if (view.HasStarCostX)
             costs.Add(Message.Localized("ui", "RESOURCE.CARD_X_STARS"));
         else if (view.CurrentStarCost >= 0)
             costs.Add(Message.Localized("ui", "RESOURCE.CARD_STAR_COST", new { cost = view.StarCostWithModifiers }));
-        if (costs.Count > 0)
-            buffer.Add(Message.Join(", ", costs.ToArray()).Resolve());
+        return costs.Count > 0 ? Message.Join(", ", costs.ToArray()).Resolve() : null;
+    }
 
-        // Description: prefer the in-hand variant (richer wording), fall back
-        // to PileType.None. Pull the model directly because the pile-type
-        // dispatch isn't a CardView concern.
+    private static string? BuildDescription(CardView view)
+    {
         try
         {
             var desc = view.DisplayedModel.GetDescriptionForPile(PileType.Hand);
-            if (!string.IsNullOrEmpty(desc))
-                buffer.Add(ProxyElement.StripBbcode(desc));
+            if (!string.IsNullOrEmpty(desc)) return ProxyElement.StripBbcode(desc);
         }
-        catch
-        {
-            try
-            {
-                var desc = view.DisplayedModel.GetDescriptionForPile(PileType.None);
-                if (!string.IsNullOrEmpty(desc))
-                    buffer.Add(ProxyElement.StripBbcode(desc));
-            }
-            catch (Exception e) { Log.Error($"[AccessibilityMod] Card description fallback failed: {e.Message}"); }
-        }
-
-        // Enchantment
-        if (view.Enchantment is { } enchant)
-        {
-            try
-            {
-                var enchTitle = enchant.Title.GetFormattedText();
-                var enchDesc = enchant.DynamicDescription.GetFormattedText();
-                if (!string.IsNullOrEmpty(enchTitle) && !string.IsNullOrEmpty(enchDesc))
-                    buffer.Add(Message.Localized("ui", "CARD.ENCHANTMENT", new { title = enchTitle, description = ProxyElement.StripBbcode(enchDesc) }).Resolve());
-                else if (!string.IsNullOrEmpty(enchTitle))
-                    buffer.Add(Message.Localized("ui", "CARD.ENCHANTMENT_NO_DESC", new { title = enchTitle }).Resolve());
-
-                if (enchant.ShowAmount && enchant.DisplayAmount != 0)
-                    buffer.Add(Message.Localized("ui", "CARD.ENCHANTMENT_AMOUNT", new { amount = enchant.DisplayAmount }).Resolve());
-
-                if (enchant.Status == EnchantmentStatus.Disabled)
-                    buffer.Add(LocalizationManager.GetOrDefault("ui", "CARD.ENCHANTMENT_DISABLED", "Enchantment disabled"));
-            }
-            catch (Exception e) { Log.Error($"[AccessibilityMod] Card enchantment access failed: {e.Message}"); }
-        }
-
-        // Affliction
-        if (view.Affliction is { } affliction)
-        {
-            try
-            {
-                var afflictTitle = affliction.Title.GetFormattedText();
-                var afflictDesc = affliction.DynamicDescription.GetFormattedText();
-                if (!string.IsNullOrEmpty(afflictTitle) && !string.IsNullOrEmpty(afflictDesc))
-                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION", new { title = afflictTitle, description = ProxyElement.StripBbcode(afflictDesc) }).Resolve());
-                else if (!string.IsNullOrEmpty(afflictTitle))
-                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION_NO_DESC", new { title = afflictTitle }).Resolve());
-
-                if (affliction.IsStackable && affliction.Amount > 0)
-                    buffer.Add(Message.Localized("ui", "CARD.AFFLICTION_AMOUNT", new { amount = affliction.Amount }).Resolve());
-            }
-            catch (Exception e) { Log.Error($"[AccessibilityMod] Card affliction access failed: {e.Message}"); }
-        }
-
-        // Hover tips (keywords, powers, referenced cards). CardHoverTip
-        // entries (e.g. Blade Dance referencing Shiv) get inlined via
-        // FormatHoverTip so the user finds them in the card buffer instead
-        // of having to switch to a separate cross-referenced card buffer.
+        catch { /* fall through to None */ }
         try
         {
-            foreach (var tip in view.HoverTips)
-            {
-                if (tip is CardHoverTip cardTip)
-                {
-                    if (cardTip.Card == null) continue;
-                    var formatted = FormatHoverTip(cardTip.Card);
-                    if (!string.IsNullOrEmpty(formatted))
-                        buffer.Add(formatted);
-                }
-                else if (tip is HoverTip hoverTip)
-                {
-                    var title = hoverTip.Title;
-                    var desc = hoverTip.Description;
-                    if (!string.IsNullOrEmpty(title) && !string.IsNullOrEmpty(desc))
-                        buffer.Add($"{title}: {ProxyElement.StripBbcode(desc)}");
-                    else if (!string.IsNullOrEmpty(title))
-                        buffer.Add(title);
-                    else if (!string.IsNullOrEmpty(desc))
-                        buffer.Add(ProxyElement.StripBbcode(desc));
-                }
-            }
+            var desc = view.DisplayedModel.GetDescriptionForPile(PileType.None);
+            if (!string.IsNullOrEmpty(desc)) return ProxyElement.StripBbcode(desc);
         }
-        catch (Exception e) { Log.Error($"[AccessibilityMod] Card hover tips access failed: {e.Message}"); }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card description fallback failed: {e.Message}"); }
+        return null;
+    }
 
-        if (extraLines == null)
-            return;
-
-        foreach (var line in extraLines)
+    private static EnchantmentAnnouncement? BuildEnchantment(CardView view)
+    {
+        if (view.Enchantment is not { } enchant) return null;
+        try
         {
-            if (!string.IsNullOrWhiteSpace(line))
-                buffer.Add(line.Trim());
+            var title = enchant.Title.GetFormattedText();
+            var desc = enchant.DynamicDescription.GetFormattedText();
+            int? amount = enchant.ShowAmount ? enchant.DisplayAmount : null;
+            bool disabled = enchant.Status == EnchantmentStatus.Disabled;
+            return new EnchantmentAnnouncement(title, string.IsNullOrEmpty(desc) ? null : ProxyElement.StripBbcode(desc), amount, disabled);
         }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card enchantment access failed: {e.Message}"); return null; }
+    }
+
+    private static AfflictionAnnouncement? BuildAffliction(CardView view)
+    {
+        if (view.Affliction is not { } affliction) return null;
+        try
+        {
+            var title = affliction.Title.GetFormattedText();
+            var desc = affliction.DynamicDescription.GetFormattedText();
+            int? amount = affliction.IsStackable ? affliction.Amount : null;
+            return new AfflictionAnnouncement(title, string.IsNullOrEmpty(desc) ? null : ProxyElement.StripBbcode(desc), amount);
+        }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card affliction access failed: {e.Message}"); return null; }
     }
 
     /// <summary>

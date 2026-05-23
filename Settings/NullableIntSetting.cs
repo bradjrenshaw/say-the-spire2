@@ -9,7 +9,7 @@ namespace SayTheSpire2.Settings;
 /// explicit; the category "Reset to defaults" action clears it back to null.
 /// Same cascade semantics as NullableBoolSetting.
 /// </summary>
-public class NullableIntSetting : Setting
+public class NullableIntSetting : Setting, INullableSetting
 {
     public IntSetting Fallback { get; }
     public int? LocalValue { get; private set; }

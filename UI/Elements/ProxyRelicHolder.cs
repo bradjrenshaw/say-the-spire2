@@ -111,17 +111,10 @@ public class ProxyRelicHolder : ProxyElement
         var relicBuffer = buffers.GetBuffer("relic") as RelicBuffer;
         if (relicBuffer != null)
         {
-            var extras = new List<string>();
-            foreach (var line in GetBufferExtraLines(view))
-                extras.Add(line);
-            foreach (var cardTip in RelicBuffer.GetCardTips(view.Model))
-            {
-                var formatted = CardBuffer.FormatHoverTip(cardTip.Card);
-                if (!string.IsNullOrEmpty(formatted))
-                    extras.Add(formatted);
-            }
-
-            relicBuffer.Bind(view.Model, extras);
+            // Card-hover-tip inlining now happens inside HoverTipsAnnouncement
+            // (driven by the relic buffer's settings), so callers only need
+            // to supply proxy-specific extras.
+            relicBuffer.Bind(view.Model, GetBufferExtraLines(view));
             relicBuffer.Update();
             buffers.EnableBuffer("relic", true);
         }

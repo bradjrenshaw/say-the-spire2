@@ -6,9 +6,18 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using SayTheSpire2.Localization;
+using SayTheSpire2.UI.Announcements;
 using SayTheSpire2.UI.Elements;
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(HeaderAnnouncement),
+    typeof(DescriptionAnnouncement),
+    typeof(RelicCounterAnnouncement),
+    typeof(RelicDisabledAnnouncement),
+    typeof(HoverTipsAnnouncement),
+    typeof(ExtrasAnnouncement)
+)]
 public class RelicBuffer : Buffer
 {
     private RelicModel? _model;
@@ -51,73 +60,54 @@ public class RelicBuffer : Buffer
     /// </summary>
     public static void Populate(Buffer buffer, RelicModel model, IEnumerable<string>? extraLines = null)
     {
-        var title = model.Title.GetFormattedText();
-        var rarity = model.Rarity;
-        if (rarity != RelicRarity.None)
-            buffer.Add($"{title}, {rarity}");
-        else
-            buffer.Add(title);
+        var attrOrder = typeof(RelicBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
 
-        var desc = model.DynamicDescription.GetFormattedText();
-        if (!string.IsNullOrEmpty(desc))
-            buffer.Add(ProxyElement.StripBbcode(desc));
-
-        if (model.ShowCounter && model.DisplayAmount != 0)
-            buffer.Add(Message.Localized("ui", "RELIC.COUNTER", new { amount = model.DisplayAmount }).Resolve());
-
-        if (model.Status == RelicStatus.Disabled)
-            buffer.Add(LocalizationManager.GetOrDefault("ui", "RELIC.DISABLED", "Disabled"));
-
-        // Hover tips: skip first (it's the relic itself), rest are keywords/references
-        try
-        {
-            bool first = true;
-            foreach (var tip in model.HoverTips)
-            {
-                if (first) { first = false; continue; }
-                if (tip is HoverTip hoverTip)
-                {
-                    var tipTitle = hoverTip.Title;
-                    var tipDesc = hoverTip.Description;
-                    if (!string.IsNullOrEmpty(tipTitle) && !string.IsNullOrEmpty(tipDesc))
-                        buffer.Add($"{tipTitle}: {ProxyElement.StripBbcode(tipDesc)}");
-                    else if (!string.IsNullOrEmpty(tipTitle))
-                        buffer.Add(tipTitle);
-                }
-            }
-        }
-        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic hover tips access failed: {e.Message}"); }
-
-        if (extraLines == null)
-            return;
-
-        foreach (var line in extraLines)
-        {
-            if (!string.IsNullOrWhiteSpace(line))
-                buffer.Add(line.Trim());
-        }
+        BufferAnnouncementComposer.Compose(buffer, "relic", attrOrder, BuildAnnouncements(model, extraLines));
     }
 
-    /// <summary>
-    /// Enumerates the CardHoverTips a relic carries (excluding the
-    /// self-referencing first tip). Callers use this to inline each card's
-    /// short description into the host buffer via
-    /// <see cref="CardBuffer.FormatHoverTip(CardModel)"/>.
-    /// </summary>
-    public static List<CardHoverTip> GetCardTips(RelicModel model)
+    private static IEnumerable<Announcement> BuildAnnouncements(RelicModel model, IEnumerable<string>? extraLines)
     {
-        var result = new List<CardHoverTip>();
+        yield return new HeaderAnnouncement(BuildHeader(model));
+
+        var desc = BuildDescription(model);
+        if (!string.IsNullOrEmpty(desc))
+            yield return new DescriptionAnnouncement(desc);
+
+        if (model.ShowCounter && model.DisplayAmount != 0)
+            yield return new RelicCounterAnnouncement(model.DisplayAmount);
+
+        if (model.Status == RelicStatus.Disabled)
+            yield return new RelicDisabledAnnouncement();
+
+        IEnumerable<IHoverTip> tips = Array.Empty<IHoverTip>();
+        try { tips = model.HoverTips.OfType<IHoverTip>().ToList(); }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic hover tips access failed: {e.Message}"); }
+        // skipFirst: relics' first hover tip is the relic itself, which
+        // would duplicate the header / description.
+        yield return new HoverTipsAnnouncement(tips, skipFirst: true);
+
+        if (extraLines != null)
+            yield return new ExtrasAnnouncement(extraLines);
+    }
+
+    private static string BuildHeader(RelicModel model)
+    {
+        var title = model.Title.GetFormattedText();
+        return model.Rarity != RelicRarity.None
+            ? $"{title}, {model.Rarity}"
+            : title;
+    }
+
+    private static string? BuildDescription(RelicModel model)
+    {
         try
         {
-            bool first = true;
-            foreach (var tip in model.HoverTips)
-            {
-                if (first) { first = false; continue; }
-                if (tip is CardHoverTip cardTip)
-                    result.Add(cardTip);
-            }
+            var desc = model.DynamicDescription.GetFormattedText();
+            return string.IsNullOrEmpty(desc) ? null : ProxyElement.StripBbcode(desc);
         }
-        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic card tips access failed: {e.Message}"); }
-        return result;
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Relic description access failed: {e.Message}"); return null; }
     }
 }

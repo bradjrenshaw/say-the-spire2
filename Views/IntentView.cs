@@ -14,7 +14,7 @@ namespace SayTheSpire2.Views;
 /// A single intent belonging to a monster's next move. Structured data only —
 /// callers do their own formatting.
 /// </summary>
-public record IntentView(string Name, string? Label)
+public record IntentView(string Name, string? Label, string? Description = null)
 {
     private static readonly PropertyInfo? IntentTitleProp =
         AccessTools.Property(typeof(AbstractIntent), "IntentTitle");
@@ -24,7 +24,20 @@ public record IntentView(string Name, string? Label)
         var name = GetIntentName(intent);
         var label = intent.GetIntentLabel(allies ?? Enumerable.Empty<Creature>(), owner);
         var text = label.GetFormattedText();
-        return new IntentView(name, string.IsNullOrEmpty(text) ? null : Message.StripBbcode(text));
+
+        // Fetch the description via the same hover-tip path the game uses in
+        // the UI. Used by buffer-mode rendering to give a per-intent line
+        // that's richer than the focus summary.
+        string? description = null;
+        try
+        {
+            var tip = intent.GetHoverTip(allies ?? Enumerable.Empty<Creature>(), owner);
+            if (!string.IsNullOrEmpty(tip.Description))
+                description = Message.StripBbcode(tip.Description);
+        }
+        catch (Exception e) { Log.Info($"[AccessibilityMod] Intent hover-tip description fetch failed: {e.Message}"); }
+
+        return new IntentView(name, string.IsNullOrEmpty(text) ? null : Message.StripBbcode(text), description);
     }
 
     /// <summary>

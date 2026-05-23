@@ -13,7 +13,7 @@ namespace SayTheSpire2.Settings;
 /// can customize its announcements independently while following global
 /// defaults for settings the user hasn't touched.
 /// </summary>
-public class NullableBoolSetting : Setting
+public class NullableBoolSetting : Setting, INullableSetting
 {
     public BoolSetting Fallback { get; }
     public bool? LocalValue { get; private set; }

@@ -47,4 +47,16 @@ public sealed class MonsterIntentsAnnouncement : Announcement
         var prefix = LocalizationManager.GetOrDefault("ui", "CREATURE.INTENT_PREFIX", "Intent");
         return Message.Raw($"{prefix} {joined}");
     }
+
+    public override System.Collections.Generic.IEnumerable<Message> RenderBuffer(AnnouncementContext ctx)
+    {
+        // One browsable line per intent: "Name Label: Description". Drops the
+        // shared "Intent" prefix since each line stands on its own.
+        foreach (var intent in _intents)
+        {
+            var head = !string.IsNullOrEmpty(intent.Label) ? $"{intent.Name} {intent.Label}" : intent.Name;
+            var line = !string.IsNullOrEmpty(intent.Description) ? $"{head}: {intent.Description}" : head;
+            yield return Message.Raw(line);
+        }
+    }
 }

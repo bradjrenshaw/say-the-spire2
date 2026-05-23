@@ -154,7 +154,11 @@ public class RunScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output(Message.Localized("ui", "RESOURCE.HP", new { current = player.Creature.CurrentHp, max = player.Creature.MaxHp }));
+        // Route through HpAnnouncement so the global HP / Verbose setting
+        // applies here too.
+        var ctx = UI.Announcements.AnnouncementContext.Global();
+        SpeechManager.Output(new UI.Announcements.HpAnnouncement(
+            player.Creature.CurrentHp, player.Creature.MaxHp).Render(ctx));
     }
 
     private void AnnounceBoss()

@@ -1,11 +1,13 @@
 using System;
-using MegaCrit.Sts2.Core.Entities.Multiplayer;
+using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
-using SayTheSpire2.Localization;
-using SayTheSpire2.Multiplayer;
+using SayTheSpire2.UI.Announcements;
 
 namespace SayTheSpire2.Buffers;
 
+[BufferAnnouncementOrder(
+    typeof(LobbyPlayersAnnouncement)
+)]
 public class LobbyBuffer : Buffer
 {
     private StartRunLobby? _lobby;
@@ -26,27 +28,21 @@ public class LobbyBuffer : Buffer
     public override void Update()
     {
         if (_lobby == null) return;
-        Repopulate(Populate);
+        Repopulate(() => Populate(this, _lobby));
     }
 
-    private void Populate()
+    public static void Populate(Buffer buffer, StartRunLobby? lobby)
     {
-        if (_lobby == null) return;
+        var attrOrder = typeof(LobbyBuffer).GetCustomAttributes(typeof(BufferAnnouncementOrderAttribute), inherit: true)
+            is { Length: > 0 } attrs && attrs[0] is BufferAnnouncementOrderAttribute order
+            ? order.Types
+            : Array.Empty<Type>();
 
-        foreach (var player in _lobby.Players)
-        {
-            var name = GetPlayerName(player.id);
-            var character = player.character?.Title?.GetFormattedText()
-                ?? LocalizationManager.GetOrDefault("ui", "DAILY_RUN.NO_CHARACTER", "No character");
-            var ready = player.isReady
-                ? LocalizationManager.GetOrDefault("ui", "DAILY_RUN.READY", "Ready")
-                : LocalizationManager.GetOrDefault("ui", "DAILY_RUN.NOT_READY", "Not ready");
-            Add($"{name}, {character}, {ready}");
-        }
+        BufferAnnouncementComposer.Compose(buffer, "lobby", attrOrder, BuildAnnouncements(lobby));
     }
 
-    private string GetPlayerName(ulong playerId)
+    private static IEnumerable<Announcement> BuildAnnouncements(StartRunLobby? lobby)
     {
-        return MultiplayerHelper.GetPlayerName(playerId, _lobby?.NetService.Platform);
+        yield return new LobbyPlayersAnnouncement(lobby);
     }
 }

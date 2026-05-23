@@ -24,7 +24,10 @@ public static class AnnouncementComposer
         var ctx = new AnnouncementContext(element);
         var attrOrder = element.AnnouncementOrderType.GetCustomAttribute<AnnouncementOrderAttribute>()?.Types
             ?? Array.Empty<Type>();
-        var order = ResolveUserOrder(ctx.ElementKey, attrOrder);
+        // ElementKey is non-null in the focus context (set by the
+        // AnnouncementContext(UIElement) constructor); it's nullable only so
+        // the buffer-context constructor can leave it unset.
+        var order = ResolveUserOrder(ctx.ElementKey!, attrOrder);
 
         // Partition into declared (keyed by type) and undeclared (kept in yield order)
         var declared = new Dictionary<Type, Announcement>();

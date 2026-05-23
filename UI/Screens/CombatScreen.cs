@@ -333,7 +333,11 @@ public class CombatScreen : Screen
         var player = GetLocalPlayer();
         var combatState = player?.PlayerCombatState;
         if (combatState == null) return;
-        SpeechManager.Output(ResourceHelper.GetResourceMessage(combatState));
+        // Route through ResourcesAnnouncement (rather than ResourceHelper
+        // directly) so toggling the global Resources / Verbose setting flows
+        // through to this hotkey too.
+        var ctx = UI.Announcements.AnnouncementContext.Global();
+        SpeechManager.Output(new UI.Announcements.ResourcesAnnouncement(combatState).Render(ctx));
     }
 
     private void AnnouncePowers()

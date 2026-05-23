@@ -23,14 +23,19 @@ namespace SayTheSpire2.UI.Announcements;
 /// </summary>
 public sealed class AnnouncementContext
 {
-    /// <summary>The element currently being composed.</summary>
-    public UIElement Element { get; }
+    /// <summary>
+    /// The element currently being composed. Set only in focus context;
+    /// null in buffer context (buffers operate on a model, not a focused
+    /// control).
+    /// </summary>
+    public UIElement? Element { get; }
 
     /// <summary>
     /// Element key derived from <see cref="UIElement.AnnouncementOrderType"/>.
-    /// Drives ordering and the second-priority override lookup.
+    /// Drives ordering and the second-priority override lookup. Null in
+    /// buffer context.
     /// </summary>
-    public string ElementKey { get; }
+    public string? ElementKey { get; }
 
     /// <summary>
     /// Element key derived from the focused element's actual type. Null when
@@ -39,6 +44,15 @@ public sealed class AnnouncementContext
     /// </summary>
     public string? OuterKey { get; }
 
+    /// <summary>
+    /// Buffer identity in buffer context (e.g. "card"). Null in focus
+    /// context. When set, override lookups go through
+    /// <c>buffers.{BufferKey}.announcements.{ann}.{setting}/</c> instead of
+    /// the per-element <c>ui.*</c> cascade.
+    /// </summary>
+    public string? BufferKey { get; }
+
+    /// <summary>Focus context — composes an element's spoken focus message.</summary>
     public AnnouncementContext(UIElement element)
     {
         Element = element;
@@ -54,20 +68,35 @@ public sealed class AnnouncementContext
         }
     }
 
+    /// <summary>Buffer context — composes the contents of a buffer with the given key.</summary>
+    public static AnnouncementContext ForBuffer(string bufferKey) =>
+        new AnnouncementContext(bufferKey: bufferKey);
+
+    private AnnouncementContext(string bufferKey)
+    {
+        BufferKey = bufferKey;
+    }
+
+    /// <summary>
+    /// Standalone context for invoking an announcement outside of focus or
+    /// buffer composition (e.g. a global hotkey like Ctrl+Y / Ctrl+H).
+    /// Setting lookups skip per-element and per-buffer cascades and resolve
+    /// straight from the global Announcements category, so toggling a global
+    /// option (e.g. ResourcesAnnouncement.verbose) immediately affects what
+    /// the hotkey announces.
+    /// </summary>
+    public static AnnouncementContext Global() => new AnnouncementContext();
+
+    private AnnouncementContext()
+    {
+        // All keys left null → ResolveBool/Int/String/Choice fall straight
+        // through to the global Announcements setting.
+    }
+
     public bool ResolveBool(string announcementKey, string settingKey, bool defaultValue)
     {
-        var inner = ModSettings.GetSetting<NullableBoolSetting>(
-            $"ui.{ElementKey}.announcements.{announcementKey}.{settingKey}");
-        if (inner?.IsOverridden == true)
-            return inner.LocalValue!.Value;
-
-        if (OuterKey != null)
-        {
-            var outer = ModSettings.GetSetting<NullableBoolSetting>(
-                $"ui.{OuterKey}.announcements.{announcementKey}.{settingKey}");
-            if (outer?.IsOverridden == true)
-                return outer.LocalValue!.Value;
-        }
+        if (TryResolveOverride<NullableBoolSetting>(announcementKey, settingKey, out var ov))
+            return ov!.LocalValue!.Value;
 
         var global = ModSettings.GetSetting<BoolSetting>(
             $"announcements.{announcementKey}.{settingKey}");
@@ -76,18 +105,8 @@ public sealed class AnnouncementContext
 
     public int ResolveInt(string announcementKey, string settingKey, int defaultValue)
     {
-        var inner = ModSettings.GetSetting<NullableIntSetting>(
-            $"ui.{ElementKey}.announcements.{announcementKey}.{settingKey}");
-        if (inner?.IsOverridden == true)
-            return inner.LocalValue!.Value;
-
-        if (OuterKey != null)
-        {
-            var outer = ModSettings.GetSetting<NullableIntSetting>(
-                $"ui.{OuterKey}.announcements.{announcementKey}.{settingKey}");
-            if (outer?.IsOverridden == true)
-                return outer.LocalValue!.Value;
-        }
+        if (TryResolveOverride<NullableIntSetting>(announcementKey, settingKey, out var ov))
+            return ov!.LocalValue!.Value;
 
         var global = ModSettings.GetSetting<IntSetting>(
             $"announcements.{announcementKey}.{settingKey}");
@@ -96,18 +115,8 @@ public sealed class AnnouncementContext
 
     public string ResolveString(string announcementKey, string settingKey, string defaultValue)
     {
-        var inner = ModSettings.GetSetting<NullableStringSetting>(
-            $"ui.{ElementKey}.announcements.{announcementKey}.{settingKey}");
-        if (inner?.IsOverridden == true)
-            return inner.LocalValue!;
-
-        if (OuterKey != null)
-        {
-            var outer = ModSettings.GetSetting<NullableStringSetting>(
-                $"ui.{OuterKey}.announcements.{announcementKey}.{settingKey}");
-            if (outer?.IsOverridden == true)
-                return outer.LocalValue!;
-        }
+        if (TryResolveOverride<NullableStringSetting>(announcementKey, settingKey, out var ov))
+            return ov!.LocalValue!;
 
         var global = ModSettings.GetSetting<StringSetting>(
             $"announcements.{announcementKey}.{settingKey}");
@@ -116,21 +125,45 @@ public sealed class AnnouncementContext
 
     public string ResolveChoice(string announcementKey, string settingKey, string defaultValue)
     {
-        var inner = ModSettings.GetSetting<NullableChoiceSetting>(
-            $"ui.{ElementKey}.announcements.{announcementKey}.{settingKey}");
-        if (inner?.IsOverridden == true)
-            return inner.LocalValue!;
-
-        if (OuterKey != null)
-        {
-            var outer = ModSettings.GetSetting<NullableChoiceSetting>(
-                $"ui.{OuterKey}.announcements.{announcementKey}.{settingKey}");
-            if (outer?.IsOverridden == true)
-                return outer.LocalValue!;
-        }
+        if (TryResolveOverride<NullableChoiceSetting>(announcementKey, settingKey, out var ov))
+            return ov!.LocalValue!;
 
         var global = ModSettings.GetSetting<ChoiceSetting>(
             $"announcements.{announcementKey}.{settingKey}");
         return global?.Value ?? defaultValue;
+    }
+
+    /// <summary>
+    /// Walks the active override-scope chain (per-buffer in buffer context,
+    /// or inner-element then outer-element in focus context) looking for the
+    /// first explicitly-overridden Nullable* setting. Returns true with the
+    /// setting bound to <paramref name="overrideSetting"/> on match.
+    /// </summary>
+    private bool TryResolveOverride<TSetting>(string announcementKey, string settingKey, out TSetting? overrideSetting)
+        where TSetting : Setting, INullableSetting
+    {
+        if (BufferKey != null)
+        {
+            var bufferOv = ModSettings.GetSetting<TSetting>(
+                $"buffers.{BufferKey}.announcements.{announcementKey}.{settingKey}");
+            if (bufferOv?.IsOverridden == true) { overrideSetting = bufferOv; return true; }
+        }
+        else if (ElementKey != null)
+        {
+            var inner = ModSettings.GetSetting<TSetting>(
+                $"ui.{ElementKey}.announcements.{announcementKey}.{settingKey}");
+            if (inner?.IsOverridden == true) { overrideSetting = inner; return true; }
+
+            if (OuterKey != null)
+            {
+                var outer = ModSettings.GetSetting<TSetting>(
+                    $"ui.{OuterKey}.announcements.{announcementKey}.{settingKey}");
+                if (outer?.IsOverridden == true) { overrideSetting = outer; return true; }
+            }
+        }
+        // else: global context (no keys set) — fall through to the global setting.
+
+        overrideSetting = null;
+        return false;
     }
 }

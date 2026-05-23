@@ -62,75 +62,57 @@ public class UpgradeBuffer : Buffer
 
     private void Populate()
     {
-        if (_previewModel != null)
+        var clone = ResolveUpgradeClone();
+        if (clone == null)
         {
-            CardBuffer.Populate(this, _previewModel);
+            Add(NoUpgradeText());
             return;
         }
+
+        // The upgrade buffer shows the diff-style preview text ("Damage: 6 →
+        // 9") rather than the plain upgraded-card description, so callers
+        // can compare against the un-upgraded version they were just
+        // looking at. Fall back to the regular description if the model
+        // doesn't surface a preview.
+        string? diff = null;
+        try { diff = clone.GetDescriptionForUpgradePreview(); }
+        catch (Exception e) { Log.Info($"[AccessibilityMod] Upgrade preview description access failed: {e.Message}"); }
+
+        CardBuffer.Populate(this, clone, descriptionOverride: diff);
+    }
+
+    /// <summary>
+    /// Returns the cloned-and-upgraded CardModel that the buffer should
+    /// render, or null when no upgrade is available (caller writes the "No
+    /// upgrade available" line). Routing every path through this means the
+    /// buffer always renders with the same structure as the regular card
+    /// buffer — same announcement order, same per-buffer settings cascade.
+    /// </summary>
+    private CardModel? ResolveUpgradeClone()
+    {
+        if (_previewModel != null)
+            return _previewModel;
 
         var model = _model;
-        if (model == null) return;
+        if (model == null || !model.IsUpgradable)
+            return null;
 
-        if (!model.IsUpgradable)
-        {
-            Add(NoUpgradeText());
-            return;
-        }
-
-        // Beta 2026-04-23: CardScope can be a NullRunState sentinel instead of
-        // null. Calling CloneCard on it throws, so treat both as "no scope".
+        // Beta 2026-04-23: CardScope can be a NullRunState sentinel instead
+        // of null. Calling CloneCard on it throws, so treat both as "no
+        // scope" and fall back to MutableClone.
         var cardScope = model.CardScope;
-        if (cardScope == null || cardScope is NullRunState)
-        {
-            try
-            {
-                var clone = (CardModel)model.MutableClone();
-                clone.UpgradeInternal();
-                CardBuffer.Populate(this, clone);
-                return;
-            }
-            catch (Exception e)
-            {
-                Log.Error($"[AccessibilityMod] Card upgrade preview clone fallback failed: {e.Message}");
-                Add(NoUpgradeText());
-                return;
-            }
-        }
-
         try
         {
-            var clone = cardScope.CloneCard(model);
+            CardModel clone = cardScope == null || cardScope is NullRunState
+                ? (CardModel)model.MutableClone()
+                : cardScope.CloneCard(model);
             clone.UpgradeInternal();
-
-            Add(clone.Title);
-            var typeRarity = clone.Type.ToString();
-            if (clone.Rarity != CardRarity.Common)
-                typeRarity += $", {clone.Rarity}";
-            Add(typeRarity);
-
-            if (clone.EnergyCost != null)
-            {
-                if (clone.EnergyCost.CostsX)
-                    Add(LocalizationManager.GetOrDefault("ui", "RESOURCE.CARD_X_ENERGY", "X energy"));
-                else
-                    Add(Message.Localized("ui", "RESOURCE.CARD_ENERGY_COST", new { cost = clone.EnergyCost.GetWithModifiers(CostModifiers.All) }).Resolve());
-            }
-
-            if (clone.CurrentStarCost > 0)
-                Add($"{clone.CurrentStarCost}");
-
-            try
-            {
-                var desc = clone.GetDescriptionForUpgradePreview();
-                if (!string.IsNullOrEmpty(desc))
-                    Add(desc);
-            }
-            catch (Exception e) { Log.Error($"[AccessibilityMod] Upgrade description access failed: {e.Message}"); }
+            return clone;
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Log.Error($"[AccessibilityMod] Card upgrade preview failed: {e.Message}");
-            Add(NoUpgradeText());
+            Log.Error($"[AccessibilityMod] Card upgrade preview clone failed: {e.Message}");
+            return null;
         }
     }
 }
