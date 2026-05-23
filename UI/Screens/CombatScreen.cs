@@ -71,6 +71,7 @@ public class CombatScreen : Screen
     private CombatState? _currentState;
     private readonly Dictionary<Creature, CombatCreatureHandlers> _subscribedCreatures = new();
     private CombatCardPileHandlers? _cardPileHandlers;
+    private ulong _lastFocusNavSig;
 
     // Containers for position announcements (no labels, position only)
     private readonly ListContainer _rootContainer = new() { AnnounceName = false, AnnouncePosition = false };
@@ -167,9 +168,97 @@ public class CombatScreen : Screen
             Log.Info($"[EventDebug] CombatScreen: CombatState changed, resubscribing");
             UnsubscribeFromState();
             SubscribeToState(liveState);
+            // Force a re-wire on state change so the new combat state's
+            // creatures get fresh focus neighbors regardless of sig match.
+            _lastFocusNavSig = 0;
+        }
+
+        var combatRoom = NCombatRoom.Instance;
+        if (combatRoom == null)
+        {
+            _lastFocusNavSig = 0;
+            return;
+        }
+
+        // Gate the heavy focus-nav rewire on a cheap state-fold. Skipping
+        // unchanged frames eliminates per-frame LINQ + ToList allocations
+        // that were the dominant source of GC pressure in combat.
+        var sig = ComputeFocusNavSig(combatRoom);
+        if (sig == _lastFocusNavSig)
+        {
+            if (Events.EventDispatcher.Profiling) _focusNavSkipped++;
+            return;
+        }
+        _lastFocusNavSig = sig;
+
+        if (Events.EventDispatcher.Profiling)
+        {
+            _focusNavRan++;
+            // Surface the ratio occasionally so the impact is visible in the
+            // profile log without spamming every frame.
+            if ((_focusNavRan + _focusNavSkipped) % 600 == 0)
+                Log.Info($"[Profile] CombatScreen focus-nav: ran={_focusNavRan} skipped={_focusNavSkipped} (skip ratio={(double)_focusNavSkipped / (_focusNavRan + _focusNavSkipped):P1})");
         }
 
         UpdateFocusNavigation();
+    }
+
+    private uint _focusNavRan;
+    private uint _focusNavSkipped;
+
+    /// <summary>
+    /// Folds the inputs of <see cref="UpdateFocusNavigation"/> into a single
+    /// ulong: creature identity + lifecycle (dead/alive), hand size,
+    /// targeting flag, relic count, and the two UI-Enhancement toggles that
+    /// gate the wiring branches. FNV-1a-style fold — allocation-free; the
+    /// loop just walks the existing CreatureNodes list and reads
+    /// already-cached game-side fields. Any change to the focus chain that
+    /// matters (creature added/removed/died/swapped, hand played/drawn,
+    /// targeting toggled, relic obtained) flips the sig.
+    /// </summary>
+    private ulong ComputeFocusNavSig(NCombatRoom combatRoom)
+    {
+        const ulong FNV_PRIME = 1099511628211UL;
+        ulong sig = 14695981039346656037UL; // FNV-1a offset basis
+
+        // CreatureNodes is IEnumerable — fold count + identity + IsDead +
+        // ordinal as we walk. foreach on the underlying List<NCreature>
+        // doesn't allocate an enumerator on the heap (struct enumerator).
+        ulong creatureCount = 0;
+        foreach (var c in combatRoom.CreatureNodes)
+        {
+            if (c == null) continue;
+            sig = sig * FNV_PRIME ^ (ulong)c.GetInstanceId();
+            sig = sig * FNV_PRIME ^ (c.Entity.IsDead ? 1UL : 0UL);
+            sig = sig * FNV_PRIME ^ (creatureCount << 32);
+            creatureCount++;
+        }
+        sig = sig * FNV_PRIME ^ creatureCount;
+
+        var hand = combatRoom.Ui?.Hand;
+        sig = sig * FNV_PRIME ^ (ulong)(hand?.ActiveHolders?.Count ?? 0);
+
+        sig = sig * FNV_PRIME ^ (_isTargeting ? 0x100UL : 0UL);
+
+        // Relic count: cheap List<>.Count read on the game's relic inventory.
+        // Orb / potion counts cascade off hand changes in practice, so we
+        // don't pay for separate reads here.
+        var relicNodes = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
+        sig = sig * FNV_PRIME ^ (ulong)(relicNodes?.Count ?? 0);
+
+        sig = sig * FNV_PRIME ^ (Settings.UIEnhancementsSettings.Combat.Get() ? 0x200UL : 0UL);
+        sig = sig * FNV_PRIME ^ (Settings.UIEnhancementsSettings.KeepSummonsFocusable.Get() ? 0x400UL : 0UL);
+
+        // Child-screen presence: hand-card-select and similar sub-screens
+        // mutate FocusNeighbor paths on combat's controls during their own
+        // lifecycle. Combat itself never loses focus (sub-screens push as
+        // children), so we can't rely on OnFocus to know when control comes
+        // back — instead we fold the active child's identity into the sig.
+        // Push and pop transitions both flip the sig and force a rewire on
+        // the next OnUpdate tick.
+        sig = sig * FNV_PRIME ^ (ulong)(ActiveChild?.GetHashCode() ?? 0);
+
+        return sig;
     }
 
     private void SubscribeToState(CombatState state)

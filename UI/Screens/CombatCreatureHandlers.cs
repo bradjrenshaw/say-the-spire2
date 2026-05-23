@@ -33,7 +33,15 @@ internal class CombatCreatureHandlers
     public void OnPowerIncreased(PowerModel power, int change, bool silent)
     {
         Log.Info($"[EventDebug] CreatureHandler.PowerIncreased: {_creature.Name} {power.Title.GetFormattedText()} +{change} silent={silent} handler={GetHashCode()}");
-        if (!silent) EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Increased, change));
+        if (silent) return;
+        // Single-stack powers (Illusion on Eye With Teeth, Shrink, etc.) get
+        // BOTH PowerApplied AND PowerIncreased on initial application — and
+        // sometimes more PowerIncreased events later. Without this filter
+        // we'd announce the initial gain twice. The Applied path (which
+        // skips Counter-stack) covers Single-stack apply notifications; the
+        // Increased path is only meaningful for Counter-stack stacking.
+        if (power.StackType != MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter) return;
+        EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Increased, change));
     }
 
     public void OnPowerDecreased(PowerModel power, bool silent)

@@ -18,6 +18,7 @@ public class PrismHandler : ISpeechHandler
     private IntPtr _ctx = IntPtr.Zero;
     private IntPtr _backend = IntPtr.Zero;
     private string? _activeBackendName;
+    private PrismNative.BackendFeatures _backendFeatures;
     private CategorySetting? _settings;
     private ChoiceSetting? _backendSetting;
 
@@ -132,6 +133,7 @@ public class PrismHandler : ISpeechHandler
             _ctx = IntPtr.Zero;
         }
         _activeBackendName = null;
+        _backendFeatures = 0;
     }
 
     public bool Speak(string text, bool interrupt = false)
@@ -156,9 +158,10 @@ public class PrismHandler : ISpeechHandler
         {
             // prism_backend_output drives both speech and braille when supported.
             // For backends that don't support it (e.g., raw SAPI), fall through
-            // to plain speak so we still produce audio.
-            var features = (PrismNative.BackendFeatures)PrismNative.BackendGetFeatures(_backend);
-            if ((features & PrismNative.BackendFeatures.SupportsOutput) != 0)
+            // to plain speak so we still produce audio. The feature bitmask
+            // was cached at backend init — querying it per call is what was
+            // costing us an extra NVDA RPC round-trip on every Output.
+            if ((_backendFeatures & PrismNative.BackendFeatures.SupportsOutput) != 0)
             {
                 var err = PrismNative.BackendOutput(_backend, text, interrupt);
                 if (err == PrismNative.PrismError.Ok) return true;
@@ -243,7 +246,12 @@ public class PrismHandler : ISpeechHandler
         }
 
         _activeBackendName = PrismNative.BackendName(_backend);
-        Log.Info($"[AccessibilityMod] PrismHandler loaded. Backend: {_activeBackendName ?? "<unknown>"}");
+        // Cache the feature bitmask: prism_backend_get_features on some
+        // backends (notably NVDA) does real work — for NVDA it re-binds an
+        // RPC handle and round-trips testIfRunning every call. Features
+        // don't change after init, so query once here and re-use.
+        _backendFeatures = (PrismNative.BackendFeatures)PrismNative.BackendGetFeatures(_backend);
+        Log.Info($"[AccessibilityMod] PrismHandler loaded. Backend: {_activeBackendName ?? "<unknown>"} (features=0x{(ulong)_backendFeatures:X})");
         return true;
     }
 
@@ -255,6 +263,7 @@ public class PrismHandler : ISpeechHandler
             try { PrismNative.BackendStop(_backend); } catch { }
             PrismNative.BackendFree(_backend);
             _backend = IntPtr.Zero;
+            _backendFeatures = 0;
         }
         AcquireBackend();
     }

@@ -58,7 +58,7 @@ public static class SpeechManager
     public static void Speak(string text, bool interrupt = false)
     {
         if (!_initialized || _activeHandler == null) return;
-        _activeHandler.Speak(text, interrupt);
+        TimedDispatch("Speak", text, () => _activeHandler.Speak(text, interrupt));
     }
 
     public static void Speak(Message message, bool interrupt = false)
@@ -71,10 +71,7 @@ public static class SpeechManager
     public static void Output(string text, bool interrupt = false)
     {
         if (!_initialized || _activeHandler == null) return;
-        bool profile = Events.EventDispatcher.Profiling;
-        if (profile) _sw.Restart();
-        _activeHandler.Output(text, interrupt);
-        if (profile) { _sw.Stop(); MegaCrit.Sts2.Core.Logging.Log.Info($"[Profile] SpeechManager.Output: {_sw.Elapsed.TotalMilliseconds:F3}ms text=\"{text}\""); }
+        TimedDispatch("Output", text, () => _activeHandler.Output(text, interrupt));
     }
 
     public static void Output(Message message, bool interrupt = false)
@@ -85,7 +82,29 @@ public static class SpeechManager
     public static void Silence()
     {
         if (!_initialized || _activeHandler == null) return;
-        _activeHandler.Silence();
+        TimedDispatch("Silence", "", () => _activeHandler.Silence());
+    }
+
+    /// <summary>
+    /// Invokes <paramref name="action"/> against the active handler, wrapping
+    /// it in a stopwatch when the Advanced / Performance Profiling toggle is
+    /// on. The emitted line includes the handler key so logs from multiple
+    /// handlers (e.g. when comparing Prism vs Tolk) stay attributable even
+    /// when interleaved with non-speech log noise.
+    /// </summary>
+    private static void TimedDispatch(string op, string text, Action action)
+    {
+        bool profile = Events.EventDispatcher.Profiling;
+        if (!profile)
+        {
+            action();
+            return;
+        }
+        var handlerKey = _activeHandler?.Key ?? "?";
+        _sw.Restart();
+        action();
+        _sw.Stop();
+        Log.Info($"[Profile] SpeechManager.{op} [{handlerKey}]: {_sw.Elapsed.TotalMilliseconds:F3}ms text=\"{text}\"");
     }
 
     private static void OnHandlerChanged(string key)
@@ -115,7 +134,7 @@ public static class SpeechManager
                     {
                         _activeHandler = handler;
                         _initialized = true;
-                        Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
+                        LogActiveHandler(handler);
                         return;
                     }
                 }
@@ -142,7 +161,7 @@ public static class SpeechManager
                 {
                     _activeHandler = handler;
                     _initialized = true;
-                    Log.Info($"[AccessibilityMod] Active speech handler: {handler.Key}");
+                    LogActiveHandler(handler);
                 }
                 else
                 {
@@ -156,5 +175,16 @@ public static class SpeechManager
                 ActivateHandler("auto");
             }
         }
+    }
+
+    /// <summary>
+    /// Logs the handler that's now active with a [Profile] tag (always — not
+    /// gated on the profiling toggle), so anyone comparing Prism vs Tolk
+    /// timings can grep for [Profile] and immediately see where the active
+    /// handler changed in the log.
+    /// </summary>
+    private static void LogActiveHandler(ISpeechHandler handler)
+    {
+        Log.Info($"[Profile] SpeechManager active handler: {handler.Key} ({handler.Label})");
     }
 }
