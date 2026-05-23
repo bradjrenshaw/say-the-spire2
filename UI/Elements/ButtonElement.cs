@@ -18,6 +18,14 @@ public class ButtonElement : UIElement
     public Action? OnActivated { get; set; }
     public Node Node => _control;
 
+    /// <summary>
+    /// When true the button stays focusable and announces itself (so the user
+    /// knows it exists) but activating it does nothing, and a "disabled"
+    /// status is appended. Used for entries with nothing to configure — e.g.
+    /// hotkey announcements that have no options.
+    /// </summary>
+    public bool Disabled { get; set; }
+
     public ButtonElement(string label)
     {
         _label = label;
@@ -32,6 +40,8 @@ public class ButtonElement : UIElement
     {
         yield return new LabelAnnouncement(_label);
         yield return new TypeAnnouncement("button");
+        if (Disabled)
+            yield return new StatusAnnouncement(Message.Localized("ui", "LABELS.DISABLED"));
     }
 
     public override Message? GetLabel() => Message.Raw(_label);
@@ -39,6 +49,7 @@ public class ButtonElement : UIElement
 
     public void Activate()
     {
+        if (Disabled) return;
         OnActivated?.Invoke();
     }
 }

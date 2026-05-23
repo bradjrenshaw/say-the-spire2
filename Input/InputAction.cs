@@ -26,6 +26,18 @@ public class InputAction
 
     public IReadOnlyList<InputBinding> Bindings => _bindings;
 
+    /// <summary>
+    /// Human-readable summary of the action's current bindings (e.g.
+    /// "Keyboard: Ctrl+B, Controller: Y"), or a localized "(none)" when
+    /// unbound. Single source of truth for showing a binding in the UI —
+    /// reused by the keybindings settings rows and the Hotkey Announcements
+    /// category labels so they stay in sync.
+    /// </summary>
+    public string BindingsDisplay =>
+        _bindings.Count == 0
+            ? LocalizationManager.GetOrDefault("ui", "INPUT.NO_BINDING", "(none)")
+            : string.Join(", ", _bindings.Select(b => b.DisplayName));
+
     public event Action? BindingsChanged;
 
     public InputAction(string key, string label, string? gameAction = null, string localizationKey = "")

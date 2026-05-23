@@ -48,6 +48,25 @@ public abstract class Announcement
     }
 
     /// <summary>
+    /// Renders to a single spoken utterance for the hotkey context — the
+    /// <see cref="RenderBuffer"/> lines joined with <paramref name="separator"/>.
+    /// Single-value announcements (HP, gold) yield one line and so produce
+    /// that value; group announcements (powers, intents) produce the joined
+    /// list. Returns <see cref="Message.Empty"/> when there's nothing to say,
+    /// letting the caller substitute a context-specific "nothing" message.
+    /// </summary>
+    public Message RenderJoined(AnnouncementContext ctx, string separator = ", ")
+    {
+        var parts = new List<Message>();
+        foreach (var msg in RenderBuffer(ctx))
+        {
+            if (!string.IsNullOrEmpty(msg?.Resolve()))
+                parts.Add(msg);
+        }
+        return parts.Count == 0 ? Message.Empty : Message.Join(separator, parts.ToArray());
+    }
+
+    /// <summary>
     /// Punctuation appended to this announcement's rendered text before the
     /// composer space-joins it with the next announcement. Default is empty
     /// (pure space-join). Subclasses that want a comma after them override this.

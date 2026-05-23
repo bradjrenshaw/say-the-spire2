@@ -183,11 +183,22 @@ public class ModSettingsScreen : Screen
                     else
                     {
                         var button = new ButtonElement(cat.Label);
-                        button.OnActivated = () =>
+                        // A category with nothing configurable inside (e.g. a
+                        // hotkey announcement that has no options) is shown as
+                        // a disabled button: focusable and announced so the
+                        // user knows it exists, but not enterable.
+                        if (cat.Children.All(c => c.Hidden))
                         {
-                            var subScreen = new ModSettingsScreen(cat);
-                            ScreenManager.PushScreen(subScreen);
-                        };
+                            button.Disabled = true;
+                        }
+                        else
+                        {
+                            button.OnActivated = () =>
+                            {
+                                var subScreen = new ModSettingsScreen(cat);
+                                ScreenManager.PushScreen(subScreen);
+                            };
+                        }
                         _navContainer.Add(button);
                         AddControl(button.Node, button);
                     }
@@ -274,15 +285,8 @@ public class ModSettingsScreen : Screen
         }
     }
 
-    private static string GetBindingSummary(BindingSetting setting)
-    {
-        var action = setting.Action;
-        var bindings = action.Bindings;
-        if (bindings.Count == 0)
-            return $"{action.Label}: (none)";
-        var names = string.Join(", ", bindings.Select(b => b.DisplayName));
-        return $"{action.Label}: {names}";
-    }
+    private static string GetBindingSummary(BindingSetting setting) =>
+        $"{setting.Action.Label}: {setting.Action.BindingsDisplay}";
 
     /// <summary>
     /// Builds a three-button row (Configure / Move Up / Move Down) for an

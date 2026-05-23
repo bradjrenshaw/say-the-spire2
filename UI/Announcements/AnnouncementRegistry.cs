@@ -342,7 +342,7 @@ public static class AnnouncementRegistry
     /// global setting. Returns null for setting types we don't mirror (e.g.,
     /// BindingSetting, CategorySetting — not relevant to announcement overrides).
     /// </summary>
-    private static Setting? CreateOverride(Setting global)
+    internal static Setting? CreateOverride(Setting global)
     {
         return global switch
         {

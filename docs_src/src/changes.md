@@ -5,11 +5,14 @@
 * The Escape key (Pause / Back action) now closes the mod menu and mod settings menu, in addition to Cancel (Backspace / Controller B).
 * Removed an extraneous closed announcement after exiting the mod settings screen to the mod menu.
 * Fixed a bug where the position info on main menu buttons ("3 of 6") would be inaccurate if the menu options changed (for example if you cancelled a run from the main menu.)
+* Hotkey readouts (read HP, resources, gold, block, powers, intents, boss, relic counters, etc.) now flow through the same announcement system as focus strings and buffers. A new Hotkey Announcements settings category lists every announcement hotkey alongside its current key binding (so "Announce Block" shows as "Announce Block: Ctrl+B"), and lets you override an individual hotkey's options — for example making Ctrl+Y read a terse "3/3, 2" while your focus/buffer energy readout stays verbose.
 * Split off cards, relics, potions, and orbs' description text into its own announcement (Description) instead of reusing the generic Tooltip announcement.
 * Added a Description / Collapse repeated icons toggle that condenses runs of the same icon into a count — for example "Energy Energy Energy" becomes "3 Energy". On by default; configure under Announcements / Description, or per element under UI / Card / Announcements / Description (same for Relic, Potion, and Orb).
 * Hover tips are now only included within the buffer they are a part of. Previously hover tips for cards, relics, etc would spawn additional buffers. While this did technically work, the buffers would be inaccurate in some instances and the behavior was confusing.
 * The first card in a card rewards screen is now always focused (in the beta the control focus was behaving inconsistently.)
 * Fixed a bug where power gained/lost events would be duplicated if the power was stackless.
+* Fixed a bug where you could not easily refocus the rewards list after combat if you focused a potion or relic.
+* Fixed a bug where the rest site screen would refocus itself after you completed your last rest site action, reading out all of the intro text and currently focused button even though it no longer could be interacted with.
 
 ## V1.0.4
 * Added back the travel announcement (for example, "Traveling to Combat 5, 3") that fires when you begin moving to a map node, in both singleplayer and multiplayer. It can be toggled under Events / Map / Travel.

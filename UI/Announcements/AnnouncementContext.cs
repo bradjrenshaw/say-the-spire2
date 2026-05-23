@@ -78,19 +78,38 @@ public sealed class AnnouncementContext
     }
 
     /// <summary>
+    /// Hotkey identity (the action key, e.g. "announce_hp"). When set,
+    /// override lookups go through <c>hotkeys.{HotkeyKey}.{setting}/</c> —
+    /// flatter than the ui/buffer cascades because a hotkey maps to exactly
+    /// one announcement, so there's no per-announcement nesting.
+    /// </summary>
+    public string? HotkeyKey { get; }
+
+    /// <summary>
     /// Standalone context for invoking an announcement outside of focus or
-    /// buffer composition (e.g. a global hotkey like Ctrl+Y / Ctrl+H).
-    /// Setting lookups skip per-element and per-buffer cascades and resolve
-    /// straight from the global Announcements category, so toggling a global
-    /// option (e.g. ResourcesAnnouncement.verbose) immediately affects what
-    /// the hotkey announces.
+    /// buffer composition. Setting lookups skip per-element and per-buffer
+    /// cascades and resolve straight from the global Announcements category.
     /// </summary>
     public static AnnouncementContext Global() => new AnnouncementContext();
+
+    /// <summary>
+    /// Hotkey context (Ctrl+Y / Ctrl+H / etc). Per-hotkey option overrides
+    /// resolve from <c>hotkeys.{hotkeyKey}.{setting}</c>, falling back to the
+    /// global announcement setting — so a hotkey can be, say, compact even
+    /// when the focus/buffer readout of the same announcement is verbose.
+    /// </summary>
+    public static AnnouncementContext ForHotkey(string hotkeyKey) =>
+        new AnnouncementContext(hotkeyKey, isHotkey: true);
 
     private AnnouncementContext()
     {
         // All keys left null → ResolveBool/Int/String/Choice fall straight
         // through to the global Announcements setting.
+    }
+
+    private AnnouncementContext(string hotkeyKey, bool isHotkey)
+    {
+        HotkeyKey = hotkeyKey;
     }
 
     public bool ResolveBool(string announcementKey, string settingKey, bool defaultValue)
@@ -134,15 +153,24 @@ public sealed class AnnouncementContext
     }
 
     /// <summary>
-    /// Walks the active override-scope chain (per-buffer in buffer context,
-    /// or inner-element then outer-element in focus context) looking for the
-    /// first explicitly-overridden Nullable* setting. Returns true with the
-    /// setting bound to <paramref name="overrideSetting"/> on match.
+    /// Walks the active override-scope chain (per-hotkey in hotkey context,
+    /// per-buffer in buffer context, or inner-element then outer-element in
+    /// focus context) looking for the first explicitly-overridden Nullable*
+    /// setting. Returns true with the setting bound to
+    /// <paramref name="overrideSetting"/> on match.
     /// </summary>
     private bool TryResolveOverride<TSetting>(string announcementKey, string settingKey, out TSetting? overrideSetting)
         where TSetting : Setting, INullableSetting
     {
-        if (BufferKey != null)
+        if (HotkeyKey != null)
+        {
+            // Hotkey scope is flat: hotkeys.{key}.{setting} (one announcement
+            // per hotkey, so no per-announcement segment).
+            var hotkeyOv = ModSettings.GetSetting<TSetting>(
+                $"hotkeys.{HotkeyKey}.{settingKey}");
+            if (hotkeyOv?.IsOverridden == true) { overrideSetting = hotkeyOv; return true; }
+        }
+        else if (BufferKey != null)
         {
             var bufferOv = ModSettings.GetSetting<TSetting>(
                 $"buffers.{BufferKey}.announcements.{announcementKey}.{settingKey}");

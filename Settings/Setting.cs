@@ -18,12 +18,23 @@ public abstract class Setting
     public string LocalizationKey { get; }
 
     /// <summary>
-    /// Display label. Resolves the localization key if one was supplied at
-    /// construction, otherwise returns the raw label passed in.
+    /// Optional dynamic label override. When set, <see cref="Label"/> returns
+    /// its result instead of the localized/static label. Computed on each read
+    /// so it can reflect live state (e.g. a hotkey category showing its
+    /// current key binding, which can change via rebinding or language switch).
     /// </summary>
-    public string Label => !string.IsNullOrEmpty(LocalizationKey)
-        ? LocalizationManager.GetOrDefault("ui", LocalizationKey, _labelFallback)
-        : _labelFallback;
+    public System.Func<string>? LabelProvider { get; set; }
+
+    /// <summary>
+    /// Display label. Uses <see cref="LabelProvider"/> if set, otherwise
+    /// resolves the localization key if one was supplied at construction,
+    /// otherwise returns the raw label passed in.
+    /// </summary>
+    public string Label => LabelProvider != null
+        ? LabelProvider()
+        : !string.IsNullOrEmpty(LocalizationKey)
+            ? LocalizationManager.GetOrDefault("ui", LocalizationKey, _labelFallback)
+            : _labelFallback;
 
     /// <summary>
     /// Whether this setting's key contributes to its serialized dot-path.

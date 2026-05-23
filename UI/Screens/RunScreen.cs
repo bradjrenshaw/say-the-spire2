@@ -147,18 +147,17 @@ public class RunScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output(Message.Localized("ui", "RESOURCE.GOLD", new { amount = player.Gold }));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_gold", new UI.Announcements.GoldAnnouncement(player.Gold));
     }
 
     private void AnnounceHp()
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        // Route through HpAnnouncement so the global HP / Verbose setting
-        // applies here too.
-        var ctx = UI.Announcements.AnnouncementContext.Global();
-        SpeechManager.Output(new UI.Announcements.HpAnnouncement(
-            player.Creature.CurrentHp, player.Creature.MaxHp).Render(ctx));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_hp", new UI.Announcements.HpAnnouncement(
+                player.Creature.CurrentHp, player.Creature.MaxHp));
     }
 
     private void AnnounceBoss()
@@ -170,22 +169,19 @@ public class RunScreen : Screen
         var boss1 = runState.Act.BossEncounter;
         var boss2 = runState.Act.SecondBossEncounter;
 
-        Message message;
+        UI.Announcements.BossAnnouncement announcement;
         if (boss2 != null && !ShouldOnlyShowSecondBoss(runState))
         {
-            message = Message.Localized("ui", "TOPBAR.BOSS_DUAL", new
-            {
-                name1 = boss1.Title.GetFormattedText(),
-                name2 = boss2.Title.GetFormattedText(),
-            });
+            announcement = new UI.Announcements.BossAnnouncement(
+                boss1.Title.GetFormattedText(), boss2.Title.GetFormattedText());
         }
         else
         {
             var activeBoss = (boss2 != null && ShouldOnlyShowSecondBoss(runState)) ? boss2 : boss1;
-            message = Message.Localized("ui", "TOPBAR.BOSS", new { name = activeBoss.Title.GetFormattedText() });
+            announcement = new UI.Announcements.BossAnnouncement(activeBoss.Title.GetFormattedText());
         }
 
-        SpeechManager.Output(message);
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce("announce_boss", announcement);
     }
 
     /// <summary>
@@ -204,21 +200,19 @@ public class RunScreen : Screen
         var player = GetLocalPlayer();
         if (player == null) return;
 
-        var parts = new System.Collections.Generic.List<string>();
+        var counters = new System.Collections.Generic.List<(string, int)>();
         foreach (var relic in player.Relics)
         {
             if (relic.ShowCounter && relic.DisplayAmount != 0)
             {
                 var name = relic.Title.GetFormattedText();
                 if (!string.IsNullOrEmpty(name))
-                    parts.Add($"{name}, {relic.DisplayAmount}");
+                    counters.Add((name, relic.DisplayAmount));
             }
         }
 
-        if (parts.Count == 0)
-            SpeechManager.Output(Message.Localized("ui", "SPEECH.NO_RELIC_COUNTERS"));
-        else
-            SpeechManager.Output(Message.Raw(string.Join(". ", parts)));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_relic_counters", new UI.Announcements.RelicCountersAnnouncement(counters));
     }
 
     public override UI.Elements.UIElement? GetElement(Control control)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Godot;
 using HarmonyLib;
@@ -16,6 +17,11 @@ public static class InputManager
 {
     private static readonly List<InputAction> _actions = new();
     public static IReadOnlyList<InputAction> Actions => _actions;
+
+    /// <summary>Look up a registered action by its key, or null if unknown.</summary>
+    public static InputAction? FindAction(string key) =>
+        _actions.FirstOrDefault(a => a.Key == key);
+
     private static readonly HashSet<InputAction> _activeActions = new();
     private static readonly HashSet<ControllerInput> _heldControllerInputs = new();
     private static readonly Dictionary<string, List<InputBinding>> _defaultBindings = new();

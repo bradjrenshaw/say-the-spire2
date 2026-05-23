@@ -65,6 +65,11 @@ public static class ModEntry
         InitializeSpeech();
         InitializeBuffers();
         InputManager.Initialize();
+        // Runs after InputManager so each hotkey announcement category can
+        // resolve its action's binding for the label, and after
+        // AnnouncementRegistry (in InitializeSettings) so the global option
+        // settings it mirrors already exist.
+        UI.Announcements.HotkeyAnnouncementRegistry.RegisterDefaults();
         InitializeKeybindingSettings();
         ScreenManager.Initialize();
         RegisterScreens();
@@ -132,6 +137,9 @@ public static class ModEntry
         // Each subsystem registers its own defaults
         Settings.EventRegistry.RegisterDefaults();
         UI.Announcements.AnnouncementRegistry.RegisterDefaults();
+        // HotkeyAnnouncementRegistry.RegisterDefaults() is deferred to after
+        // InputManager.Initialize() — it looks up each hotkey's InputAction to
+        // show the binding in the label, and the actions don't exist yet here.
 
         // Top-level toggles. SortPriority pushes this past all the category
         // entries so it sits at the bottom of the root list rather than

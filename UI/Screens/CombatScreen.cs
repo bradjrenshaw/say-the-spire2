@@ -414,7 +414,8 @@ public class CombatScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-        SpeechManager.Output(Message.Localized("ui", "RESOURCE.BLOCK", new { amount = player.Creature.Block }));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_block", new UI.Announcements.BlockAnnouncement(player.Creature.Block));
     }
 
     private void AnnounceEnergy()
@@ -422,39 +423,16 @@ public class CombatScreen : Screen
         var player = GetLocalPlayer();
         var combatState = player?.PlayerCombatState;
         if (combatState == null) return;
-        // Route through ResourcesAnnouncement (rather than ResourceHelper
-        // directly) so toggling the global Resources / Verbose setting flows
-        // through to this hotkey too.
-        var ctx = UI.Announcements.AnnouncementContext.Global();
-        SpeechManager.Output(new UI.Announcements.ResourcesAnnouncement(combatState).Render(ctx));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_energy", new UI.Announcements.ResourcesAnnouncement(combatState));
     }
 
     private void AnnouncePowers()
     {
         var player = GetLocalPlayer();
         if (player == null) return;
-
-        var powers = player.Creature.Powers;
-        if (powers.Count == 0)
-        {
-            SpeechManager.Output(Message.Localized("ui", "SPEECH.NO_POWERS"));
-            return;
-        }
-
-        var sb = new StringBuilder();
-        foreach (var power in powers)
-        {
-            if (sb.Length > 0) sb.Append(", ");
-            var title = power.Title.GetFormattedText();
-            // Only stacking (Counter) powers have meaningful numeric amounts.
-            // Single-stack powers like Shrink use Amount=-1 as a sentinel for
-            // "active indefinitely" — never spoken as "-1".
-            if (power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter && power.DisplayAmount != 0)
-                sb.Append($"{title} {power.DisplayAmount}");
-            else
-                sb.Append(title);
-        }
-        SpeechManager.Output(Message.Raw(sb.ToString()));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_powers", new UI.Announcements.PowersAnnouncement(player.Creature.Powers));
     }
 
     private void AnnounceIntents()
@@ -462,28 +440,15 @@ public class CombatScreen : Screen
         var state = GetLiveState();
         if (state == null) return;
 
-        var sb = new StringBuilder();
+        var enemies = new List<(string, IReadOnlyList<Views.IntentView>)>();
         foreach (var enemy in state.Enemies)
         {
             if (!enemy.IsAlive || !enemy.IsMonster) continue;
-
-            if (sb.Length > 0) sb.Append(". ");
-            sb.Append(enemy.Name);
-            sb.Append(": ");
-
-            var intentParts = CreatureView.FromEntity(enemy).MonsterIntents
-                .Select(i => !string.IsNullOrEmpty(i.Label) ? $"{i.Name} {i.Label}" : i.Name)
-                .ToList();
-            sb.Append(intentParts.Count > 0 ? string.Join(", ", intentParts) : LocalizationManager.GetOrDefault("ui", "LABELS.UNKNOWN", "Unknown"));
+            enemies.Add((enemy.Name, CreatureView.FromEntity(enemy).MonsterIntents));
         }
 
-        if (sb.Length == 0)
-        {
-            SpeechManager.Output(Message.Localized("ui", "SPEECH.NO_ENEMIES"));
-            return;
-        }
-
-        SpeechManager.Output(Message.Raw(sb.ToString()));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_intents", new UI.Announcements.AllIntentsAnnouncement(enemies));
     }
 
     private void AnnounceSummarizedIntents()
@@ -506,9 +471,8 @@ public class CombatScreen : Screen
             }
         }
 
-        SpeechManager.Output(totalDamage > 0
-            ? Message.Localized("ui", "SPEECH.INCOMING_DAMAGE", new { amount = totalDamage })
-            : Message.Localized("ui", "SPEECH.NO_INCOMING_DAMAGE"));
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_summarized_intents", new UI.Announcements.IncomingDamageAnnouncement(totalDamage));
     }
 
     /// <summary>
