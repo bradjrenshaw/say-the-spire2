@@ -6,7 +6,6 @@
 * The Escape key (Pause / Back action) now closes the mod menu and mod settings menu, in addition to Cancel (Backspace / Controller B).
 * Removed an extraneous closed announcement after exiting the mod settings screen to the mod menu.
 * Fixed a bug where the position info on main menu buttons ("3 of 6") would be inaccurate if the menu options changed (for example if you cancelled a run from the main menu.)
-* Hotkey readouts (read HP, resources, gold, block, powers, intents, boss, relic counters, etc.) now flow through the same announcement system as focus strings and buffers. A new Hotkey Announcements settings category lists every announcement hotkey alongside its current key binding (so "Announce Block" shows as "Announce Block: Ctrl+B"), and lets you override an individual hotkey's options — for example making Ctrl+Y read a terse "3/3, 2" while your focus/buffer energy readout stays verbose.
 * Split off cards, relics, potions, and orbs' description text into its own announcement (Description) instead of reusing the generic Tooltip announcement.
 * Added a Description / Collapse repeated icons toggle that condenses runs of the same icon into a count — for example "Energy Energy Energy" becomes "3 Energy". On by default; configure under Announcements / Description, or per element under UI / Card / Announcements / Description (same for Relic, Potion, and Orb).
 * Hover tips are now only included within the buffer they are a part of. Previously hover tips for cards, relics, etc would spawn additional buffers. While this did technically work, the buffers would be inaccurate in some instances and the behavior was confusing.
@@ -14,7 +13,7 @@
 * Fixed a bug where power gained/lost events would be duplicated if the power was stackless.
 * Fixed a bug where you could not easily refocus the rewards list after combat if you focused a potion or relic.
 * Fixed a bug where the rest site screen would refocus itself after you completed your last rest site action, reading out all of the intro text and currently focused button even though it no longer could be interacted with.
-* Fixed a bug where channeling an orb mid-turn (the Defect filling a slot, or a card granting a non-Defect character an orb) would leave the orb unreadable — focusing it gave no position ("X of Y") and up/down navigation to the relics and creature rows didn't work until the next turn. The game swaps in a brand-new node when an orb is channeled, which our combat focus wiring wasn't detecting.
+* Fixed a rare edge-case where channeling an orb on a character other than the Defect would cause focus issues when trying to navigate up from the single orb.
 * Fixed a bug where the dropdown controls in the game settings screen (such as Language, Resolution, and Display) did not announce their current value when focused.
 
 ## V1.0.4
