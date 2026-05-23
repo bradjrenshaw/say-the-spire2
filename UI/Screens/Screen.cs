@@ -73,6 +73,14 @@ public abstract class Screen
     public virtual void OnUnfocus() { }
     public virtual void OnUpdate() { }
 
+    /// <summary>
+    /// Lets a screen veto the focus announcement for a control the game just
+    /// focused. Default false (announce normally). Used where the game grabs
+    /// focus on a control the user shouldn't be told about — e.g. a rest site
+    /// auto-focusing a now-disabled option button after the last action.
+    /// </summary>
+    public virtual bool ShouldSuppressFocusAnnouncement(Godot.Control control) => false;
+
     // Help messages — screens can provide contextual help
     public virtual List<HelpMessage> GetHelpMessages() => new();
 

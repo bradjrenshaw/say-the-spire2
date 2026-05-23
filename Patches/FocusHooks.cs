@@ -187,6 +187,11 @@ public static class FocusHooks
 
     public static void RefreshFocusPostfix(NClickableControl __instance, bool __state)
     {
+        // Let the active screen veto the announcement (e.g. a rest site that
+        // has no actions left auto-focusing a disabled option button).
+        if (ScreenManager.CurrentScreen?.ShouldSuppressFocusAnnouncement(__instance) == true)
+            return;
+
         bool nowFocused = (bool)IsFocusedProp.GetValue(__instance)!;
         if (nowFocused && !__state)
         {

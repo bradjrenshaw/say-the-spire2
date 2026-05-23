@@ -14,6 +14,7 @@ public class RestSiteGameScreen : GameScreen
 
     private readonly NRestSiteRoom _room;
     private string? _stateToken;
+    private bool _noActionsRemain;
 
     public override Message? ScreenName => Message.Localized("ui", "SCREENS.REST_SITE");
 
@@ -35,6 +36,9 @@ public class RestSiteGameScreen : GameScreen
         if (Current == this) Current = null;
     }
 
+    public override bool ShouldSuppressFocusAnnouncement(Control control) =>
+        _noActionsRemain && control is NRestSiteButton;
+
     public override void OnUpdate()
     {
         var token = BuildStateToken();
@@ -51,7 +55,13 @@ public class RestSiteGameScreen : GameScreen
         var container = _room.GetNodeOrNull<Godot.Control>("%ChoicesContainer");
         if (container == null) return null;
         var buttons = container.GetChildren().OfType<NRestSiteButton>().Where(b => b.Visible);
-        return string.Join("|", buttons.Select(b => b.Name));
+        // Fold each button's clickable state into the token. Selecting an
+        // option calls NRestSiteRoom.DisableOptions() (button.Disable()),
+        // flipping IsEnabled synchronously; Miniature Tent recreates the
+        // buttons enabled afterward. Tracking IsEnabled (not the static
+        // RestSiteOption.IsEnabled, which never changes) is what lets the
+        // disable/re-enable transition trigger a rebuild.
+        return string.Join("|", buttons.Select(b => $"{b.Name}:{b.IsEnabled}"));
     }
 
     protected override void BuildRegistry()
@@ -60,7 +70,32 @@ public class RestSiteGameScreen : GameScreen
         if (container == null) return;
 
         var buttons = container.GetChildren().OfType<NRestSiteButton>().Where(b => b.Visible).ToList();
-        if (buttons.Count == 0) return;
+        if (buttons.Count == 0)
+        {
+            _noActionsRemain = true;
+            return;
+        }
+
+        // When no rest action is still available (the buttons remain visible
+        // but disabled after the final action), leave the screen with no
+        // labeled root. Otherwise the game refocusing the rest site — e.g.
+        // after the upgrade card-grid closes — re-announces the rest prompt
+        // even though there's nothing left to do. Miniature Tent (and other
+        // extra-action sources) re-enable the buttons via UpdateRestSiteOptions
+        // after the action, so the screen still builds and announces then.
+        // Use the button's clickable state, NOT RestSiteOption.IsEnabled —
+        // the latter is static eligibility and never flips post-action.
+        if (!buttons.Any(b => b.IsEnabled))
+        {
+            RootElement = null;
+            // Also veto focus announcements: the game auto-focuses a now-
+            // disabled option button after the final action, which would
+            // otherwise be read out via the generic focus path even though
+            // RootElement is gone.
+            _noActionsRemain = true;
+            return;
+        }
+        _noActionsRemain = false;
 
         var headerText = new LocString("rest_site_ui", "PROMPT").GetFormattedText();
 
