@@ -7,8 +7,10 @@ Press **Ctrl+M** (keyboard), **R2+Start** (Xbox), or **RT+Start** (PS5) to open 
 - **Advanced** — Verbose Logging and Performance Profiling toggles for debugging the mod itself, plus the **UI Enhancements** sub-category (toggles for individual UI improvements the mod adds — auto-focus, bundle preview, keep summons focusable, and so on, one entry per affected screen).
 - **Map** — map navigation behavior (auto-advance to choice nodes, read intermediate nodes when going backward, announce current location when the map opens), with a **Points of Interest** sub-category for which POI types are exposed when navigating by POI (Elite, Shop, Treasure, Rest Site, Boss, Ancient, Quest-marked, etc.).
 - **Speech** — which speech backend the mod uses, plus per-backend tuning (rate, volume, voice).
-- **Announcements** — global toggles for each announcement type (Tooltip, Position, etc.) and any settings the announcement type itself exposes (e.g. Verbose mode, Include Prefix). These are the defaults that per-element overrides inherit from.
+- **Announcements** — global toggles for each announcement type (Tooltip, Position, etc.) and any settings the announcement type itself exposes (e.g. Verbose mode, Include Prefix). These are the defaults that per-element, per-buffer, and per-hotkey overrides all inherit from.
 - **UI** — a tree with one entry per element type the mod knows about (Creature, Card, Relic, Potion, Map Node, etc.). Each entry has its own Announcements list where you can override the globals just for that element type and reorder how its announcements are spoken.
+- **Buffers** — one entry per browsable list the mod maintains (Card, Creature, Relic, Potion, Player, Character, Lobby). Each has its own Announcements list — the same kind of override-and-reorder screen as the UI element types, but controlling what's spoken when you browse that buffer rather than when you focus an element. See [Buffer Announcements](#buffer-announcements).
+- **Hotkey Announcements** — one entry per "announce" hotkey (Announce HP, Announce Block, Announce Gold, and so on), each showing its current key binding in its label. Lets you override that hotkey's announcement options independently of your focus and buffer settings. See [Hotkey Announcements](#hotkey-announcements).
 - **Events** — one entry per event the mod can announce (cards played, HP changes, gold gained, turn changes, etc.), visually grouped into Combat, Cards, Resources, Multiplayer, and Other. See [Event Settings](#event-settings).
 - **Keybindings** — every action the mod exposes, grouped into categories (Combat, Map, Markers, Buffers, Navigation, Run Information, etc.). See [Keybindings](#keybindings).
 
@@ -29,6 +31,22 @@ After that comes one row per announcement. Each row is a horizontal group of thr
 When you arrow up or down onto a row, the mod announces the row name (e.g. "Label horizontal bar"), the focused button within the row, and the row's position in the list (e.g. "1 of 9"). Use Left and Right to move between the three buttons within the row.
 
 When you move a row, the mod tells you where it landed — "moved between Block and Energy", "moved before Type", "moved after Cards in Hand", etc. The new order is saved immediately and persists across game launches. Adding new announcement types in a future mod update will slot them into your saved order at their canonical position rather than dumping them at the bottom.
+
+## Buffer Announcements
+
+The browsable lists you page through with the buffer controls — cards, creatures, players, relics, potions, characters, and the multiplayer lobby — are configured the same way as UI elements, but under the **Buffers** category instead of **UI**.
+
+Each buffer has its own **Announcements** list that behaves exactly like the per-element screen described above: one row per announcement, each a horizontal group of **Configure**, **Move Up**, and **Move Down**, with a **Reset to defaults** button at the top.
+
+The difference is *when* these settings apply. A buffer's Announcements control what's spoken as you browse that buffer, separately from what's spoken when you focus the same kind of element directly. So you can, for instance, keep a card's focus readout terse while having the card buffer include its full description, or turn an individual announcement off so it's skipped entirely while browsing — all without touching the focus string. As with per-element overrides, each setting inherits from the global announcement default until you change it.
+
+## Hotkey Announcements
+
+The **Hotkey Announcements** category lists every "announce" hotkey — the keys that read out a single piece of information on demand (Announce HP, Announce Resources, Announce Gold, Announce Block, Announce Powers, Announce Intents, Announce Summarized Intents, Announce Boss, Announce Relic Counters).
+
+Each entry's label shows the action together with its current key binding — for example "Announce Block: Ctrl+B" — and updates automatically when you rebind the key or switch language. The entries are listed alphabetically by label.
+
+Opening an entry lets you override that hotkey's announcement options — most commonly its **Verbose** toggle — independently of the same announcement's focus and buffer settings. That means you can make Announce Block read a terse "5" on its hotkey while your focus string still says "5 block". Hotkeys whose announcement has no options still appear in the list so you can see their binding, but have nothing to configure inside. These overrides inherit from the global announcement defaults like every other override screen.
 
 ## Event Settings
 
