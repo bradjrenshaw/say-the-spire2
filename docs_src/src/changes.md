@@ -1,3 +1,8 @@
+## V1.1.1
+* Reverted some behind the scenes focus management code in combat that was causing various focus issues, particularly in multiplayer.
+* Fixed a bug introduced in the previous patch where seemingly random controls would be read out periodically when navigating other screens.
+* Introduced better logging to hopefully determine the cause of lag for some users. If you are experiencing lag, please turn on all of the logging options under the advanced settings category of mod settings and send me your log files.
+
 ## V1.1.0
 * Re-added Tolk as a selectable speech handler, alongside Prism. Some users have reported lag after upgrading to 1.0 which was when Prism was introduced and the game does feel more responsive when I use the Tolk handler. If you are experiencing lag, try switching to Tolk and let me know if it improves (the default speech method is still Prism for now.)
 * Fixed an issue preventing the bestiary screen from working in the most recent beta.
