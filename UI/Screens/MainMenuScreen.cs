@@ -55,8 +55,19 @@ public class MainMenuScreen : GameScreen
         var token = BuildStateToken();
         if (token == _stateToken) return;
 
+        // Update the token up front so a rebuild that can't run (the main menu
+        // is gone — e.g. we've entered a run and this screen is now orphaned on
+        // the stack until it's replaced) doesn't re-fire every frame. The old
+        // early-return inside BuildRegistry left _stateToken stale, so once the
+        // menu was torn down this spun ~60x/sec logging "NMainMenu not found".
+        _stateToken = token;
+
         ClearRegistry();
-        BuildRegistry();
+
+        // token is null only when the menu node is gone; skip the rebuild
+        // (and its error log) entirely in that case.
+        if (token != null)
+            BuildRegistry();
     }
 
     /// <summary>

@@ -287,20 +287,12 @@ public static class ScreenManager
 
         _lastScreenContext = currentContext;
 
-        // The context changed, so any screen we previously pushed via a factory
-        // is no longer relevant — remove it. This only touches our own
-        // factory-pushed screen (_lastFactoryScreen); manually managed screens
-        // (e.g. settings via ScreenHooks) aren't tracked here and are left
-        // alone. Doing this unconditionally — not just when a new factory
-        // matches — is what stops MainMenuScreen from lingering on the stack
-        // for the whole run: starting a run destroys the main menu and moves
-        // the context to a run/combat screen that has no factory, which
-        // previously left the menu screen orphaned (its OnUpdate then spun
-        // every frame logging "NMainMenu not found").
-        RemoveActiveGameScreen();
-
         if (currentContext == null)
+        {
+            // Context cleared — remove the factory-pushed screen
+            RemoveActiveGameScreen();
             return;
+        }
 
         // Find a factory for the new context
         Func<GameScreen>? matchedFactory = null;
@@ -316,12 +308,17 @@ public static class ScreenManager
 
         if (matchedFactory != null)
         {
+            // Remove the previous factory-pushed screen
+            RemoveActiveGameScreen();
+
             var screen = matchedFactory();
             _lastFactoryScreen = screen;
             PushScreen(screen);
             if (screen.ScreenName is { IsEmpty: false } screenName)
                 Speech.SpeechManager.Output(screenName);
         }
+        // If no factory found, leave the current screen stack alone —
+        // the screen may be manually managed (e.g., settings via ScreenHooks).
     }
 
     private static void RemoveActiveGameScreen()
