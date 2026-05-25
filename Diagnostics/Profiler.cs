@@ -10,19 +10,20 @@ namespace SayTheSpire2.Diagnostics;
 /// Frame profiler aimed at the failure mode plain per-section timing misses:
 /// intermittent stutter. Per-call averages stay flat even when the game
 /// hitches, because a single 30 ms GC pause is invisible once divided across
-/// hundreds of fast frames. Instead this tracks, per frame, the inter-frame
-/// period (so dropped frames surface), the bytes allocated, and GC collection
-/// counts — and attributes time *and* allocations to our timed sections. It
-/// emits a rolling window summary plus a one-line breakdown whenever a frame
-/// exceeds the spike threshold.
+/// hundreds of fast frames.
 ///
-/// Why these signals: if frame periods spike but our section times stay low,
-/// the cost is game-side or GC, not our per-frame work. If allocations are
-/// high and gen0/gen1 counts climb during spikes, it's GC pressure. The
-/// per-section allocation column then says which of our sections is the
-/// source. Everything is gated on the Advanced / Performance Profiling toggle
-/// (<see cref="EventDispatcher.Profiling"/>) and is allocation-free on the hot
-/// path (struct scopes, constant string keys, counter reads only).
+/// It measures three things across the <i>full</i> frame cycle (begin-to-begin,
+/// so it captures the game's work and GC, not just ours): the inter-frame
+/// period (dropped frames surface as spikes), process-wide bytes allocated, and
+/// GC collection counts. Each spike is tagged with the collections that fired
+/// during it, and the window summary reports how many dropped frames coincided
+/// with a GC. That discriminates the cause directly: if spikes carry gen0/1/2
+/// ticks, it's GC pauses; if they don't, it's game-side per-frame work. Our own
+/// per-section time and allocation (always tiny) are tracked separately so we
+/// can confirm the mod isn't the source.
+///
+/// Gated on the Advanced / Performance Profiling toggle
+/// (<see cref="EventDispatcher.Profiling"/>); allocation-free on the hot path.
 /// </summary>
 public static class Profiler
 {
@@ -36,23 +37,27 @@ public static class Profiler
 
     private static readonly double TicksToMs = 1000.0 / Stopwatch.Frequency;
 
-    // Per-frame scratch (single-threaded: all of this runs on the main thread).
-    private static long _lastFrameTs;
-    private static long _frameStartTs;
-    private static long _frameStartAlloc;
-    private static double _periodMs;
+    // Cycle anchors (sampled once per BeginFrame, describe the cycle that just
+    // completed so period / alloc / GC all line up).
+    private static bool _wasEnabled;
+    private static long _lastBeginTs;
+    private static long _lastTotalAlloc;
+    private static readonly int[] _lastGc = new int[3];
+
+    // Our-ProcessPostfix-only section scratch (mod cost, not game cost).
+    private static long _sectionStartAlloc;
     private static readonly Dictionary<string, long> _frameSectionTicks = new();
     private static readonly Dictionary<string, long> _frameSectionAlloc = new();
 
     // Window aggregates.
-    private static bool _wasEnabled;
     private static int _windowFrames;
     private static double _windowPeriodSumMs;
     private static double _windowPeriodMaxMs;
     private static int _windowDropped;
+    private static int _windowDroppedWithGc;
     private static long _windowAllocTotal;
-    private static long _windowAllocMaxFrame;
-    private static readonly int[] _gcStart = new int[3];
+    private static long _windowAllocMaxCycle;
+    private static readonly int[] _gcWindowStart = new int[3];
     private static readonly List<double> _windowPeriods = new();
     private static readonly Dictionary<string, SectionAgg> _windowSections = new();
 
@@ -114,21 +119,52 @@ public static class Profiler
         }
 
         long now = Stopwatch.GetTimestamp();
+        long allocNow = GC.GetTotalAllocatedBytes(false);
+        int gc0 = GC.CollectionCount(0), gc1 = GC.CollectionCount(1), gc2 = GC.CollectionCount(2);
 
         if (!_wasEnabled)
         {
-            // Just turned on (or first frame) — reset state so a stale
-            // timestamp doesn't manufacture a bogus opening spike.
+            // Just turned on (or first frame) — seed anchors so a stale sample
+            // doesn't manufacture a bogus opening spike.
             _wasEnabled = true;
             ResetWindow();
-            _lastFrameTs = now;
+            _lastBeginTs = now;
+            _lastTotalAlloc = allocNow;
+            _lastGc[0] = gc0; _lastGc[1] = gc1; _lastGc[2] = gc2;
             Log.Info($"[Profile] Frame profiler started (spike>{SpikeMs:F0}ms, window={WindowFrames} frames).");
         }
+        else
+        {
+            // Everything below describes the cycle that just completed.
+            double periodMs = (now - _lastBeginTs) * TicksToMs;
+            long allocCycle = allocNow - _lastTotalAlloc;
+            int d0 = gc0 - _lastGc[0], d1 = gc1 - _lastGc[1], d2 = gc2 - _lastGc[2];
+            bool gcHit = (d0 | d1 | d2) != 0;
 
-        _periodMs = (now - _lastFrameTs) * TicksToMs;
-        _lastFrameTs = now;
-        _frameStartTs = now;
-        _frameStartAlloc = GC.GetTotalAllocatedBytes(false);
+            _windowFrames++;
+            _windowPeriodSumMs += periodMs;
+            if (periodMs > _windowPeriodMaxMs) _windowPeriodMaxMs = periodMs;
+            _windowPeriods.Add(periodMs);
+            _windowAllocTotal += allocCycle;
+            if (allocCycle > _windowAllocMaxCycle) _windowAllocMaxCycle = allocCycle;
+
+            if (periodMs > SpikeMs)
+            {
+                _windowDropped++;
+                if (gcHit) _windowDroppedWithGc++;
+                Log.Info($"[Profile] SPIKE {periodMs:F1}ms (alloc {Mb(allocCycle)}, GC gen0+{d0}/gen1+{d1}/gen2+{d2})");
+            }
+
+            if (_windowFrames >= WindowFrames)
+                FlushWindow();
+        }
+
+        _lastBeginTs = now;
+        _lastTotalAlloc = allocNow;
+        _lastGc[0] = gc0; _lastGc[1] = gc1; _lastGc[2] = gc2;
+
+        // Reset our section scratch for the upcoming ProcessPostfix.
+        _sectionStartAlloc = allocNow;
         _frameSectionTicks.Clear();
         _frameSectionAlloc.Clear();
     }
@@ -137,17 +173,8 @@ public static class Profiler
     {
         if (!Enabled) return;
 
-        long allocFrame = GC.GetTotalAllocatedBytes(false) - _frameStartAlloc;
-        double ourWorkMs = (Stopwatch.GetTimestamp() - _frameStartTs) * TicksToMs;
-
-        _windowFrames++;
-        _windowPeriodSumMs += _periodMs;
-        if (_periodMs > _windowPeriodMaxMs) _windowPeriodMaxMs = _periodMs;
-        if (_periodMs > SpikeMs) _windowDropped++;
-        _windowPeriods.Add(_periodMs);
-        _windowAllocTotal += allocFrame;
-        if (allocFrame > _windowAllocMaxFrame) _windowAllocMaxFrame = allocFrame;
-
+        // Roll our (mod-only) section costs into the window. Period / alloc /
+        // GC for the cycle are handled in BeginFrame.
         foreach (var kv in _frameSectionTicks)
         {
             double ms = kv.Value * TicksToMs;
@@ -159,20 +186,6 @@ public static class Profiler
             agg.Count++;
             _windowSections[kv.Key] = agg;
         }
-
-        if (_periodMs > SpikeMs)
-            LogSpike(allocFrame, ourWorkMs);
-
-        if (_windowFrames >= WindowFrames)
-            FlushWindow();
-    }
-
-    private static void LogSpike(long allocFrame, double ourWorkMs)
-    {
-        var sb = new System.Text.StringBuilder();
-        foreach (var kv in _frameSectionTicks)
-            sb.Append(' ').Append(kv.Key).Append('=').Append((kv.Value * TicksToMs).ToString("F1")).Append("ms");
-        Log.Info($"[Profile] SPIKE {_periodMs:F1}ms frame (our work {ourWorkMs:F1}ms, alloc {Mb(allocFrame)}):{sb}");
     }
 
     private static void FlushWindow()
@@ -183,14 +196,14 @@ public static class Profiler
         double rateMbs = wallMs > 0 ? _windowAllocTotal / 1048576.0 / (wallMs / 1000.0) : 0;
 
         Log.Info($"[Profile] === window: {_windowFrames} frames over {wallMs / 1000.0:F1}s ===");
-        Log.Info($"[Profile] frame ms: avg={avgMs:F1} max={_windowPeriodMaxMs:F1} p99={p99:F1} dropped(>{SpikeMs:F0}ms)={_windowDropped}");
-        Log.Info($"[Profile] alloc: total={Mb(_windowAllocTotal)} avg={Kb(_windowAllocTotal / Math.Max(1, _windowFrames))}/frame max={Mb(_windowAllocMaxFrame)}/frame rate={rateMbs:F1}MB/s");
-        Log.Info($"[Profile] GC collections: gen0={GC.CollectionCount(0) - _gcStart[0]} gen1={GC.CollectionCount(1) - _gcStart[1]} gen2={GC.CollectionCount(2) - _gcStart[2]}");
+        Log.Info($"[Profile] frame ms: avg={avgMs:F1} max={_windowPeriodMaxMs:F1} p99={p99:F1} dropped(>{SpikeMs:F0}ms)={_windowDropped} (GC-coincident={_windowDroppedWithGc})");
+        Log.Info($"[Profile] alloc (process): total={Mb(_windowAllocTotal)} avg={Kb(_windowAllocTotal / Math.Max(1, _windowFrames))}/frame max={Mb(_windowAllocMaxCycle)}/frame rate={rateMbs:F1}MB/s");
+        Log.Info($"[Profile] GC collections: gen0={GC.CollectionCount(0) - _gcWindowStart[0]} gen1={GC.CollectionCount(1) - _gcWindowStart[1]} gen2={GC.CollectionCount(2) - _gcWindowStart[2]}");
 
-        // Sections ordered by total time descending.
+        // Our sections, ordered by total time descending (mod cost only).
         var ordered = new List<KeyValuePair<string, SectionAgg>>(_windowSections);
         ordered.Sort((a, b) => b.Value.TotalMs.CompareTo(a.Value.TotalMs));
-        Log.Info("[Profile] sections (avg ms / max ms / avg alloc):");
+        Log.Info("[Profile] mod sections (avg ms / max ms / avg alloc):");
         foreach (var kv in ordered)
         {
             var s = kv.Value;
@@ -207,11 +220,12 @@ public static class Profiler
         _windowPeriodSumMs = 0;
         _windowPeriodMaxMs = 0;
         _windowDropped = 0;
+        _windowDroppedWithGc = 0;
         _windowAllocTotal = 0;
-        _windowAllocMaxFrame = 0;
+        _windowAllocMaxCycle = 0;
         _windowPeriods.Clear();
         _windowSections.Clear();
-        for (int g = 0; g < 3; g++) _gcStart[g] = GC.CollectionCount(g);
+        for (int g = 0; g < 3; g++) _gcWindowStart[g] = GC.CollectionCount(g);
     }
 
     private static double Percentile(List<double> values, double p)
