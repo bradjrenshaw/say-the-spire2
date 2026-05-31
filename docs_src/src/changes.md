@@ -1,3 +1,6 @@
+## V1.1.3
+* Fixed an issue where the powers readout was accidentally changed to include the tooltip for each power. This has been reverted to its previous behavior where it lists the powers you have and their values by default. If you do prefer having the tooltips read out, you can enable the verbose setting for Announce Powers under Hotkey Announcements in the mod settings.
+
 ## V1.1.2
 * Fixed a bug where various mouse-only buttons were unintentionally focusable. This lead to odd behavior on various screens, such as being able to focus the ping button in singleplayer when it doesn't actually exist.
 * Added a mod workaround for the game bug where pausing and unpausing the game while confirming playing certain cards with no targets would softlock your game. Pressing pause/back now cancels card confirmation instead of opening the pause menu.
