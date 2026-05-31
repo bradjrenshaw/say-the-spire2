@@ -5,10 +5,16 @@ using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.Combat;
+using MegaCrit.Sts2.Core.Nodes.Events;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
+using MegaCrit.Sts2.Core.Nodes.Screens.Bestiary;
+using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Nodes.Screens.Map;
+using MegaCrit.Sts2.Core.Nodes.Screens.RelicCollection;
+using MegaCrit.Sts2.Core.Nodes.Screens.RunHistoryScreen;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
+using MegaCrit.Sts2.Core.Nodes.Screens.Timeline;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.Nodes.Vfx.Utilities;
 using SayTheSpire2.Events;
@@ -151,31 +157,43 @@ public static class FocusHooks
         }
     }
 
-    // NMapPoint exception: when the game disables a map point, it's signaling
-    // "not part of the reachable graph" — not "temporarily unavailable" the way
-    // disabled buttons usually are. The mod navigates the map through its own
-    // POI/branch buffer cursor, so leaving unreachable points at FocusMode.None
-    // keeps Godot's left/right traversal from landing on them. Other screens
-    // with custom non-Godot navigation should add a similar exclusion if they
-    // run into the same issue.
+    // Allowlist of NClickableControl subclasses whose "disabled" state carries
+    // information the player needs to hear — locked bestiary entries, locked
+    // characters, uncollected relics, historical run data, locked timeline
+    // epochs, event options the player can't afford. For these we force
+    // FocusMode.All so a screen reader can still announce them.
+    //
+    // For every other NClickableControl we respect the game's FocusMode.None,
+    // which keeps off-context or transiently disabled controls (e.g. the
+    // multiplayer-only NPingButton parked off-screen in single player, or
+    // unreachable NMapPoints) out of the focus chain. This used to be a
+    // blanket "force focusable on disable" with a denylist of exceptions, but
+    // each new game beta added another off-context control that leaked into
+    // the focus chain — an explicit allowlist is the correct shape.
+    //
+    // If a previously-readable disabled control becomes unreachable after
+    // this change, add its type here.
+    private static bool ShouldKeepFocusableWhenDisabled(NClickableControl c) =>
+        c is NBestiaryEntry
+            or NCharacterSelectButton
+            or NRelicCollectionEntry
+            or NRunHistoryPlayerIcon
+            or NMapPointHistoryEntry
+            or NDeckHistoryEntry
+            or NEpochSlot
+            or NEventOptionButton;
 
     public static void SetEnabledPostfix(NClickableControl __instance, bool enabled)
     {
-        if (__instance is NMapPoint)
-            return;
-
-        // Keep disabled controls focusable so screen readers can still read them
+        if (!ShouldKeepFocusableWhenDisabled(__instance)) return;
         if (!enabled && __instance.FocusMode == Control.FocusModeEnum.None)
             __instance.FocusMode = Control.FocusModeEnum.All;
     }
 
     public static void DisablePostfix(NClickableControl __instance)
     {
-        if (__instance is NMapPoint)
-            return;
-
-        // Same intent as SetEnabledPostfix — Disable bypasses SetEnabled in
-        // some screens (e.g. NBestiaryEntry).
+        // Disable bypasses SetEnabled in some screens (e.g. NBestiaryEntry).
+        if (!ShouldKeepFocusableWhenDisabled(__instance)) return;
         if (__instance.FocusMode == Control.FocusModeEnum.None)
             __instance.FocusMode = Control.FocusModeEnum.All;
     }
