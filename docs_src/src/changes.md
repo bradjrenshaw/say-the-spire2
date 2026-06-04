@@ -1,5 +1,6 @@
 ## V1.1.4
 * Fixed an issue that caused the daily run and custom run options to no longer be focusable.
+* Fixed an issue where controller inputs were being passed to the game too many times in some instances, causing certain UI elements to be selected when they shouldn't be (for example, confirming cards would start playing the next card.)
 
 ## V1.1.3
 * Fixed an issue where the powers readout was accidentally changed to include the tooltip for each power. This has been reverted to its previous behavior where it lists the powers you have and their values by default. If you do prefer having the tooltips read out, you can enable the verbose setting for Announce Powers under Hotkey Announcements in the mod settings.
