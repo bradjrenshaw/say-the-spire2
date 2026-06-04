@@ -354,8 +354,16 @@ public static class ScreenManager
 
         if (screen.HasClaimed(action.Key))
         {
-            handler(screen, action);
-            return (true, screen.ShouldPropagate(action.Key));
+            // Handler return is "did I consume this?" — true suppresses
+            // propagation even when the claim defaults to propagate. Lets
+            // a screen conditionally consume (e.g. CombatScreen claiming
+            // ui_select with propagate:true so Enter-on-hand-card still
+            // reaches the game, but TryConfirmActiveCardPlay returning
+            // true while a card-play is active so the same Enter doesn't
+            // fall through and trigger the next card).
+            bool handlerConsumed = handler(screen, action);
+            bool propagate = !handlerConsumed && screen.ShouldPropagate(action.Key);
+            return (true, propagate);
         }
         return (false, false);
     }

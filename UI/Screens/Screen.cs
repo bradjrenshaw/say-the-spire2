@@ -90,7 +90,10 @@ public abstract class Screen
     /// <summary>
     /// Claim an action for this screen. When propagate is false (default),
     /// the action stops here and lower screens won't see it.
-    /// When propagate is true, lower screens also get a chance to handle it.
+    /// When propagate is true, the action propagates to lower screens / the
+    /// game *only if the handler returns false* — a handler returning true
+    /// is treated as "I consumed it, suppress further dispatch" regardless
+    /// of the claim's propagate flag.
     /// When focusedOnly is true, the claim only applies when this screen is
     /// the innermost focused screen (no active child handling input).
     /// </summary>
