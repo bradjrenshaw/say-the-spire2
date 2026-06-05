@@ -111,6 +111,7 @@
   "DAILY_RUN_LEADERBOARD.FLOOR": "Piso {floor}",
   "DAILY_RUN_LEADERBOARD.BADGES": "Insignias {badges}",
   "DAILY_RUN_LEADERBOARD.TIME": "Tiempo {time}",
+  "DAILY_RUN_LEADERBOARD.YOU": " (tú)",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_DAY": "Día anterior",
   "DAILY_RUN_LEADERBOARD.NEXT_DAY": "Día siguiente",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_PAGE": "Página anterior",

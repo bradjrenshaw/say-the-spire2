@@ -116,7 +116,7 @@ public class CreatureView
             if (owner == null) return null;
             try
             {
-                if (RunManager.Instance.IsSinglePlayerOrFakeMultiplayer) return null;
+                if (RunManager.Instance.IsSingleplayerOrFakeMultiplayer) return null;
             }
             catch (System.Exception e)
             {

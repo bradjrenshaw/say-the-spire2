@@ -111,6 +111,7 @@
   "DAILY_RUN_LEADERBOARD.FLOOR": "Этаж {floor}",
   "DAILY_RUN_LEADERBOARD.BADGES": "Значки {badges}",
   "DAILY_RUN_LEADERBOARD.TIME": "Время {time}",
+  "DAILY_RUN_LEADERBOARD.YOU": " (вы)",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_DAY": "Предыдущий день",
   "DAILY_RUN_LEADERBOARD.NEXT_DAY": "Следующий день",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_PAGE": "Предыдущая страница",

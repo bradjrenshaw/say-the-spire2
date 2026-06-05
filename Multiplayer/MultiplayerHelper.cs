@@ -69,7 +69,7 @@ public static class MultiplayerHelper
     {
         try
         {
-            if (creature.IsPlayer && creature.Player != null && !RunManager.Instance.IsSinglePlayerOrFakeMultiplayer)
+            if (creature.IsPlayer && creature.Player != null && !RunManager.Instance.IsSingleplayerOrFakeMultiplayer)
                 return GetPlayerName(creature.Player.NetId, platform);
         }
         catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] GetCreatureName multiplayer check failed: {e.Message}"); }

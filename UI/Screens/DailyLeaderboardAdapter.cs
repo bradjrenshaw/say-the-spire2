@@ -35,8 +35,12 @@ internal sealed class DailyLeaderboardAdapter
     private static readonly MethodInfo? SetPageMethod =
         AccessTools.Method(typeof(NDailyRunLeaderboard), "SetPage");
 
-    private static readonly FieldInfo? RowIsHeaderField =
-        AccessTools.Field(typeof(NDailyRunLeaderboardRow), "_isHeader");
+    // Schema diverged between branches: the beta dropped _isHeader and _score
+    // (no header row; no score column — rows rank by floor / time / badges)
+    // and added _isYou to mark the local player's row. The stable branch
+    // still has _score. AccessTools.Field returns null on a missing field
+    // and our reads are ?.-guarded, so the same code runs on both branches:
+    // when _score / _isYou is present we use it, when absent we skip cleanly.
     private static readonly FieldInfo? RowRankField =
         AccessTools.Field(typeof(NDailyRunLeaderboardRow), "_rank");
     private static readonly FieldInfo? RowNameField =
@@ -49,6 +53,8 @@ internal sealed class DailyLeaderboardAdapter
         AccessTools.Field(typeof(NDailyRunLeaderboardRow), "_badges");
     private static readonly FieldInfo? RowTimeField =
         AccessTools.Field(typeof(NDailyRunLeaderboardRow), "_time");
+    private static readonly FieldInfo? RowIsYouField =
+        AccessTools.Field(typeof(NDailyRunLeaderboardRow), "_isYou");
 
     private static readonly FieldInfo? PaginatorLabelField =
         AccessTools.Field(typeof(NLeaderboardDayPaginator), "_label");
@@ -112,15 +118,13 @@ internal sealed class DailyLeaderboardAdapter
         var results = new List<Entry>();
         foreach (var row in scoreContainer.GetChildren().OfType<NDailyRunLeaderboardRow>())
         {
-            if ((bool?)RowIsHeaderField?.GetValue(row) == true)
-                continue;
-
             var rank = GetControlText(RowRankField?.GetValue(row) as Control);
             var name = GetControlText(RowNameField?.GetValue(row) as Control);
             var score = GetControlText(RowScoreField?.GetValue(row) as Control);
             var floor = GetControlText(RowFloorField?.GetValue(row) as Control);
             var badges = GetControlText(RowBadgesField?.GetValue(row) as Control);
             var time = GetControlText(RowTimeField?.GetValue(row) as Control);
+            bool isYou = (bool?)RowIsYouField?.GetValue(row) == true;
 
             Message label;
             if (!string.IsNullOrWhiteSpace(name))
@@ -130,20 +134,18 @@ internal sealed class DailyLeaderboardAdapter
             else
                 label = Ui("DAILY_RUN_LEADERBOARD.ENTRY");
 
+            if (isYou)
+                label = label + Ui("DAILY_RUN_LEADERBOARD.YOU");
+
             var statusParts = new List<Message>();
             if (!string.IsNullOrWhiteSpace(score))
-            {
                 statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.SCORE", new { score }));
-            }
-            else
-            {
-                if (!string.IsNullOrWhiteSpace(floor))
-                    statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.FLOOR", new { floor }));
-                if (!string.IsNullOrWhiteSpace(badges))
-                    statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.BADGES", new { badges }));
-                if (!string.IsNullOrWhiteSpace(time))
-                    statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.TIME", new { time }));
-            }
+            if (!string.IsNullOrWhiteSpace(floor))
+                statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.FLOOR", new { floor }));
+            if (!string.IsNullOrWhiteSpace(badges))
+                statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.BADGES", new { badges }));
+            if (!string.IsNullOrWhiteSpace(time))
+                statusParts.Add(Ui("DAILY_RUN_LEADERBOARD.TIME", new { time }));
 
             results.Add(new Entry(label, statusParts.Count > 0 ? Message.Join(", ", statusParts.ToArray()) : null));
         }
@@ -159,7 +161,6 @@ internal sealed class DailyLeaderboardAdapter
 
         return scoreContainer.GetChildren()
             .OfType<NDailyRunLeaderboardRow>()
-            .Where(row => (bool?)RowIsHeaderField?.GetValue(row) != true)
             .ToList();
     }
 

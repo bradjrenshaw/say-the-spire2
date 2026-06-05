@@ -111,6 +111,7 @@
   "DAILY_RUN_LEADERBOARD.FLOOR": "Piano {floor}",
   "DAILY_RUN_LEADERBOARD.BADGES": "Distintivi {badges}",
   "DAILY_RUN_LEADERBOARD.TIME": "Tempo {time}",
+  "DAILY_RUN_LEADERBOARD.YOU": " (tu)",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_DAY": "Giorno precedente",
   "DAILY_RUN_LEADERBOARD.NEXT_DAY": "Giorno successivo",
   "DAILY_RUN_LEADERBOARD.PREVIOUS_PAGE": "Pagina precedente",
