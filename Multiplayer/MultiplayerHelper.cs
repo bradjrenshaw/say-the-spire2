@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
@@ -15,6 +17,30 @@ namespace SayTheSpire2.Multiplayer;
 /// </summary>
 public static class MultiplayerHelper
 {
+    // The property was renamed on the beta:
+    //   stable: IsSinglePlayerOrFakeMultiplayer (camelCase, "Single Player")
+    //   beta:   IsSingleplayerOrFakeMultiplayer (one word, "Singleplayer")
+    // Reading it via a direct C# call resolves at JIT time; the missing-method
+    // exception isn't catchable inside the calling method, which is what made
+    // the beta wedge end-turn and silence creature focus. Look up whichever
+    // getter exists at startup and call it through reflection so the same
+    // build runs on both branches. If neither exists (future rename), default
+    // to true — i.e. treat as singleplayer — which is the safe degraded path
+    // for both call sites (skip multiplayer name lookup; skip pet-owner check).
+    private static readonly MethodInfo? IsSingleplayerGetter =
+        AccessTools.PropertyGetter(typeof(RunManager), "IsSingleplayerOrFakeMultiplayer")
+        ?? AccessTools.PropertyGetter(typeof(RunManager), "IsSinglePlayerOrFakeMultiplayer");
+
+    public static bool IsSingleplayerOrFakeMultiplayer()
+    {
+        try { return (bool?)IsSingleplayerGetter?.Invoke(RunManager.Instance, null) ?? true; }
+        catch (System.Exception e)
+        {
+            MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] IsSingleplayer lookup failed: {e.Message}");
+            return true;
+        }
+    }
+
     /// <summary>
     /// Get a player's display name from their network ID.
     /// Uses RunManager's NetService during gameplay, or an explicit platform if provided.
@@ -69,7 +95,7 @@ public static class MultiplayerHelper
     {
         try
         {
-            if (creature.IsPlayer && creature.Player != null && !RunManager.Instance.IsSingleplayerOrFakeMultiplayer)
+            if (creature.IsPlayer && creature.Player != null && !IsSingleplayerOrFakeMultiplayer())
                 return GetPlayerName(creature.Player.NetId, platform);
         }
         catch (System.Exception e) { MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] GetCreatureName multiplayer check failed: {e.Message}"); }

@@ -114,15 +114,7 @@ public class CreatureView
         {
             var owner = Entity.PetOwner;
             if (owner == null) return null;
-            try
-            {
-                if (RunManager.Instance.IsSingleplayerOrFakeMultiplayer) return null;
-            }
-            catch (System.Exception e)
-            {
-                MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] OtherPlayerPetOwner singleplayer check failed: {e.Message}");
-                return null;
-            }
+            if (Multiplayer.MultiplayerHelper.IsSingleplayerOrFakeMultiplayer()) return null;
             return LocalContext.IsMe(owner) ? null : owner;
         }
     }
