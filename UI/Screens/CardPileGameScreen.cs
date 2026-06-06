@@ -96,10 +96,26 @@ public class CardPileGameScreen : GameScreen
     {
         return pileType switch
         {
-            PileType.Draw => new LocString("static_hover_tips", "DRAW_PILE.title").GetFormattedText(),
-            PileType.Discard => new LocString("static_hover_tips", "DISCARD_PILE.title").GetFormattedText(),
-            PileType.Exhaust => new LocString("static_hover_tips", "EXHAUST_PILE.title").GetFormattedText(),
+            PileType.Draw => PileTitle("DRAW_PILE.title"),
+            PileType.Discard => PileTitle("DISCARD_PILE.title"),
+            PileType.Exhaust => PileTitle("EXHAUST_PILE.title"),
             _ => pileType.ToString(),
         };
+    }
+
+    /// <summary>
+    /// The pile title LocStrings include a <c>{Hotkey:choose(None):| ({})}</c>
+    /// template that NCombatCardPile resolves by calling <c>Add("Hotkey", …)</c>
+    /// with the in-game shortcut key before formatting. Without that, the raw
+    /// template ends up in the string (e.g. "Draw Pile {Hotkey:choose(None):|
+    /// ({})}"). The mod has its own hotkey bindings and surfaces them through
+    /// the help system; we don't want the game's hint baked into the title.
+    /// Pass <c>"None"</c> so the template resolves to just the base name.
+    /// </summary>
+    private static string PileTitle(string key)
+    {
+        var ls = new LocString("static_hover_tips", key);
+        ls.Add("Hotkey", "None");
+        return ls.GetFormattedText();
     }
 }
