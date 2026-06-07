@@ -444,6 +444,13 @@ public class CombatScreen : Screen
     /// </summary>
     private bool TryOpenPlayerExpandedState()
     {
+        // While the game has targeting active (potion target, single-target
+        // card aim) the focused creature is the target candidate. Letting Enter
+        // open the player expanded state here would consume the action, our
+        // dispatch would suppress propagation, and the game's NTargetManager
+        // would never see the confirm — the potion / card just wouldn't throw.
+        if (_isTargeting) return false;
+
         try
         {
             // Find the currently focused creature
