@@ -1,3 +1,6 @@
+## V1.1.6
+* Added the missing text when trying to join a multiplayer game but no friends are online.
+
 ## V1.1.5
 * Fixed some incorrect text formatting for the card pile screens (hotkey markup was being included where it shouldn't be.)
 * Fixed an issue introduced in the previous version where you couldn't play potions on allies in multiplayer.

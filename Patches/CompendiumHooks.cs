@@ -96,6 +96,7 @@ public static class CompendiumHooks
             NCardLibrary cardLibrary => new CardLibraryGameScreen(cardLibrary),
             NRunHistory runHistory => new RunHistoryGameScreen(runHistory),
             NBestiary bestiary => new BestiaryGameScreen(bestiary),
+            NJoinFriendScreen joinFriend => new JoinFriendScreen(joinFriend),
             _ => null,
         };
     }
