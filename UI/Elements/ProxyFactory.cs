@@ -95,6 +95,9 @@ public static class ProxyFactory
             or NTopBarFloorIcon or NTopBarBossIcon)
             return new ProxyTopBar(control);
 
+        if (control is NTopBarPortraitTip)
+            return new ProxyAscension(control);
+
         // Combat-specific types
         if (control is NOrb)
             return new ProxyOrb(control);

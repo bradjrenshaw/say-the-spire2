@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "另有 1 名玩家选择",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "另有 {count} 名玩家选择",
   "CHARACTER.ASCENSION_DETAIL": "进阶 {level}：{title}。{description}",
+  "ASCENSION.LABEL": "进阶{level}",
   "SETTINGS.RESET_TO_DEFAULTS": "重置为默认",
   "SETTINGS.RESET_DONE": "已重置为默认",
   "SETTINGS.MOVE_UP": "上移",

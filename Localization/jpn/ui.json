@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "他のプレイヤー1名が選択中",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "他のプレイヤー{count}名が選択中",
   "CHARACTER.ASCENSION_DETAIL": "アセンション {level}: {title}。{description}",
+  "ASCENSION.LABEL": "アセンション {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "デフォルトに戻す",
   "SETTINGS.RESET_DONE": "デフォルトに戻しました",
   "SETTINGS.MOVE_UP": "上へ移動",

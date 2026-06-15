@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "Selezionato da 1 altro giocatore",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "Selezionato da {count} altri giocatori",
   "CHARACTER.ASCENSION_DETAIL": "Ascensione {level}: {title}. {description}",
+  "ASCENSION.LABEL": "Ascensione {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "Ripristina valori predefiniti",
   "SETTINGS.RESET_DONE": "Ripristinati ai valori predefiniti",
   "SETTINGS.MOVE_UP": "Sposta su",

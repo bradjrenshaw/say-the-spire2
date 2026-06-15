@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "Выбран ещё 1 игроком",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "Выбран ещё {count} игроками",
   "CHARACTER.ASCENSION_DETAIL": "Возвышение {level}: {title}. {description}",
+  "ASCENSION.LABEL": "Возвышение {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "Сбросить по умолчанию",
   "SETTINGS.RESET_DONE": "Сброшено по умолчанию",
   "SETTINGS.MOVE_UP": "Переместить вверх",

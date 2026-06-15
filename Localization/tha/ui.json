@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "เลือกโดยผู้เล่นอีก 1 คน",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "เลือกโดยผู้เล่นอีก {count} คน",
   "CHARACTER.ASCENSION_DETAIL": "ผู้บรรลุ {level}: {title}. {description}",
+  "ASCENSION.LABEL": "ผู้บรรลุ {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "รีเซ็ตเป็นค่าเริ่มต้น",
   "SETTINGS.RESET_DONE": "รีเซ็ตเป็นค่าเริ่มต้นแล้ว",
   "SETTINGS.MOVE_UP": "ย้ายขึ้น",

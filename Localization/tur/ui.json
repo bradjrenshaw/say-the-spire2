@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "1 başka oyuncu tarafından seçildi",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "{count} başka oyuncu tarafından seçildi",
   "CHARACTER.ASCENSION_DETAIL": "Yükseliş {level}: {title}. {description}",
+  "ASCENSION.LABEL": "Yükseliş {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "Varsayılana sıfırla",
   "SETTINGS.RESET_DONE": "Varsayılana sıfırlandı",
   "SETTINGS.MOVE_UP": "Yukarı taşı",

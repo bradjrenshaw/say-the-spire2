@@ -752,6 +752,7 @@
   "CHARACTER.REMOTE_SELECTION_SINGLE": "다른 플레이어 1명이 선택함",
   "CHARACTER.REMOTE_SELECTION_PLURAL": "다른 플레이어 {count}명이 선택함",
   "CHARACTER.ASCENSION_DETAIL": "승천 {level}: {title}. {description}",
+  "ASCENSION.LABEL": "승천 {level}",
   "SETTINGS.RESET_TO_DEFAULTS": "기본값으로 초기화",
   "SETTINGS.RESET_DONE": "기본값으로 초기화됨",
   "SETTINGS.MOVE_UP": "위로 이동",
