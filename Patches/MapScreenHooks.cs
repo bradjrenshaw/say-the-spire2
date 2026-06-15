@@ -26,7 +26,10 @@ public static class MapScreenHooks
             typeof(MapScreenHooks), nameof(ActBannerCreatePostfix), "ActBanner Create");
     }
 
-    public static void MapScreenOpenPostfix()
+    // isOpenedFromTopBar is injected by Harmony from NMapScreen.Open's
+    // parameter — true when opened from the top bar / M key (view-only, no
+    // selectable nodes), false at a room transition (interactive selection).
+    public static void MapScreenOpenPostfix(bool isOpenedFromTopBar)
     {
         if (MapScreen.Current != null) return;
 
@@ -38,7 +41,7 @@ public static class MapScreenHooks
         }
         catch (System.Exception e) { Log.Error($"[AccessibilityMod] Map current point access failed: {e.Message}"); }
 
-        var screen = new MapScreen(currentPoint);
+        var screen = new MapScreen(currentPoint, isViewOnly: isOpenedFromTopBar);
         ScreenManager.PushScreen(screen);
     }
 

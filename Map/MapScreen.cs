@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using Godot;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Map;
+using MegaCrit.Sts2.Core.Nodes;
+using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Help;
@@ -20,17 +23,31 @@ public class MapScreen : Screen
     private TreeMapViewer? _viewer;
     private MapPoint? _startPoint;
 
-    public MapScreen(MapPoint? startPoint)
+    // View-only maps (opened from the top bar / M key in combat & other rooms)
+    // have no selectable nodes, so the game leaves focus on the underlying
+    // room control. There the buffer keys should always browse the map.
+    // Interactive maps (room transitions) put focus on a selectable node, and
+    // moving focus to a non-node control like the top bar should restore
+    // normal buffer behavior.
+    private readonly bool _isViewOnly;
+
+    public MapScreen(MapPoint? startPoint, bool isViewOnly = false)
     {
+        _isViewOnly = isViewOnly;
         _startPoint = startPoint;
         _pointOfInterestBuffer = new PointOfInterestBuffer(_handler, GetCurrentMapPoint, GetAnchorMapPoint);
 
         // Claim the Ctrl+Arrow actions — on the map these become navigation
-        // instead of buffer controls. Not propagated, so DefaultScreen won't see them.
-        ClaimAction("buffer_next_item", focusedOnly: true); // Ctrl+Up -> forward (toward boss)
-        ClaimAction("buffer_prev_item", focusedOnly: true); // Ctrl+Down -> backward (toward start)
-        ClaimAction("buffer_next", focusedOnly: true);      // Ctrl+Right -> next branch
-        ClaimAction("buffer_prev", focusedOnly: true);      // Ctrl+Left -> prev branch
+        // instead of buffer controls. Gated on ShouldHandleMapBuffers so they
+        // only drive the map when a map node is focused or nothing is focused
+        // (view-only map from combat); when focus is on a non-map control like
+        // the top bar, the claim falls through to DefaultScreen and the buffers
+        // behave normally. Not propagated, so DefaultScreen won't see them while
+        // the map is actually handling them.
+        ClaimAction("buffer_next_item", focusedOnly: true, condition: ShouldHandleMapBuffers); // Ctrl+Up -> forward (toward boss)
+        ClaimAction("buffer_prev_item", focusedOnly: true, condition: ShouldHandleMapBuffers); // Ctrl+Down -> backward (toward start)
+        ClaimAction("buffer_next", focusedOnly: true, condition: ShouldHandleMapBuffers);      // Ctrl+Right -> next branch
+        ClaimAction("buffer_prev", focusedOnly: true, condition: ShouldHandleMapBuffers);      // Ctrl+Left -> prev branch
         ClaimAction("map_poi_prev");
         ClaimAction("map_poi_next");
         ClaimAction("map_poi_toggle_mode");
@@ -77,11 +94,61 @@ public class MapScreen : Screen
         Log.Info("[AccessibilityMod] MapScreen pushed, viewer ready");
     }
 
+    public override void OnUpdate()
+    {
+        WireRelicRowToMap();
+    }
+
     public override void OnPop()
     {
+        RestoreRelicRow();
         _viewer = null;
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] MapScreen popped");
+    }
+
+    // The beta routes the relic row's down-focus through a shared
+    // %ActiveScreenProxy node whose FocusEntered is supposed to forward focus
+    // into the open map — but that hop doesn't land for us (down from the relic
+    // row just does nothing; the game's controller focus handling is famously
+    // unreliable here). Bypass it: while an interactive map is open in
+    // singleplayer, point each relic holder's bottom focus-neighbor straight at
+    // the map's default node, and restore the proxy target when the map closes.
+    //
+    // Singleplayer only: in multiplayer the relic row wires its bottom neighbor
+    // through the player-state column, which we must not disturb.
+    private ulong _wiredRelicTargetId;
+
+    private void WireRelicRowToMap()
+    {
+        if (_isViewOnly) return;
+        if (!Multiplayer.MultiplayerHelper.IsSingleplayerOrFakeMultiplayer()) return;
+
+        if (NMapScreen.Instance?.DefaultFocusedControl is not NMapPoint node)
+            return;
+        if (node.GetInstanceId() == _wiredRelicTargetId) return;
+
+        var relics = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
+        if (relics == null || relics.Count == 0) return;
+
+        var path = node.GetPath();
+        foreach (var relic in relics)
+            relic.FocusNeighborBottom = path;
+        _wiredRelicTargetId = node.GetInstanceId();
+    }
+
+    private void RestoreRelicRow()
+    {
+        if (_wiredRelicTargetId == 0) return;
+        _wiredRelicTargetId = 0;
+
+        var proxy = NRun.Instance?.GlobalUi?.TopBar?.ActiveScreenProxy;
+        var relics = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
+        if (proxy == null || relics == null) return;
+
+        var path = proxy.GetPath();
+        foreach (var relic in relics)
+            relic.FocusNeighborBottom = path;
     }
 
     public void UpdateStartPoint(MapPoint point)
@@ -166,6 +233,26 @@ public class MapScreen : Screen
         }
 
         return handled;
+    }
+
+    /// <summary>
+    /// Whether the map screen should consume the buffer (Ctrl+arrow) keys for
+    /// map navigation. A view-only map (opened from the top bar / M key) has no
+    /// selectable nodes and the game keeps focus on the underlying room
+    /// control, so always browse the map there. On an interactive map, drive
+    /// the map only while a map node is focused; if focus is on a non-map
+    /// control like the top bar, fall through so the buffers work normally.
+    /// </summary>
+    private bool ShouldHandleMapBuffers()
+    {
+        if (_isViewOnly) return true;
+
+        var focused = NRun.Instance?.GetViewport()?.GuiGetFocusOwner();
+        for (Node? node = focused; node != null; node = node.GetParent())
+        {
+            if (node is NMapPoint) return true;
+        }
+        return false;
     }
 
     private static MapPoint? GetCurrentMapPoint()

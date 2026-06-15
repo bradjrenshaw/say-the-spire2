@@ -10,7 +10,7 @@ namespace SayTheSpire2.UI.Screens;
 
 public abstract class Screen
 {
-    private readonly record struct ClaimInfo(bool Propagate, bool FocusedOnly);
+    private readonly record struct ClaimInfo(bool Propagate, bool FocusedOnly, System.Func<bool>? Condition);
     private readonly Dictionary<string, ClaimInfo> _claimedActions = new();
     private bool _claimAll;
 
@@ -96,10 +96,15 @@ public abstract class Screen
     /// of the claim's propagate flag.
     /// When focusedOnly is true, the claim only applies when this screen is
     /// the innermost focused screen (no active child handling input).
+    /// When condition is supplied, the claim only applies while it returns
+    /// true — lets a screen claim an action situationally (e.g. the map screen
+    /// only grabbing the buffer keys while a map node is focused) and otherwise
+    /// fall through to lower screens.
     /// </summary>
-    protected void ClaimAction(string actionKey, bool propagate = false, bool focusedOnly = false)
+    protected void ClaimAction(string actionKey, bool propagate = false, bool focusedOnly = false,
+        System.Func<bool>? condition = null)
     {
-        _claimedActions[actionKey] = new ClaimInfo(propagate, focusedOnly);
+        _claimedActions[actionKey] = new ClaimInfo(propagate, focusedOnly, condition);
     }
 
     /// <summary>
@@ -120,6 +125,7 @@ public abstract class Screen
         if (_claimAll) return true;
         if (!_claimedActions.TryGetValue(actionKey, out var info)) return false;
         if (info.FocusedOnly && ScreenManager.CurrentScreen != this) return false;
+        if (info.Condition != null && !info.Condition()) return false;
         return true;
     }
 
