@@ -1,9 +1,11 @@
+## V1.1.7
+* Fixed a bug on the stable (non-beta) branch where entering an encounter could occasionally start with no combat and only a proceed button. This was caused by a focus-handling difference between the stable and beta branches; the mod now adapts to whichever branch you are on.
+
 ## V1.1.6
 * Added the missing text when trying to join a multiplayer game but no friends are online.
 * Fixed a bug where pressing down from the relics row would not focus the row of selectable map rooms.
 * Fixed a bug where, with the map open, the buffer controls (Ctrl plus the arrow keys by default) would always navigate the map even when you were focused on other controls such as the top bar. They now work as normal buffers unless you are on a map node or browsing a view-only map.
 * Fixed a bug where the ascension control in the top bar wasn't properly reading out the ascension and the current ascension modifiers.
-* Fixed a bug on the stable (non-beta) branch where entering an encounter could occasionally start with no combat and only a proceed button. This was caused by a focus-handling difference between the stable and beta branches; the mod now adapts to whichever branch you are on.
 
 ## V1.1.5
 * Fixed some incorrect text formatting for the card pile screens (hotkey markup was being included where it shouldn't be.)
