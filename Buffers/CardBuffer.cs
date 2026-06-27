@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Enchantments;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Logging;
@@ -25,18 +26,21 @@ public class CardBuffer : Buffer
 {
     private CardModel? _model;
     private IReadOnlyList<string> _extraLines = Array.Empty<string>();
+    private Creature? _previewTarget;
 
     public CardBuffer() : base("card") { }
 
     public void Bind(CardModel model)
     {
         _model = model;
+        _previewTarget = null;
         _extraLines = Array.Empty<string>();
     }
 
     public void Bind(CardModel model, IEnumerable<string>? extraLines)
     {
         _model = model;
+        _previewTarget = null;
         _extraLines = extraLines?
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .Select(line => line.Trim())
@@ -44,9 +48,22 @@ public class CardBuffer : Buffer
             ?? Array.Empty<string>();
     }
 
+    /// <summary>
+    /// Bind with a preview target so the description reflects that creature's
+    /// debuffs — e.g. Strike's damage updated for Vulnerable — matching the
+    /// card preview the sighted UI shows while you aim a card at a target.
+    /// </summary>
+    public void Bind(CardModel model, Creature? previewTarget)
+    {
+        _model = model;
+        _previewTarget = previewTarget;
+        _extraLines = Array.Empty<string>();
+    }
+
     protected override void ClearBinding()
     {
         _model = null;
+        _previewTarget = null;
         _extraLines = Array.Empty<string>();
         Clear();
     }
@@ -54,7 +71,31 @@ public class CardBuffer : Buffer
     public override void Update()
     {
         if (_model == null) return;
-        Repopulate(() => Populate(this, _model, _extraLines));
+        var descOverride = TargetAdjustedDescription(_model, _previewTarget);
+        Repopulate(() => Populate(this, _model, _extraLines, descOverride));
+    }
+
+    /// <summary>
+    /// The card's pile description computed against <paramref name="target"/>
+    /// so damage/effect numbers fold in the target's debuffs. Null when there's
+    /// no target (so the buffer renders the plain description as usual).
+    /// </summary>
+    private static string? TargetAdjustedDescription(CardModel model, Creature? target)
+    {
+        if (target == null) return null;
+        try
+        {
+            var desc = model.GetDescriptionForPile(PileType.Hand, target);
+            if (!string.IsNullOrEmpty(desc)) return desc;
+        }
+        catch { /* fall through to None */ }
+        try
+        {
+            var desc = model.GetDescriptionForPile(PileType.None, target);
+            if (!string.IsNullOrEmpty(desc)) return desc;
+        }
+        catch (Exception e) { Log.Error($"[AccessibilityMod] Card preview description failed: {e.Message}"); }
+        return null;
     }
 
     /// <summary>

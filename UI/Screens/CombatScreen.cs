@@ -678,6 +678,20 @@ public class CombatScreen : Screen
         AccessTools.PropertyGetter(typeof(NCardPlay), "Card");
 
     /// <summary>
+    /// The card model currently being played/aimed, or null when no card play
+    /// is active. Lets the focused-target proxy surface that card's text with
+    /// numbers updated for the target it's pointed at.
+    /// </summary>
+    public static CardModel? CurrentPlayedCard()
+    {
+        var hand = NCombatRoom.Instance?.Ui?.Hand;
+        if (hand == null || !hand.InCardPlay) return null;
+        if (CurrentCardPlayField?.GetValue(hand) is not NCardPlay cardPlay
+            || !GodotObject.IsInstanceValid(cardPlay)) return null;
+        return CardPlayCardGetter?.Invoke(cardPlay, null) as CardModel;
+    }
+
+    /// <summary>
     /// The local player's orb-slot controls, read from the game's logical
     /// <c>NOrbManager._orbs</c> list rather than the "%Orbs" scene node.
     /// The game populates <c>_orbs</c> synchronously the moment an orb is

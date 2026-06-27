@@ -122,6 +122,20 @@ public class ProxyCreature : ProxyElement
         var view = GetView();
         if (view == null) return base.HandleBuffers(buffers);
 
+        // While aiming a card at this target, expose the card's text with its
+        // numbers updated for this creature (Vulnerable, etc.) in the card
+        // buffer alongside — matching the preview the sighted UI shows. The
+        // current buffer still stays on the creature/player buffer below; the
+        // card buffer just sits next to it for review. Re-evaluated every focus,
+        // and ResetToAlwaysEnabled drops it again once you're no longer aiming.
+        var playedCard = Screens.CombatScreen.CurrentPlayedCard();
+        if (playedCard != null && buffers.GetBuffer("card") is CardBuffer cardBuffer)
+        {
+            cardBuffer.Bind(playedCard, view.Entity);
+            cardBuffer.Update();
+            buffers.EnableBuffer("card", true);
+        }
+
         // Local player: use the player buffer, bound to null
         if (view.IsLocalPlayer)
         {
