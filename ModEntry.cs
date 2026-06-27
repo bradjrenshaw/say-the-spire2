@@ -267,6 +267,15 @@ public static class ModEntry
             };
         }
 
+        if (actionKey.StartsWith("announce_combatant_powers_"))
+        {
+            return new[]
+            {
+                ("combat", Ui("KEYBINDINGS.CATEGORIES.COMBAT", "Combat")),
+                ("combatant_powers", Ui("KEYBINDINGS.CATEGORIES.COMBATANT_POWERS", "Combatant Powers")),
+            };
+        }
+
         return actionKey switch
         {
             "ui_accept" or

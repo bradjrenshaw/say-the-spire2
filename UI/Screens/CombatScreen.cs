@@ -68,6 +68,22 @@ public class CombatScreen : Screen
         "announce_combatant_intent_12",
     };
 
+    private static readonly string[] CombatantPowersActions =
+    {
+        "announce_combatant_powers_1",
+        "announce_combatant_powers_2",
+        "announce_combatant_powers_3",
+        "announce_combatant_powers_4",
+        "announce_combatant_powers_5",
+        "announce_combatant_powers_6",
+        "announce_combatant_powers_7",
+        "announce_combatant_powers_8",
+        "announce_combatant_powers_9",
+        "announce_combatant_powers_10",
+        "announce_combatant_powers_11",
+        "announce_combatant_powers_12",
+    };
+
     private static readonly string[] _alwaysEnabled = { "events" };
     public override IEnumerable<string> AlwaysEnabledBuffers => _alwaysEnabled;
 
@@ -97,6 +113,8 @@ public class CombatScreen : Screen
             ClaimAction(action);
         foreach (var action in CombatantIntentActions)
             ClaimAction(action);
+        foreach (var action in CombatantPowersActions)
+            ClaimAction(action);
 
         _rootContainer.Add(_potionContainer);
         _rootContainer.Add(_relicContainer);
@@ -121,6 +139,7 @@ public class CombatScreen : Screen
         new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.VIEW_EXHAUST_PILE", "View Exhaust Pile"), "mega_view_exhaust_pile_and_tab_right", exclusive: true),
         new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.SELECT_COMBATANT", "Select Combatant 1-12"), CombatantSelectActions, exclusive: true),
         new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.ANNOUNCE_COMBATANT_INTENT", "Announce Combatant Intent 1-12"), CombatantIntentActions, exclusive: true),
+        new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.ANNOUNCE_COMBATANT_POWERS", "Announce Combatant Powers 1-12"), CombatantPowersActions, exclusive: true),
     };
 
     private CombatState? GetLiveState()
@@ -241,6 +260,13 @@ public class CombatScreen : Screen
             return true;
         }
 
+        var powersIndex = System.Array.IndexOf(CombatantPowersActions, action.Key);
+        if (powersIndex >= 0)
+        {
+            AnnounceCombatantPowers(powersIndex);
+            return true;
+        }
+
         switch (action.Key)
         {
             case "announce_block":
@@ -334,6 +360,20 @@ public class CombatScreen : Screen
             intent = Message.Join(", ", Message.Raw(view.Name), owner, intent);
 
         SpeechManager.Output(intent);
+    }
+
+    private void AnnounceCombatantPowers(int index)
+    {
+        var creature = GetBoundCombatant(index);
+        if (creature == null)
+            return;
+
+        // Powers only, no name prefix — same as the Ctrl+P player readout (you
+        // already know which combatant from the number you pressed). Reuses the
+        // announce_powers hotkey so its verbose setting and "No powers" fallback
+        // apply identically.
+        UI.Announcements.HotkeyAnnouncementRegistry.Announce(
+            "announce_powers", new UI.Announcements.PowersAnnouncement(creature.Powers));
     }
 
     private static Message? OwnerMessage(CreatureView view)

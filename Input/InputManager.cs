@@ -248,6 +248,19 @@ public static class InputManager
             int n = i + 1;
             _actions.Add(new InputAction($"announce_combatant_intent_{n}", $"{combatantIntent} {n}").AddBinding(intentKeys[i], shift: true));
         }
+
+        // Alt + number reads a combatant's powers in the same format Ctrl+P uses
+        // for the player. Same key per index as Combatant Status (plain number)
+        // and Combatant Intent (Shift+number), so index N is the same combatant
+        // across all three.
+        var combatantPowers = Ui("INPUT.COMBATANT_POWERS", "Combatant Powers");
+        var powersKeys = new[] { Key.Key1, Key.Key2, Key.Key3, Key.Key4, Key.Key5, Key.Key6,
+            Key.Key7, Key.Key8, Key.Key9, Key.Key0, Key.Minus, Key.Equal };
+        for (int i = 0; i < powersKeys.Length; i++)
+        {
+            int n = i + 1;
+            _actions.Add(new InputAction($"announce_combatant_powers_{n}", $"{combatantPowers} {n}").AddBinding(powersKeys[i], alt: true));
+        }
     }
 
     private static string Ui(string key, string fallback)
