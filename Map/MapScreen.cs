@@ -94,78 +94,11 @@ public class MapScreen : Screen
         Log.Info("[AccessibilityMod] MapScreen pushed, viewer ready");
     }
 
-    public override void OnUpdate()
-    {
-        WireRelicRowToMap();
-    }
-
     public override void OnPop()
     {
-        RestoreRelicRow();
         _viewer = null;
         if (Current == this) Current = null;
         Log.Info("[AccessibilityMod] MapScreen popped");
-    }
-
-    // The beta routes the relic row's down-focus through a shared
-    // %ActiveScreenProxy node (a property on NTopBar) whose FocusEntered is
-    // supposed to forward focus into the open map — but that hop doesn't land
-    // for us (down from the relic row just does nothing). We bypass it by
-    // pointing each relic holder's bottom focus-neighbor straight at the map's
-    // default node while an interactive map is open, restoring the proxy target
-    // on close.
-    //
-    // This whole workaround is BETA-ONLY and gated on ActiveScreenProxy
-    // existing. The stable branch has no ActiveScreenProxy: it wires the relic
-    // row to the screen's FocusedControlFromTopBar directly and re-runs that on
-    // every screen change, so down-from-relic already reaches the map natively
-    // and we must not interfere (touching it there both is unnecessary and,
-    // before this gate, threw MissingMethodException on the removed property —
-    // which aborted the travel flow mid-encounter-load and left combat with no
-    // enemies). Reflection keeps a single build working on both branches.
-    //
-    // Singleplayer only: in multiplayer the relic row wires its bottom neighbor
-    // through the player-state column, which we must not disturb.
-    private static readonly System.Reflection.PropertyInfo? ActiveScreenProxyProp =
-        HarmonyLib.AccessTools.Property(
-            typeof(MegaCrit.Sts2.Core.Nodes.CommonUi.NTopBar), "ActiveScreenProxy");
-
-    private ulong _wiredRelicTargetId;
-
-    private void WireRelicRowToMap()
-    {
-        if (_isViewOnly) return;
-        if (ActiveScreenProxyProp == null) return; // stable wires relic->map natively
-        if (!Multiplayer.MultiplayerHelper.IsSingleplayerOrFakeMultiplayer()) return;
-
-        if (NMapScreen.Instance?.DefaultFocusedControl is not NMapPoint node)
-            return;
-        if (node.GetInstanceId() == _wiredRelicTargetId) return;
-
-        var relics = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
-        if (relics == null || relics.Count == 0) return;
-
-        var path = node.GetPath();
-        foreach (var relic in relics)
-            relic.FocusNeighborBottom = path;
-        _wiredRelicTargetId = node.GetInstanceId();
-    }
-
-    private void RestoreRelicRow()
-    {
-        if (_wiredRelicTargetId == 0) return;
-        _wiredRelicTargetId = 0;
-
-        var topBar = NRun.Instance?.GlobalUi?.TopBar;
-        var relics = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
-        if (topBar == null || relics == null) return;
-
-        // ActiveScreenProxyProp is non-null here (we only wire when it exists).
-        if (ActiveScreenProxyProp?.GetValue(topBar) is not Control proxy) return;
-
-        var path = proxy.GetPath();
-        foreach (var relic in relics)
-            relic.FocusNeighborBottom = path;
     }
 
     public void UpdateStartPoint(MapPoint point)
