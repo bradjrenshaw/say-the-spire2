@@ -62,8 +62,8 @@ public static class SoundEffects
                 // without wrapping. Only a forward move (down/right) off the
                 // last item or a backward move (up/left) off the first is a
                 // real wrap.
-                bool forward = Godot.Input.IsActionPressed("ui_down") || Godot.Input.IsActionPressed("ui_right");
-                bool backward = Godot.Input.IsActionPressed("ui_up") || Godot.Input.IsActionPressed("ui_left");
+                bool forward = IsPressedUnambiguously("ui_down", "ui_up") || IsPressedUnambiguously("ui_right", "ui_left");
+                bool backward = IsPressedUnambiguously("ui_up", "ui_down") || IsPressedUnambiguously("ui_left", "ui_right");
 
                 var count = fromParent.Children.Count;
                 var fromIndex = fromParent.IndexOf(fromElement!);
@@ -76,6 +76,13 @@ public static class SoundEffects
                 }
                 return;
             }
+
+            // Map nodes are scattered graph points, not a row or column — a
+            // "right" neighbor can sit geometrically left or above, so the
+            // spatial heuristic misfires there. No wrap sound on the map.
+            if (from is MegaCrit.Sts2.Core.Nodes.Screens.Map.NMapPoint
+                || to is MegaCrit.Sts2.Core.Nodes.Screens.Map.NMapPoint)
+                return;
 
             var oldRect = from.GetGlobalRect();
             var newRect = to.GetGlobalRect();
@@ -90,10 +97,10 @@ public static class SoundEffects
             var newCenter = newRect.GetCenter();
 
             bool wrapped =
-                (Godot.Input.IsActionPressed("ui_right") && newCenter.X < oldCenter.X - WrapEpsilon)
-                || (Godot.Input.IsActionPressed("ui_left") && newCenter.X > oldCenter.X + WrapEpsilon)
-                || (Godot.Input.IsActionPressed("ui_down") && newCenter.Y < oldCenter.Y - WrapEpsilon)
-                || (Godot.Input.IsActionPressed("ui_up") && newCenter.Y > oldCenter.Y + WrapEpsilon);
+                (IsPressedUnambiguously("ui_right", "ui_left") && newCenter.X < oldCenter.X - WrapEpsilon)
+                || (IsPressedUnambiguously("ui_left", "ui_right") && newCenter.X > oldCenter.X + WrapEpsilon)
+                || (IsPressedUnambiguously("ui_down", "ui_up") && newCenter.Y < oldCenter.Y - WrapEpsilon)
+                || (IsPressedUnambiguously("ui_up", "ui_down") && newCenter.Y > oldCenter.Y + WrapEpsilon);
 
             if (wrapped)
                 PlayWrap();
@@ -102,6 +109,17 @@ public static class SoundEffects
         {
             Log.Info($"[AccessibilityMod] Wrap sound check failed: {e.Message}");
         }
+    }
+
+    /// <summary>
+    /// True when <paramref name="action"/> is pressed and its opposite is
+    /// not. Rapid direction alternation leaves both directions pressed at
+    /// announce time (the focus change is processed a frame after the
+    /// input), and guessing the travel direction then produces false wraps.
+    /// </summary>
+    private static bool IsPressedUnambiguously(string action, string opposite)
+    {
+        return Godot.Input.IsActionPressed(action) && !Godot.Input.IsActionPressed(opposite);
     }
 
     public static void PlayWrap()

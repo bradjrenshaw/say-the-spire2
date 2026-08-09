@@ -85,8 +85,23 @@ public static class SentryNodeSilencer
             return;
         if (name.Length < 2 || name[0] != '@')
         {
-            // Explicit names are already JDF-silenceable; just log them so we
-            // know what exists.
+            // SentryBootstrap's only job is its _EnterTree call to
+            // SentryService.Initialize(), which ran before mods loaded; it
+            // has no _Process or _ExitTree and nothing looks it up by path
+            // (AfterGameInit is called from NGame). Freeing it removes the
+            // last Sentry element screen readers can announce — the JAWS
+            // dictionary route proved unreliable for it, likely because
+            // window-focus announcements can fire before JAWS switches to
+            // the game's app profile.
+            if (name == "SentryBootstrap")
+            {
+                node.QueueFree();
+                Log.Info($"[AccessibilityMod] Removed Sentry node \"{name}\".");
+                return;
+            }
+
+            // Other explicit names are JDF-silenceable; log them so we know
+            // what exists.
             Log.Info($"[AccessibilityMod] Sentry node present (explicit name): \"{name}\".");
             return;
         }
