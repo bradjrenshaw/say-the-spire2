@@ -4,7 +4,7 @@ An accessibility mod for Slay the Spire 2 that provides screen reader support fo
 
 Installation and usage documentation can be found [here](https://bradjrenshaw.github.io/say-the-spire2).
 
-For discussion of Say the Spire 2, as well as my other modding projects, I have a [discord](https://discord.gg/Dz8u2Pr9py/).
+For discussion of Say the Spire 2, as well as my other modding projects, I have a [discord](https://discord.gg/Dz8u2Pr9py).
 
 If you would like to support my modding work, I also have a [Patreon](https://www.patreon.com/bradjrenshaw/).
 
