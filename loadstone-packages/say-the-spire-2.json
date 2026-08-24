@@ -1,0 +1,123 @@
+{
+  "manifestVersion": 1,
+  "id": "say-the-spire-2",
+  "name": "Say the Spire 2",
+  "description": "Screen-reader accessibility for Slay the Spire 2: speaks menus, cards, combat, the map, and events, with full keyboard navigation.",
+  "authors": [
+    "Bradley Renshaw"
+  ],
+  "game": "slay-the-spire-2",
+  "distributions": {
+    "steam": "supported"
+  },
+  "channels": {
+    "stable": {
+      "source": "release"
+    },
+    "prerelease": {
+      "source": "release",
+      "includePrereleases": true
+    }
+  },
+  "install": [
+    {
+      "step": "extract-archive",
+      "routes": [
+        {
+          "from": "**",
+          "to": "${gameDir}"
+        }
+      ]
+    },
+    {
+      "step": "edit-json",
+      "file": "${userData}/steam/*/settings.save",
+      "ops": [
+        {
+          "op": "ensure",
+          "path": "mod_settings",
+          "value": {}
+        },
+        {
+          "op": "set",
+          "path": "mod_settings.mods_enabled",
+          "value": true
+        }
+      ],
+      "requires": {
+        "fileExists": "${userData}/steam/*/settings.save",
+        "onMissing": "Please launch Slay the Spire 2 once to generate your settings file, then close it and retry. You can also skip this step and enable mods manually in the game settings.",
+        "retryable": true
+      }
+    },
+    {
+      "step": "expect",
+      "checks": [
+        {
+          "fileExists": "${gameDir}/mods/SayTheSpire2.dll",
+          "message": "The archive didn't contain the mod (no mods/SayTheSpire2.dll)."
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "storage": {
+      "file": "${userData}/mods/SayTheSpire2/installation.json"
+    },
+    "note": "Restart the game for changes to take effect.",
+    "entries": [
+      {
+        "id": "screen_reader",
+        "type": "boolean",
+        "default": true,
+        "label": "Screen reader support",
+        "description": "Enables text-to-speech announcements and keyboard navigation for blind players. If you are sighted and playing with blind players, turn this off.",
+        "promptOnInstall": true
+      },
+      {
+        "id": "disable_godot_uia",
+        "type": "boolean",
+        "default": true,
+        "label": "Disable Godot's built-in UIA accessibility",
+        "description": "Recommended. Godot's built-in accessibility conflicts with the mod's screen reader. Only turn this off if you use other accessibility tools that rely on UIA.",
+        "promptOnInstall": true
+      }
+    ]
+  },
+  "actions": [
+    {
+      "id": "install-jaws-config",
+      "label": "Install JAWS config",
+      "description": "Copies the mod's JAWS configuration files into your JAWS settings folder.",
+      "enabledWhen": {
+        "fileExists": "${gameDir}/jaws/*"
+      },
+      "steps": [
+        {
+          "step": "pick-directory",
+          "id": "jawsDir",
+          "prompt": "Select your JAWS settings directory",
+          "suggest": "jaws-user-settings"
+        },
+        {
+          "step": "copy-files",
+          "from": "${gameDir}/jaws/*",
+          "to": "${var.jawsDir}"
+        }
+      ]
+    }
+  ],
+  "userData": [
+    "${userData}/mods/SayTheSpire2"
+  ],
+  "cleanupLegacy": [
+    "${userData}/mods/SayTheSpire2/accessibility.json"
+  ],
+  "packaging": {
+    "artifacts": [
+      {
+        "file": "../SayTheSpire2.zip"
+      }
+    ]
+  }
+}
