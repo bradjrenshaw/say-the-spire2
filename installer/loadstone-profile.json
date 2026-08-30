@@ -1,0 +1,7 @@
+{
+  "mode": "single-mod",
+  "mod": "say-the-spire-2",
+  "title": "Say the Spire 2 Installer",
+  "registries": ["github:bradjrenshaw/say-the-spire2"],
+  "lockRegistries": true
+}

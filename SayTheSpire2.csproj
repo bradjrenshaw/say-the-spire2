@@ -249,23 +249,6 @@ public class CreateReleaseZip : Task
     </Task>
   </UsingTask>
 
-  <!-- Build the Rust installer (Release only) -->
-  <PropertyGroup>
-    <InstallerDir>$(MSBuildProjectDirectory)\installer</InstallerDir>
-    <InstallerExe>$(InstallerDir)\target\release\saythe-spire2-installer.exe</InstallerExe>
-    <VsNinjaDir Condition="Exists('C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe')">C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja</VsNinjaDir>
-    <VsNinjaDir Condition="'$(VsNinjaDir)' == '' and Exists('C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe')">C:\Program Files\Microsoft Visual Studio\2022\Professional\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja</VsNinjaDir>
-    <VsNinjaDir Condition="'$(VsNinjaDir)' == '' and Exists('C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe')">C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja</VsNinjaDir>
-    <VsNinjaDir Condition="'$(VsNinjaDir)' == '' and Exists('C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe')">C:\Program Files\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja</VsNinjaDir>
-  </PropertyGroup>
-
-  <Target Name="BuildInstaller" BeforeTargets="CreateRelease" Condition="'$(Configuration)' == 'Release'">
-    <Exec Command="set &quot;PATH=$(VsNinjaDir);%PATH%&quot; &amp;&amp; cargo build --release" WorkingDirectory="$(InstallerDir)" Condition="'$(VsNinjaDir)' != ''" />
-    <Exec Command="cargo build --release" WorkingDirectory="$(InstallerDir)" Condition="'$(VsNinjaDir)' == ''" />
-    <Error Text="Installer build failed: $(InstallerExe) not found" Condition="!Exists('$(InstallerExe)')" />
-    <Message Text="Installer built: $(InstallerExe)" Importance="high" />
-  </Target>
-
   <Target Name="CreateRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <CreatePck Files="@(PckFile)" OutputPath="$(OutputPath)$(ModName).pck" />
     <ItemGroup>
@@ -283,8 +266,6 @@ public class CreateReleaseZip : Task
       <ReleaseFile Include="$(MSBuildProjectDirectory)\jaws\SlayTheSpire2.jkm" ArcName="jaws/SlayTheSpire2.jkm" />
     </ItemGroup>
     <CreateReleaseZip Files="@(ReleaseFile)" OutputPath="$(MSBuildProjectDirectory)\SayTheSpire2.zip" />
-    <Copy SourceFiles="$(InstallerExe)" DestinationFiles="$(MSBuildProjectDirectory)\SayTheSpire2Installer.exe" />
-    <Message Text="Installer copied to $(MSBuildProjectDirectory)\SayTheSpire2Installer.exe" Importance="high" />
   </Target>
 
 </Project>

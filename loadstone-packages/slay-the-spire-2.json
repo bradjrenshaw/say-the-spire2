@@ -6,9 +6,9 @@
   "detect": {
     "steam": { "dirName": "Slay the Spire 2" },
     "markers": [
-      "Slay the Spire 2.exe",
-      "Slay the Spire 2.x86_64",
-      "Slay the Spire 2.app",
+      "SlayTheSpire2.exe",
+      "SlayTheSpire2.x86_64",
+      "SlayTheSpire2.app",
       "data_sts2_windows_x86_64",
       "data_sts2_linux_x86_64",
       "data_sts2_macos_arm64",

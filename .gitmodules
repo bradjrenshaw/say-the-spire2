@@ -1,0 +1,4 @@
+[submodule "loadstone"]
+	path = loadstone
+	url = https://github.com/bradjrenshaw/loadstone.git
+	ignore = dirty
