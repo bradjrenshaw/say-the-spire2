@@ -285,8 +285,42 @@ public static class InputManager
     }
 
     /// <summary>
-    /// Controller buttons polled from device 0 via IsJoyButtonPressed.
-    /// Requires Steam Input to be disabled for the game.
+    /// Connected joypad device ids, refreshed on Godot's joy-connection
+    /// signal. Steam Input (when enabled) interposes a virtual controller
+    /// and shuffles device indexes — the physical pad can land at index 1+
+    /// or re-enumerate on replug — so polling a hardcoded device 0 silently
+    /// loses the controller. All connected devices are polled instead.
+    /// </summary>
+    private static int[] _joypads = { 0 };
+    private static bool _joypadsHooked;
+
+    private static void RefreshJoypads()
+    {
+        var connected = Godot.Input.GetConnectedJoypads();
+        if (connected.Count == 0)
+        {
+            // Keep polling device 0 as a harmless fallback.
+            _joypads = new[] { 0 };
+            return;
+        }
+        var devices = new int[connected.Count];
+        for (int i = 0; i < connected.Count; i++)
+            devices[i] = connected[i];
+        _joypads = devices;
+        Log.Info($"[AccessibilityMod] Polling joypad devices: {string.Join(", ", devices)}");
+    }
+
+    private static void EnsureJoypadTracking()
+    {
+        if (_joypadsHooked) return;
+        _joypadsHooked = true;
+        RefreshJoypads();
+        Godot.Input.JoyConnectionChanged += (_, _) => RefreshJoypads();
+    }
+
+    /// <summary>
+    /// Controller buttons polled from every connected device via
+    /// IsJoyButtonPressed.
     /// </summary>
     private static readonly Dictionary<JoyButton, ControllerInput> _polledButtons = new()
     {
@@ -356,8 +390,58 @@ public static class InputManager
             return true;
         }
 
+        // With Steam Input enabled the game's SteamControllerInputStrategy
+        // reads buttons through the Steam Input API and re-injects them as
+        // InputEventActions named for the raw buttons ("controller_*") —
+        // Godot's joypad state never sees them, so hardware polling can't.
+        // Consume those here and route them through the same press/release
+        // pipeline the poller uses. Stick directions are excluded: sticks
+        // arrive as re-injected axis motion the poller already reads.
+        if (inputEvent is InputEventAction actionEvent
+            && _steamActionButtons.TryGetValue(actionEvent.Action, out var controllerInput))
+        {
+            bool wasPressed = _activeSteamActionButtons.Contains(controllerInput);
+            if (actionEvent.Pressed && !wasPressed)
+            {
+                _activeSteamActionButtons.Add(controllerInput);
+                OnControllerInputPressed(controllerInput);
+            }
+            else if (!actionEvent.Pressed && wasPressed)
+            {
+                _activeSteamActionButtons.Remove(controllerInput);
+                OnControllerInputReleased(controllerInput);
+            }
+            return true;
+        }
+
         return false;
     }
+
+    /// <summary>
+    /// Raw-button action names the Steam strategy emits, mapped to our
+    /// controller inputs. Only ever observed with Steam Input enabled — the
+    /// Godot strategy never synthesizes these button actions.
+    /// </summary>
+    private static readonly Dictionary<StringName, ControllerInput> _steamActionButtons = new()
+    {
+        { "controller_face_button_south", ControllerInput.A },
+        { "controller_face_button_east", ControllerInput.B },
+        { "controller_face_button_west", ControllerInput.X },
+        { "controller_face_button_north", ControllerInput.Y },
+        { "controller_left_bumper", ControllerInput.LeftShoulder },
+        { "controller_right_bumper", ControllerInput.RightShoulder },
+        { "controller_left_trigger", ControllerInput.LeftTrigger },
+        { "controller_right_trigger", ControllerInput.RightTrigger },
+        { "controller_d_pad_up", ControllerInput.DpadUp },
+        { "controller_d_pad_down", ControllerInput.DpadDown },
+        { "controller_d_pad_left", ControllerInput.DpadLeft },
+        { "controller_d_pad_right", ControllerInput.DpadRight },
+        { "controller_start_button", ControllerInput.Start },
+        { "controller_select_button", ControllerInput.Back },
+        { "controller_l_stick_press", ControllerInput.LeftStickClick },
+    };
+
+    private static readonly HashSet<ControllerInput> _activeSteamActionButtons = new();
 
     /// <summary>
     /// Called from _Process postfix on NControllerManager. Polls all controller
@@ -372,10 +456,22 @@ public static class InputManager
 
         try
         {
-            // Poll buttons from device 0
+            EnsureJoypadTracking();
+
+            // Poll buttons from every connected device — pressed on any pad
+            // counts (Steam Input's virtual pad and the physical one can
+            // coexist at different indexes).
             foreach (var (button, controllerInput) in _polledButtons)
             {
-                bool isPressed = Godot.Input.IsJoyButtonPressed(0, button);
+                bool isPressed = false;
+                foreach (var device in _joypads)
+                {
+                    if (Godot.Input.IsJoyButtonPressed(device, button))
+                    {
+                        isPressed = true;
+                        break;
+                    }
+                }
                 bool wasPressed = _activePolledButtons.Contains(button);
 
                 if (isPressed && !wasPressed)
@@ -390,10 +486,17 @@ public static class InputManager
                 }
             }
 
-            // Poll analog sticks via raw axis values (these work with Steam Input)
+            // Poll analog sticks via raw axis values across all devices,
+            // keeping the strongest deflection.
             foreach (var ((axis, positive), controllerInput) in _polledAxes)
             {
-                float value = Godot.Input.GetJoyAxis(0, axis);
+                float value = 0f;
+                foreach (var device in _joypads)
+                {
+                    var deviceValue = Godot.Input.GetJoyAxis(device, axis);
+                    if (Mathf.Abs(deviceValue) > Mathf.Abs(value))
+                        value = deviceValue;
+                }
 
                 bool isPressed = positive ? value > StickDeadzone : value < -StickDeadzone;
                 var key = (axis, positive);

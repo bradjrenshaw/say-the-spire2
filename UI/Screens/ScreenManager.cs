@@ -112,6 +112,7 @@ public static class ScreenManager
 
         _screenStack.Add(screen);
         screen.OnPush();
+        UIManager.ResetAnnouncementDedupe();
         Log.Info($"[AccessibilityMod] Screen pushed: {screen.GetType().Name} (stack depth: {_screenStack.Count})");
     }
 
@@ -145,6 +146,7 @@ public static class ScreenManager
 
         _screenStack.RemoveAt(i);
         screen.OnPop();
+        UIManager.ResetAnnouncementDedupe();
 
         if (wasTop && _screenStack.Count > 0)
             _screenStack[^1].OnFocus();

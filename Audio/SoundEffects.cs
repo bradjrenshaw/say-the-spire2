@@ -65,9 +65,19 @@ public static class SoundEffects
                 bool forward = IsPressedUnambiguously("ui_down", "ui_up") || IsPressedUnambiguously("ui_right", "ui_left");
                 bool backward = IsPressedUnambiguously("ui_up", "ui_down") || IsPressedUnambiguously("ui_left", "ui_right");
 
-                var count = fromParent.Children.Count;
-                var fromIndex = fromParent.IndexOf(fromElement!);
-                var toIndex = fromParent.IndexOf(toElement!);
+                // Index over the same filtered set positions use — elements
+                // that don't count for position (e.g. non-targets while a
+                // card is aimed) aren't focus-reachable, so a wrap is
+                // last-REACHABLE → first-REACHABLE, not last raw child.
+                int count = 0, fromIndex = -1, toIndex = -1;
+                for (int i = 0; i < fromParent.Children.Count; i++)
+                {
+                    var candidate = fromParent.Children[i];
+                    if (!candidate.CountsForPosition) continue;
+                    if (ReferenceEquals(candidate, fromElement)) fromIndex = count;
+                    if (ReferenceEquals(candidate, toElement)) toIndex = count;
+                    count++;
+                }
                 if (count >= 2 && fromIndex >= 0 && toIndex >= 0
                     && ((forward && fromIndex == count - 1 && toIndex == 0)
                         || (backward && fromIndex == 0 && toIndex == count - 1)))
@@ -93,14 +103,27 @@ public static class SoundEffects
                 || newRect.Size.X < 2f || newRect.Size.Y < 2f)
                 return;
 
-            var oldCenter = oldRect.GetCenter();
-            var newCenter = newRect.GetCenter();
+            var delta = newRect.GetCenter() - oldRect.GetCenter();
+
+            // Judge each direction only against the move's dominant axis:
+            // a mostly-vertical move (up out of the shop's potion row, with
+            // some horizontal offset to the slot above) must not read as
+            // contradicting a still-held left/right key, and vice versa.
+            bool horizontalMove = Mathf.Abs(delta.X) > Mathf.Abs(delta.Y);
+
+            // Geometric stand-in for "same container": a horizontal wrap
+            // must stay in the same row (rects overlap vertically) and a
+            // vertical wrap in the same column. Without this, left from the
+            // shop's first relic landing on the rightmost card of ANOTHER
+            // row reads as "pressed left, moved right" and chimes.
+            bool sameRow = oldRect.Position.Y < newRect.End.Y && newRect.Position.Y < oldRect.End.Y;
+            bool sameColumn = oldRect.Position.X < newRect.End.X && newRect.Position.X < oldRect.End.X;
 
             bool wrapped =
-                (IsPressedUnambiguously("ui_right", "ui_left") && newCenter.X < oldCenter.X - WrapEpsilon)
-                || (IsPressedUnambiguously("ui_left", "ui_right") && newCenter.X > oldCenter.X + WrapEpsilon)
-                || (IsPressedUnambiguously("ui_down", "ui_up") && newCenter.Y < oldCenter.Y - WrapEpsilon)
-                || (IsPressedUnambiguously("ui_up", "ui_down") && newCenter.Y > oldCenter.Y + WrapEpsilon);
+                (horizontalMove && sameRow && IsPressedUnambiguously("ui_right", "ui_left") && delta.X < -WrapEpsilon)
+                || (horizontalMove && sameRow && IsPressedUnambiguously("ui_left", "ui_right") && delta.X > WrapEpsilon)
+                || (!horizontalMove && sameColumn && IsPressedUnambiguously("ui_down", "ui_up") && delta.Y < -WrapEpsilon)
+                || (!horizontalMove && sameColumn && IsPressedUnambiguously("ui_up", "ui_down") && delta.Y > WrapEpsilon);
 
             if (wrapped)
                 PlayWrap();

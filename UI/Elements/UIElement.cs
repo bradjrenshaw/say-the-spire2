@@ -23,6 +23,15 @@ public abstract class UIElement
     public virtual bool IsVisible => true;
 
     /// <summary>
+    /// Whether this element counts toward container position announcements
+    /// ("2 of 4"). Defaults to visibility; elements that can be visible but
+    /// unreachable (e.g. creatures that aren't valid targets while a card is
+    /// being aimed) override this so positions reflect what focus can
+    /// actually land on.
+    /// </summary>
+    public virtual bool CountsForPosition => IsVisible;
+
+    /// <summary>
     /// The type whose [AnnouncementOrder] drives focus-string composition for this
     /// element. Defaults to the element's own type. Composite proxies override this
     /// to delegate to the type of whatever inner element they're wrapping so the

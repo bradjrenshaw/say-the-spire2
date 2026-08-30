@@ -98,9 +98,17 @@ public static class UIManager
         var message = BuildFocusAnnouncement(element);
         var text = message?.Resolve();
 
-        // Only announce if something changed (text or control reference)
-        var controlChanged = _currentControl != null && _currentControl != _lastAnnouncedControl;
-        if (string.IsNullOrEmpty(text) || (text == _lastAnnouncedText && !controlChanged))
+        // Identity first, never text: a different control or element is a
+        // different UI element and always announces, even when its text is
+        // identical to the previous announcement (e.g. two settings rows
+        // with the same label, or virtual elements with no control). The
+        // text comparison only suppresses re-announcing the SAME element
+        // with unchanged content — frame noise from repeated focus events.
+        var controlChanged = !ReferenceEquals(_currentControl, _lastAnnouncedControl);
+        var elementChanged = !ReferenceEquals(element, _lastAnnouncedElement);
+        if (string.IsNullOrEmpty(text))
+            return;
+        if (!controlChanged && !elementChanged && text == _lastAnnouncedText)
             return;
 
         // Detect focus wrapping (structurally for containered elements,
@@ -127,6 +135,18 @@ public static class UIManager
             buffers.SetCurrentBuffer(currentBufferKey);
 
         element.Focus();
+    }
+
+    /// <summary>
+    /// Forget the last announcement so the next focus event announces even
+    /// when it lands on the same element with the same text. Called on
+    /// screen-stack transitions: screens that persist and reuse their
+    /// controls (the game's map screen) refocus the same node on reopen,
+    /// which must be announced again.
+    /// </summary>
+    public static void ResetAnnouncementDedupe()
+    {
+        _lastAnnouncedText = null;
     }
 
     private static Message? BuildFocusAnnouncement(UIElement element)

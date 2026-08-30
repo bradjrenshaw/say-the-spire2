@@ -28,8 +28,10 @@ namespace SayTheSpire2.Patches;
 /// ourselves, bypassing the proxy.
 ///
 /// Gated to beta (the property only exists there; stable already does this
-/// natively) and singleplayer (multiplayer wires the relic row through the
-/// player-state column, which must stay intact).
+/// natively). In multiplayer the game wires the relic row to the first
+/// player-state hitbox, but only once — and self-loops the row when the
+/// hitbox isn't valid at that instant — so the same re-pointing is applied
+/// there with the player-state hitbox as the target.
 /// </summary>
 public static class TopBarReturnHooks
 {
@@ -54,9 +56,6 @@ public static class TopBarReturnHooks
     {
         try
         {
-            if (!MultiplayerHelper.IsSingleplayerOrFakeMultiplayer())
-                return;
-
             var relics = NRun.Instance?.GlobalUi?.RelicInventory?.RelicNodes;
             if (relics == null || relics.Count == 0)
             {
@@ -65,7 +64,23 @@ public static class TopBarReturnHooks
                 return;
             }
 
-            var target = ActiveScreenContext.Instance.GetCurrentScreen()?.FocusedControlFromTopBar;
+            // Singleplayer: down from relics goes into the active screen, as
+            // stable wires natively. Multiplayer: the game intends relics →
+            // first player-state hitbox, but wires it once and self-loops the
+            // row if the hitbox isn't valid at that moment — re-point it
+            // here with live validity, falling back to the active screen.
+            Control? target;
+            if (MultiplayerHelper.IsSingleplayerOrFakeMultiplayer())
+            {
+                target = ActiveScreenContext.Instance.GetCurrentScreen()?.FocusedControlFromTopBar;
+            }
+            else
+            {
+                var hitbox = NRun.Instance?.GlobalUi?.MultiplayerPlayerContainer?.FirstPlayerState?.Hitbox;
+                target = hitbox != null && GodotObject.IsInstanceValid(hitbox)
+                    ? hitbox
+                    : ActiveScreenContext.Instance.GetCurrentScreen()?.FocusedControlFromTopBar;
+            }
             if (target == null || !GodotObject.IsInstanceValid(target))
                 return;
 

@@ -187,6 +187,7 @@ These private fields/properties are accessed via reflection. A game update renam
 **Focus system:**
 - `NClickableControl.IsFocused` (property) — focus state for RefreshFocus hook
 - `NMerchantDialogue._label` — merchant dialogue text
+- `NMerchantInventory._characterCardContainer`, `._colorlessCardContainer`, `._relicContainer`, `._potionContainer`, `._cardRemovalNode`, `._backButton` — shop rows (MerchantGameScreen registers slots per row for positions + structural wrap checks)
 
 **Map:**
 - `NMapScreen._mapPointDictionary` — coord-to-NMapPoint lookup for voting

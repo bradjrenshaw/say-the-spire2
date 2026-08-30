@@ -88,6 +88,50 @@ public class ProxyCreature : ProxyElement
 
     private CreatureView? GetView() => CreatureView.FromControl(Control);
 
+    /// <summary>
+    /// While a card is being aimed, only valid targets are focus-reachable
+    /// (the game restricts controller navigation to them), so only they
+    /// count toward "2 of 4" positions. Mirrors the game's own targeting
+    /// rules from NControllerCardPlay.SingleCreatureTargeting: hittable
+    /// opponents for AnyEnemy, hittable non-owner allies for AnyAlly.
+    /// </summary>
+    public override bool CountsForPosition
+    {
+        get
+        {
+            if (!IsVisible)
+                return false;
+            try
+            {
+                var card = Screens.CombatScreen.CurrentPlayedCard();
+                if (card == null)
+                    return true;
+                var owner = card.Owner?.Creature;
+                var creature = GetView()?.Entity;
+                if (owner == null || creature == null)
+                    return true;
+                return card.TargetType switch
+                {
+                    MegaCrit.Sts2.Core.Entities.Cards.TargetType.AnyEnemy =>
+                        creature.IsHittable
+                        && owner.CombatState is { } ownerCombat
+                        && System.Linq.Enumerable.Contains(ownerCombat.GetOpponentsOf(owner), creature),
+                    MegaCrit.Sts2.Core.Entities.Cards.TargetType.AnyAlly =>
+                        creature.IsHittable
+                        && !ReferenceEquals(creature, owner)
+                        && card.CombatState is { } cardCombat
+                        && System.Linq.Enumerable.Contains(cardCombat.PlayerCreatures, creature),
+                    _ => true,
+                };
+            }
+            catch (System.Exception e)
+            {
+                MegaCrit.Sts2.Core.Logging.Log.Info($"[AccessibilityMod] Target position check failed: {e.Message}");
+                return true;
+            }
+        }
+    }
+
     public override Message? GetLabel()
     {
         var view = GetView();

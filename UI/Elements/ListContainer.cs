@@ -10,7 +10,7 @@ public class ListContainer : Container
         int total = 0;
         for (int i = 0; i < Children.Count; i++)
         {
-            if (!Children[i].IsVisible) continue;
+            if (!Children[i].CountsForPosition) continue;
             total++;
             if (Children[i] == child)
                 position = total;
