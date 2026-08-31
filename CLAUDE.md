@@ -13,17 +13,32 @@ This builds the DLL, creates the PCK, and copies everything to the game's `mods/
 
 **Verifying builds:** Warnings print asynchronously after the initial output. Always use `dotnet build 2>&1 | tail -5` to capture the final summary with the warning/error count. Never use `grep` to check for warnings — it may miss them.
 
+**Building on macOS:** `RuntimeIdentifier` and `GameDir`/`GameDataDir`/`ModsDir` all default to their Windows values, but each is guarded with `Condition="'$(Prop)' == ''"` in the csproj so a local, gitignored `Directory.Build.props` in the repo root can override them without touching the shared project file. To build and deploy against a native macOS Slay the Spire 2 install:
+```xml
+<Project>
+  <PropertyGroup>
+    <GameDir>/path/to/Steam/steamapps/common/Slay the Spire 2</GameDir>
+    <GameDataDir>$(GameDir)/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64</GameDataDir>
+    <ModsDir>$(GameDir)/SlayTheSpire2.app/Contents/MacOS/mods</ModsDir>
+    <RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+</Project>
+```
+`ModsDir` must resolve *inside* the bundle, not next to it. Godot's `OS.GetExecutablePath()` returns the Mach-O binary's own path (`Contents/MacOS/`), and the game's `ModManager` derives the mods directory from that (confirmed by decompiling `ModManager.Initialize`) — not from the folder the `.app` sits in. Getting this wrong deploys the mod files successfully but the game never finds them, with no error either way.
+
+On macOS, speech routes through Prism's AVSpeech backend (`Speech/PrismHandler.cs`) instead of SAPI, and the Win32 AccessKit-disabling code (`Patches/DisableBuiltinAccessibility.cs`) safely no-ops (catches and logs rather than crashing) since there's no `user32.dll` to call into. Aside from that, the mod's behavior is identical — same Harmony patches, same focus/event/UI systems. This build path has been verified end-to-end and played through extensively on native macOS (Apple Silicon).
+
 ## Check Logs
-Game logs are at: `%APPDATA%/SlayTheSpire2/logs/godot.log`
+Game logs are at: `%APPDATA%/SlayTheSpire2/logs/godot.log` (Windows) or `~/Library/Application Support/SlayTheSpire2/logs/godot.log` (macOS).
 All mod log lines are prefixed with `[AccessibilityMod]`.
 
 ## Architecture
 
 ### Game Details
 - **Engine**: Godot 4.5.1 custom build, C#/.NET 9.0
-- **Game DLLs**: `C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/data_sts2_windows_x86_64/` (sts2.dll, GodotSharp.dll, 0Harmony.dll)
-- **Mods dir**: `C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/mods/`
-- **Settings**: `%APPDATA%/SlayTheSpire2/steam/76561198124893519/settings.save` (JSON, `mod_settings.mods_enabled` must be true)
+- **Game DLLs**: `C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/data_sts2_windows_x86_64/` (sts2.dll, GodotSharp.dll, 0Harmony.dll). On macOS: `<GameDir>/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64/` — see "Building on macOS" above.
+- **Mods dir**: `C:/Program Files (x86)/Steam/steamapps/common/Slay the Spire 2/mods/`. On macOS: `<GameDir>/SlayTheSpire2.app/Contents/MacOS/mods/`, *not* a `mods/` folder next to the `.app`.
+- **Settings**: `%APPDATA%/SlayTheSpire2/steam/76561198124893519/settings.save` (JSON, `mod_settings.mods_enabled` must be true). On macOS: `~/Library/Application Support/SlayTheSpire2/steam/<id>/settings.save`.
 - **Decompiled game source (stable)**: `../sts2_decompiled_stable/` (~3304 .cs files)
 - **Decompiled game source (beta)**: `../sts2_decompiled_beta/` (~3299 .cs files)
 

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>CA1416</NoWarn>
@@ -12,9 +12,9 @@
 
   <PropertyGroup>
     <ModName>SayTheSpire2</ModName>
-    <GameDir>C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2</GameDir>
-    <GameDataDir>$(GameDir)\data_sts2_windows_x86_64</GameDataDir>
-    <ModsDir>$(GameDir)\mods</ModsDir>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2</GameDir>
+    <GameDataDir Condition="'$(GameDataDir)' == ''">$(GameDir)\data_sts2_windows_x86_64</GameDataDir>
+    <ModsDir Condition="'$(ModsDir)' == ''">$(GameDir)\mods</ModsDir>
     <TolkBuildDir>$(MSBuildProjectDirectory)\tolk build</TolkBuildDir>
   </PropertyGroup>
 
@@ -42,8 +42,24 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PrismNativeDir>$(NuGetPackageRoot)prismatoid\0.3.0\runtimes\win-x64\native</PrismNativeDir>
+    <!-- $(RuntimeIdentifier) defaults to win-x64, so this resolves the same
+         path as before on Windows. Other RIDs (e.g. osx-arm64) pick up
+         prismatoid's native binary for that platform automatically. -->
+    <PrismNativeDir>$(NuGetPackageRoot)prismatoid\0.3.0\runtimes\$(RuntimeIdentifier)\native</PrismNativeDir>
   </PropertyGroup>
+
+  <!-- All files prismatoid ships for the active RID (the main library plus
+       any bundled dependencies, e.g. the libtolk*.dylib files backing one of
+       Prism's macOS backends). Copied as a set since we don't know which
+       companion files a given backend needs at dlopen time. tolk.dll is
+       excluded on Windows: prismatoid bundles its own copy, but we already
+       deploy a specific pinned Tolk.dll (plus its NVDA/JAWS companion DLLs)
+       from $(TolkBuildDir) below for the separate Tolk fallback handler —
+       shipping both risks a version mismatch on a case-insensitive
+       filesystem where they'd overwrite each other. -->
+  <ItemGroup>
+    <PrismNativeFile Include="$(PrismNativeDir)\*" Exclude="$(PrismNativeDir)\tolk.dll" Condition="Exists('$(PrismNativeDir)')" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="TolkDotNet">
@@ -196,7 +212,13 @@ public class CreatePck : Task
     <Copy SourceFiles="$(MSBuildProjectDirectory)\$(ModName).json" DestinationFolder="$(ModsDir)" />
     <Copy SourceFiles="$(OutputPath)$(ModName).dll" DestinationFolder="$(ModsDir)" />
     <Copy SourceFiles="$(OutputPath)System.Speech.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(OutputPath)System.Speech.dll')" />
-    <Copy SourceFiles="$(PrismNativeDir)\prism.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(PrismNativeDir)\prism.dll')" />
+    <!-- Copied to both GameDir (matches Windows' native DLL search next to
+         the .exe) and ModsDir (matches .NET's own "beside the calling
+         assembly" native probing, which is what actually matters on macOS
+         where GameDir is just the folder next to the .app, not the process's
+         own directory inside Contents/MacOS). -->
+    <Copy SourceFiles="@(PrismNativeFile)" DestinationFolder="$(GameDir)" Condition="'@(PrismNativeFile)' != ''" />
+    <Copy SourceFiles="@(PrismNativeFile)" DestinationFolder="$(ModsDir)" Condition="'@(PrismNativeFile)' != ''" />
     <Copy SourceFiles="$(TolkBuildDir)\TolkDotNet.dll" DestinationFolder="$(ModsDir)" Condition="Exists('$(TolkBuildDir)\TolkDotNet.dll')" />
     <Copy SourceFiles="$(TolkBuildDir)\x64\Tolk.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\Tolk.dll')" />
     <Copy SourceFiles="$(TolkBuildDir)\x64\nvdaControllerClient64.dll" DestinationFolder="$(GameDir)" Condition="Exists('$(TolkBuildDir)\x64\nvdaControllerClient64.dll')" />
