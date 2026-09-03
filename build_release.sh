@@ -27,22 +27,31 @@ if [ ! -f "$MODMANAGER_DIR/Cargo.toml" ]; then
     git -C "$SCRIPT_DIR" submodule update --init loadstone
 fi
 
+# Everything the GitHub release needs lands in release/: the notes file at
+# its top level and every uploadable asset in release/assets/, so publishing
+# is one command (see the summary below).
+RELEASE_DIR="$SCRIPT_DIR/release"
+ASSETS_DIR="$RELEASE_DIR/assets"
+rm -rf "$RELEASE_DIR"
+mkdir -p "$ASSETS_DIR"
+cp changes-latest.md "$RELEASE_DIR/"
+cp SayTheSpire2.zip "$ASSETS_DIR/"
+
 echo "=== Building Loadstone standalone installer (v$VERSION) ==="
-cmake -S "$MODMANAGER_DIR/app" -B "$MODMANAGER_DIR/build" -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="$WX_DIR" \
-    -DLOADSTONE_EMBED_PROFILE="$SCRIPT_DIR/installer/loadstone-profile.json" >/dev/null
+cmake -S "$MODMANAGER_DIR/app" -B "$MODMANAGER_DIR/build" -G Ninja     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_PREFIX_PATH="$WX_DIR"     -DLOADSTONE_EMBED_PROFILE="$SCRIPT_DIR/installer/loadstone-profile.json" >/dev/null
 cmake --build "$MODMANAGER_DIR/build" >/dev/null
-cp "$MODMANAGER_DIR/build/loadstone-manager.exe" "$SCRIPT_DIR/SayTheSpire2Installer.exe"
+cp "$MODMANAGER_DIR/build/loadstone-manager.exe" "$ASSETS_DIR/SayTheSpire2Installer.exe"
+
+# Git Bash's GNU /usr/bin/link shadows MSVC's link.exe, which breaks cargo
+# build scripts; put the MSVC bin directory (where cl.exe lives) first.
+if command -v cl.exe >/dev/null 2>&1; then
+    PATH="$(dirname "$(command -v cl.exe)"):$PATH"
+fi
 
 echo "=== Building loadstone-release.json ==="
 (cd "$MODMANAGER_DIR" && cargo build --release -p loadstone-cli >/dev/null)
-"$MODMANAGER_DIR/target/release/loadstone.exe" package --version "v$VERSION" \
-    --artifact SayTheSpire2.zip \
-    --installer SayTheSpire2Installer.exe \
-    --notes-file changes-latest.md
+"$MODMANAGER_DIR/target/release/loadstone.exe" package --version "v$VERSION"     --artifact "$ASSETS_DIR/SayTheSpire2.zip"     --installer "$ASSETS_DIR/SayTheSpire2Installer.exe"     --notes-file "$RELEASE_DIR/changes-latest.md"     --out "$ASSETS_DIR/loadstone-release.json"
 
 echo "=== Done ==="
-echo "Release zip:      SayTheSpire2.zip"
-echo "Installer:        SayTheSpire2Installer.exe"
-echo "Release manifest: loadstone-release.json (attach both + this to the GitHub release)"
+echo "Release folder: release/ (notes: changes-latest.md, assets: assets/)"
+echo "Publish with:   gh release create v$VERSION --title V$VERSION --notes-file release/changes-latest.md release/assets/*"

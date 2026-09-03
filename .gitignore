@@ -26,3 +26,4 @@ game_locale/
 
 # Output of scripts/download_stats.py (local-only report)
 download_stats.html
+release/
