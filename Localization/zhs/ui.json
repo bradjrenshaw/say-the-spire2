@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "已禁用",
   "RELIC.UNKNOWN": "未知遗物",
   "POTION.UNKNOWN": "未知药水",
+  "POTION.THROW_BLOCKED_BY_SHOP": "你必须先关闭商店菜单，才能投掷这瓶药水。",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "剩余 {count} 次占卜",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "大型占卜，3x3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "小型占卜，1x1",

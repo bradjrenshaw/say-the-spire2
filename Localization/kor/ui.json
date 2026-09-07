@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "비활성화됨",
   "RELIC.UNKNOWN": "알 수 없는 유물",
   "POTION.UNKNOWN": "알 수 없는 포션",
+  "POTION.THROW_BLOCKED_BY_SHOP": "이 물약을 던지려면 먼저 상점 메뉴를 닫아야 합니다.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "점술 {count}회 남음",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "큰 점술, 3x3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "작은 점술, 1x1",

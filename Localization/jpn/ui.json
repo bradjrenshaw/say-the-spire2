@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "無効",
   "RELIC.UNKNOWN": "不明なレリック",
   "POTION.UNKNOWN": "不明なポーション",
+  "POTION.THROW_BLOCKED_BY_SHOP": "このポーションを投げるには、先にショップのメニューを閉じる必要があります。",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "占い残り {count} 回",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "大占い、3x3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "小占い、1x1",

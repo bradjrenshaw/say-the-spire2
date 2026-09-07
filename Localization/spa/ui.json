@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "Desactivada",
   "RELIC.UNKNOWN": "Reliquia desconocida",
   "POTION.UNKNOWN": "Poción desconocida",
+  "POTION.THROW_BLOCKED_BY_SHOP": "Debes cerrar el menú de la tienda antes de poder lanzar esta poción.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "{count} adivinaciones restantes",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "Adivinación grande, 3 por 3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "Adivinación pequeña, 1 por 1",

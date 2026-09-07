@@ -101,6 +101,7 @@ public static class ModEntry
         RunLifecycleHooks.Initialize(_harmony);
         CombatNavigationHooks.Initialize(_harmony);
         PauseButtonHooks.Initialize(_harmony);
+        PotionPopupHooks.Initialize(_harmony);
         TopBarReturnHooks.Initialize();
         EventHooks.Initialize(_harmony);
         VotingHooks.Initialize(_harmony);

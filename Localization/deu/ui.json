@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "Deaktiviert",
   "RELIC.UNKNOWN": "Unbekanntes Relikt",
   "POTION.UNKNOWN": "Unbekannter Trank",
+  "POTION.THROW_BLOCKED_BY_SHOP": "Du musst das Laden-Menü schließen, bevor du diesen Trank werfen kannst.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "{count} Wahrsagungen verbleibend",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "Große Wahrsagung, 3 mal 3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "Kleine Wahrsagung, 1 mal 1",

@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "Отключена",
   "RELIC.UNKNOWN": "Неизвестная реликвия",
   "POTION.UNKNOWN": "Неизвестное зелье",
+  "POTION.THROW_BLOCKED_BY_SHOP": "Чтобы бросить это зелье, сначала закройте меню магазина.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "Гаданий осталось: {count}",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "Большое гадание, 3 на 3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "Малое гадание, 1 на 1",

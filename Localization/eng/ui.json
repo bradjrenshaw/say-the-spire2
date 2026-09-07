@@ -430,6 +430,7 @@
   "RELIC.DISABLED": "Disabled",
   "RELIC.UNKNOWN": "Unknown relic",
   "POTION.UNKNOWN": "Unknown potion",
+  "POTION.THROW_BLOCKED_BY_SHOP": "You must close the shop menu before you can throw this potion.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "{count} divinations remaining",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "Big Divination, 3 by 3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "Small Divination, 1 by 1",

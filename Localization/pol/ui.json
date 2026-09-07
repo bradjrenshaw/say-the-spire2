@@ -429,6 +429,7 @@
   "RELIC.DISABLED": "Wyłączony",
   "RELIC.UNKNOWN": "Nieznany artefakt",
   "POTION.UNKNOWN": "Nieznana mikstura",
+  "POTION.THROW_BLOCKED_BY_SHOP": "Aby rzucić tę miksturę, najpierw zamknij menu sklepu.",
   "CRYSTAL_SPHERE.DIVINATIONS_REMAINING": "{count} wróżb pozostało",
   "CRYSTAL_SPHERE.BIG_DIVINATION": "Duża wróżba, 3 na 3",
   "CRYSTAL_SPHERE.SMALL_DIVINATION": "Mała wróżba, 1 na 1",
