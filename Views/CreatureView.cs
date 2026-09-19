@@ -82,6 +82,31 @@ public class CreatureView
     public Player? Player => Entity.Player;
     public MonsterModel? Monster => Entity.Monster;
 
+    /// <summary>
+    /// The localized title of the damage-over-time power that will kill this
+    /// creature before its next turn, or null when none is lethal. Mirrors
+    /// the game's recolored health bar (NHealthBar.IsPoisonLethal /
+    /// IsDoomLethal): poison is lethal when its next-turn damage reaches
+    /// current HP, doom when its amount reaches what poison leaves behind.
+    /// Poison takes precedence, matching the bar's overlay order.
+    /// </summary>
+    public string? LethalDotTitle
+    {
+        get
+        {
+            var poison = Entity.GetPower<PoisonPower>();
+            var poisonDamage = poison?.CalculateTotalDamageNextTurn() ?? 0;
+            if (poison != null && poisonDamage > 0 && poisonDamage >= CurrentHp)
+                return poison.Title.GetFormattedText();
+
+            var doom = Entity.GetPower<DoomPower>();
+            if (doom != null && doom.Amount > 0 && doom.Amount >= CurrentHp - poisonDamage)
+                return doom.Title.GetFormattedText();
+
+            return null;
+        }
+    }
+
     public IReadOnlyList<Creature> SurroundedFacingTargets
     {
         get

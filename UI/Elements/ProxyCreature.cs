@@ -12,6 +12,7 @@ namespace SayTheSpire2.UI.Elements;
 
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
+    typeof(DyingAnnouncement),
     typeof(OwnerAnnouncement),
     typeof(TypeAnnouncement),
     typeof(HpAnnouncement),
@@ -35,6 +36,9 @@ public class ProxyCreature : ProxyElement
         }
 
         yield return new LabelAnnouncement(view.Name);
+        var lethalDot = view.LethalDotTitle;
+        if (lethalDot != null)
+            yield return new DyingAnnouncement(lethalDot);
         var petOwner = view.OtherPlayerPetOwner;
         if (petOwner != null)
             yield return new OwnerAnnouncement(MultiplayerHelper.GetPlayerName(petOwner));
