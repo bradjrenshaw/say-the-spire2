@@ -141,6 +141,10 @@ public static class ProxyFactory
         Node? current = control.GetParent();
         while (current != null)
         {
+            // The hand's empty-hand focus parking spot (see ProxyHandPlaceholder).
+            // Matched structurally — the container itself, not nodes inside it.
+            if (current is NPlayerHand hand && ReferenceEquals(control, hand.CardHolderContainer))
+                return new ProxyHandPlaceholder(control);
             if (current is NCardBundle)
                 return new ProxyCardBundle(control);
             if (current is NCardHolder)

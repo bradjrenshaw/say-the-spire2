@@ -56,6 +56,8 @@ public static class UIManager
     /// </summary>
     public static void Update()
     {
+        RunFocusWatchdog();
+
         if (!_dirty) return;
         _dirty = false;
 
@@ -135,6 +137,105 @@ public static class UIManager
             buffers.SetCurrentBuffer(currentBufferKey);
 
         element.Focus();
+    }
+
+    // --- Focus watchdog ----------------------------------------------------
+    // The game's focus bookkeeping has a one-way visibility trap: TryGrabFocus
+    // can set real Godot focus on a control that is not yet visible in tree
+    // (its deferred grab re-checks validity but not visibility), RefreshFocus
+    // then computes IsFocused = false, and becoming visible later never
+    // re-runs RefreshFocus — so the focus hooks miss the control entirely
+    // (map nodes at act start in multiplayer). Watch Godot's actual focus
+    // owner every frame and announce any control that gained focus without
+    // the normal hooks noticing. Armed once per owner change, so logical
+    // (control-less) navigation and deliberately unannounced owners don't
+    // retrigger it while focus sits still.
+    private static Control? _watchdogOwner;
+    private static bool _watchdogArmed;
+    private static int _watchdogSettledFrames;
+
+    private static void RunFocusWatchdog()
+    {
+        // Godot focus only drives navigation in focus-nav (controller) mode;
+        // in mouse mode announcements come from hover and the focus owner is
+        // frequently stale.
+        if (!Input.InputManager.IsFocusNavActive) return;
+
+        Control? owner;
+        try
+        {
+            owner = MegaCrit.Sts2.Core.Nodes.CommonUi.NControllerManager.Instance?.GetViewport()?.GuiGetFocusOwner();
+        }
+        catch (System.Exception e)
+        {
+            Log.Info($"[AccessibilityMod] Focus watchdog viewport read failed: {e.Message}");
+            return;
+        }
+
+        if (owner == null || !GodotObject.IsInstanceValid(owner))
+        {
+            _watchdogOwner = null;
+            _watchdogArmed = false;
+            return;
+        }
+
+        if (!ReferenceEquals(owner, _watchdogOwner))
+        {
+            // Focus moved: arm, and give the normal focus hooks a couple of
+            // frames to announce it themselves.
+            _watchdogOwner = owner;
+            _watchdogArmed = true;
+            _watchdogSettledFrames = 0;
+            return;
+        }
+
+        if (!_watchdogArmed) return;
+
+        // The normal path caught it (announced, or pending in this frame's
+        // dirty state) — stand down until focus moves again.
+        if (IsFocusAlreadyHandled(owner))
+        {
+            _watchdogArmed = false;
+            return;
+        }
+
+        // Respect the same veto the focus hooks honor.
+        if (Screens.ScreenManager.CurrentScreen?.ShouldSuppressFocusAnnouncement(owner) == true)
+        {
+            _watchdogArmed = false;
+            return;
+        }
+
+        if (++_watchdogSettledFrames < 2) return;
+
+        _watchdogArmed = false;
+        Log.Info($"[AccessibilityMod] Focus watchdog: {owner.GetType().Name} gained focus without a focus event, announcing.");
+        SetFocusedControl(owner);
+    }
+
+    /// <summary>
+    /// Whether the Godot focus owner is already covered by the announced or
+    /// pending focus state. The focus hooks deliberately announce a wrapper
+    /// node that differs from the node Godot actually focuses — NCreature's
+    /// OnFocus is wired to its child Hitbox, card holders and settings
+    /// sliders follow the same pattern — so a raw reference comparison would
+    /// treat the hitbox as a second, unannounced focus and read the same
+    /// element twice. Two controls represent the same focused element when
+    /// one contains the other.
+    /// </summary>
+    private static bool IsFocusAlreadyHandled(Control owner)
+    {
+        return RepresentsSameElement(owner, _currentControl)
+            || RepresentsSameElement(owner, _lastAnnouncedControl)
+            || RepresentsSameElement(owner, _currentElement?.Control)
+            || RepresentsSameElement(owner, _lastAnnouncedElement?.Control);
+    }
+
+    private static bool RepresentsSameElement(Control owner, Control? handled)
+    {
+        if (handled == null || !GodotObject.IsInstanceValid(handled)) return false;
+        if (ReferenceEquals(owner, handled)) return true;
+        return handled.IsAncestorOf(owner) || owner.IsAncestorOf(handled);
     }
 
     /// <summary>
