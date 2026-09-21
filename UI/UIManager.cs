@@ -209,8 +209,21 @@ public static class UIManager
         if (++_watchdogSettledFrames < 2) return;
 
         _watchdogArmed = false;
+
+        // Never introduce an element we could only describe by its internal
+        // node name. The game routinely parks Godot focus on anonymous layout
+        // controls ("Hitbox", "Loot", "CardHolderContainer") that were never
+        // user-facing elements and were silent before the watchdog existed;
+        // screen-registered and recognized controls still announce.
+        var element = ResolveElement(owner);
+        if (element is ProxyFallbackControl)
+        {
+            Log.Info($"[AccessibilityMod] Focus watchdog: ignoring anonymous control {owner.Name} ({owner.GetType().Name}).");
+            return;
+        }
+
         Log.Info($"[AccessibilityMod] Focus watchdog: {owner.GetType().Name} gained focus without a focus event, announcing.");
-        SetFocusedControl(owner);
+        SetFocusedControl(owner, element);
     }
 
     /// <summary>

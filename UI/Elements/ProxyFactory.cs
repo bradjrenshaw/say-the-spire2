@@ -130,10 +130,12 @@ public static class ProxyFactory
         if (control is NButton)
             return new ProxyButton(control);
 
-        // Fallback for any other focusable control — log so we notice missing proxy types
+        // Fallback for any other focusable control — log so we notice missing
+        // proxy types. The distinct type marks the element as anonymous so
+        // the focus watchdog won't announce it (see ProxyFallbackControl).
         MegaCrit.Sts2.Core.Logging.Log.Info(
             $"[AccessibilityMod] ProxyFactory fallback: {control.GetType().Name} ({control.Name}) resolved as generic ProxyButton");
-        return new ProxyButton(control);
+        return new ProxyFallbackControl(control);
     }
 
     private static ProxyElement? FindAncestor(Control control)
