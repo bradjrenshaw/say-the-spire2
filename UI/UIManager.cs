@@ -161,6 +161,17 @@ public static class UIManager
         // frequently stale.
         if (!Input.InputManager.IsFocusNavActive) return;
 
+        // During targeting mode the game (and our merchant-targeting hook)
+        // parks Godot focus on aim anchors as the cursor moves — merchant
+        // room props, creatures, whatever the arrow points at. That focus is
+        // an implementation detail of the targeting arrow, not navigation;
+        // targeting speech comes from the creature hooks and
+        // OverlayHooks.StartTargetingPostfix instead. Once targeting ends,
+        // the next owner change re-arms normally, so wherever focus finally
+        // lands still announces.
+        if (MegaCrit.Sts2.Core.Nodes.NRun.Instance?.GlobalUi?.TargetManager?.IsInSelection == true)
+            return;
+
         Control? owner;
         try
         {
