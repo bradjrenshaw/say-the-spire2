@@ -13,6 +13,12 @@ internal static class PrismNative
 {
     private const string Dll = "prism";
 
+    /// <summary>
+    /// Registry ID of Prism's AVSpeech backend (macOS). Matches the
+    /// PRISM_BACKEND_AV_SPEECH constant in Prism's native headers.
+    /// </summary>
+    public const ulong AvSpeechBackendId = 2946271790952897572UL;
+
     public enum PrismError : int
     {
         Ok = 0,
@@ -38,6 +44,14 @@ internal static class PrismNative
         SupportsOutput = 1UL << 5,
         SupportsIsSpeaking = 1UL << 6,
         SupportsStop = 1UL << 7,
+        SupportsSetRate = 1UL << 12,
+        SupportsGetRate = 1UL << 13,
+        SupportsRefreshVoices = 1UL << 16,
+        SupportsCountVoices = 1UL << 17,
+        SupportsGetVoiceName = 1UL << 18,
+        SupportsGetVoiceLanguage = 1UL << 19,
+        SupportsGetVoice = 1UL << 20,
+        SupportsSetVoice = 1UL << 21,
     }
 
     [DllImport(Dll, EntryPoint = "prism_init")]
@@ -93,6 +107,34 @@ internal static class PrismNative
 
     [DllImport(Dll, EntryPoint = "prism_backend_stop")]
     public static extern PrismError BackendStop(IntPtr backend);
+
+    [DllImport(Dll, EntryPoint = "prism_backend_set_rate")]
+    public static extern PrismError BackendSetRate(IntPtr backend, float rate);
+
+    [DllImport(Dll, EntryPoint = "prism_backend_refresh_voices")]
+    public static extern PrismError BackendRefreshVoices(IntPtr backend);
+
+    [DllImport(Dll, EntryPoint = "prism_backend_count_voices")]
+    public static extern PrismError BackendCountVoices(IntPtr backend, out UIntPtr count);
+
+    [DllImport(Dll, EntryPoint = "prism_backend_get_voice_name")]
+    private static extern PrismError BackendGetVoiceNameRaw(IntPtr backend, UIntPtr voiceId, out IntPtr namePtr);
+
+    public static string? BackendGetVoiceName(IntPtr backend, UIntPtr voiceId) =>
+        BackendGetVoiceNameRaw(backend, voiceId, out var namePtr) == PrismError.Ok
+            ? Utf8FromPtr(namePtr)
+            : null;
+
+    [DllImport(Dll, EntryPoint = "prism_backend_get_voice_language")]
+    private static extern PrismError BackendGetVoiceLanguageRaw(IntPtr backend, UIntPtr voiceId, out IntPtr languagePtr);
+
+    public static string? BackendGetVoiceLanguage(IntPtr backend, UIntPtr voiceId) =>
+        BackendGetVoiceLanguageRaw(backend, voiceId, out var languagePtr) == PrismError.Ok
+            ? Utf8FromPtr(languagePtr)
+            : null;
+
+    [DllImport(Dll, EntryPoint = "prism_backend_set_voice")]
+    public static extern PrismError BackendSetVoice(IntPtr backend, UIntPtr voiceId);
 
     [DllImport(Dll, EntryPoint = "prism_error_string")]
     private static extern IntPtr ErrorStringRaw(PrismError err);

@@ -72,7 +72,7 @@ The mod only shows source toggles the game itself provides visual feedback for, 
 The speech category controls how the mod talks to you.
 
 - **Speech Handler** — picks the speech backend. Auto picks the first one that's working on your system. Prism is a unified abstraction that talks to NVDA, JAWS, SAPI, OneCore, etc. behind the scenes. SAPI uses Windows' built-in speech directly. Clipboard copies output to the clipboard instead of speaking it.
-- **Per-handler settings** — appear underneath. Prism has a Backend dropdown (which screen reader / TTS engine to pin it to). SAPI has Rate, Volume, and Voice.
+- **Per-handler settings** — appear underneath. Prism has a Backend dropdown (which screen reader / TTS engine to pin it to); on macOS, where Prism's AVSpeech backend provides direct TTS control, it also gets Rate and Voice (the Voice list includes each voice's language, since some systems have multiple same-named voices for different variants). SAPI has Rate, Volume, and Voice.
 
 ## Keybindings
 

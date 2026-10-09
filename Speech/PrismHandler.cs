@@ -21,6 +21,8 @@ public class PrismHandler : ISpeechHandler
     private PrismNative.BackendFeatures _backendFeatures;
     private CategorySetting? _settings;
     private ChoiceSetting? _backendSetting;
+    private IntSetting? _rateSetting;
+    private ChoiceSetting? _voiceSetting;
 
     public string Key => "prism";
     public string Label => "Prism";
@@ -32,6 +34,12 @@ public class PrismHandler : ISpeechHandler
         _settings = new CategorySetting(Key, Label);
 
         var choices = new List<Choice> { new Choice(AutoBackend, "Auto (Best Available)") };
+        var voiceChoices = new List<Choice>();
+        // Features of the AVSpeech backend specifically, used below to decide
+        // whether the Rate/Voice settings are worth showing at all. Left at
+        // 0 (and both settings skipped) on platforms/registries where
+        // AVSpeech never shows up, e.g. Windows.
+        var avSpeechFeatures = (PrismNative.BackendFeatures)0;
         // Enumerate the registry and keep only backends whose engine is
         // actually available on this machine. prism_backend_get_features may
         // be called pre-initialize; the SupportedAtRuntime bit is advisory
@@ -56,6 +64,18 @@ public class PrismHandler : ISpeechHandler
                         var features = (PrismNative.BackendFeatures)PrismNative.BackendGetFeatures(backend);
                         if ((features & PrismNative.BackendFeatures.SupportedAtRuntime) != 0)
                             choices.Add(new Choice(name, name));
+
+                        // AVSpeech (macOS) is the only backend where Prism
+                        // exposes direct voice/rate control the way SAPI does
+                        // on Windows — other backends (NVDA, JAWS, VoiceOver)
+                        // relay to a screen reader that owns those settings
+                        // itself. Probe its voice list now so it's ready
+                        // regardless of which backend ends up selected.
+                        if (id == PrismNative.AvSpeechBackendId)
+                        {
+                            avSpeechFeatures = features;
+                            voiceChoices.AddRange(ProbeVoices(backend, features));
+                        }
                     }
                     finally { PrismNative.BackendFree(backend); }
                 }
@@ -67,7 +87,71 @@ public class PrismHandler : ISpeechHandler
         _settings.Add(_backendSetting);
         _backendSetting.Changed += _ => RebindBackend();
 
+        // Only add these when AVSpeech is actually present and advertises the
+        // relevant capability — otherwise (e.g. on Windows, where AVSpeech
+        // never appears in the registry) they'd be dead controls: a Rate
+        // slider that never applies, or a Voice picker with nothing in it.
+        if ((avSpeechFeatures & PrismNative.BackendFeatures.SupportsSetRate) != 0)
+        {
+            _rateSetting = new IntSetting("rate", "Rate", defaultValue: 50, min: 0, max: 100, step: 5, localizationKey: "SPEECH.PRISM.RATE");
+            _settings.Add(_rateSetting);
+            _rateSetting.Changed += v =>
+            {
+                if (_backend != IntPtr.Zero && (_backendFeatures & PrismNative.BackendFeatures.SupportsSetRate) != 0)
+                    PrismNative.BackendSetRate(_backend, v / 100f);
+            };
+        }
+
+        if (voiceChoices.Count > 0)
+        {
+            _voiceSetting = new ChoiceSetting("voice", "Voice", voiceChoices[0].Key, voiceChoices, localizationKey: "SPEECH.PRISM.VOICE");
+            _settings.Add(_voiceSetting);
+            _voiceSetting.Changed += v =>
+            {
+                if (uint.TryParse(v, out var id))
+                    ApplyVoiceById(id);
+            };
+        }
+
         return _settings;
+    }
+
+    /// <summary>
+    /// Enumerates the voice list of a temporarily-probed backend (used at
+    /// settings-build time, before any backend is actually acquired for
+    /// speech). Requires initializing the probe backend since voice
+    /// enumeration on AVSpeech only works post-init.
+    ///
+    /// Choice.Key is the voice's numeric index (as a string), not its name —
+    /// AVSpeech voice lists can contain multiple voices sharing the same
+    /// display name (e.g. two "Reed" entries for different variants/regions),
+    /// so the name alone isn't a unique, stable selector. The language is
+    /// appended to the label so same-named entries stay distinguishable in
+    /// the menu.
+    /// </summary>
+    private static List<Choice> ProbeVoices(IntPtr backend, PrismNative.BackendFeatures features)
+    {
+        var result = new List<Choice>();
+        if ((features & PrismNative.BackendFeatures.SupportsGetVoiceName) == 0) return result;
+
+        var initErr = PrismNative.BackendInitialize(backend);
+        if (initErr != PrismNative.PrismError.Ok && initErr != PrismNative.PrismError.AlreadyInitialized)
+            return result;
+
+        if (PrismNative.BackendRefreshVoices(backend) != PrismNative.PrismError.Ok) return result;
+        if (PrismNative.BackendCountVoices(backend, out var count) != PrismNative.PrismError.Ok) return result;
+
+        var hasLanguage = (features & PrismNative.BackendFeatures.SupportsGetVoiceLanguage) != 0;
+        for (uint i = 0; i < count.ToUInt32(); i++)
+        {
+            var name = PrismNative.BackendGetVoiceName(backend, (UIntPtr)i);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            var language = hasLanguage ? PrismNative.BackendGetVoiceLanguage(backend, (UIntPtr)i) : null;
+            var label = string.IsNullOrEmpty(language) ? name : $"{name} ({language})";
+            result.Add(new Choice(i.ToString(), label));
+        }
+        return result;
     }
 
     public bool Detect()
@@ -252,7 +336,49 @@ public class PrismHandler : ISpeechHandler
         // don't change after init, so query once here and re-use.
         _backendFeatures = (PrismNative.BackendFeatures)PrismNative.BackendGetFeatures(_backend);
         Log.Info($"[AccessibilityMod] PrismHandler loaded. Backend: {_activeBackendName ?? "<unknown>"} (features=0x{(ulong)_backendFeatures:X})");
+        ApplySavedRateAndVoice();
         return true;
+    }
+
+    /// <summary>
+    /// Applies the saved Rate/Voice settings to the freshly-acquired backend.
+    /// No-ops for backends that don't advertise the relevant feature (e.g.
+    /// screen-reader relays like NVDA/JAWS, where rate/voice belong to the
+    /// screen reader's own settings, not ours) — in practice this only takes
+    /// effect on AVSpeech.
+    /// </summary>
+    private void ApplySavedRateAndVoice()
+    {
+        if ((_backendFeatures & PrismNative.BackendFeatures.SupportsSetRate) != 0 && _rateSetting != null)
+            PrismNative.BackendSetRate(_backend, _rateSetting.Get() / 100f);
+
+        if ((_backendFeatures & PrismNative.BackendFeatures.SupportsSetVoice) != 0 && _voiceSetting != null)
+        {
+            if (uint.TryParse(_voiceSetting.Get(), out var id))
+                ApplyVoiceById(id);
+        }
+    }
+
+    /// <summary>
+    /// Applies a voice by its numeric index, as returned by the backend's
+    /// own voice list (see ProbeVoices). Requires a fresh RefreshVoices call
+    /// on this backend instance — the probe backend used to build the
+    /// settings menu is a separate handle, so its list isn't shared here.
+    /// </summary>
+    private void ApplyVoiceById(uint id)
+    {
+        if (_backend == IntPtr.Zero) return;
+        if ((_backendFeatures & PrismNative.BackendFeatures.SupportsSetVoice) == 0) return;
+
+        PrismNative.BackendRefreshVoices(_backend);
+        if (PrismNative.BackendCountVoices(_backend, out var count) != PrismNative.PrismError.Ok) return;
+
+        if (id >= count.ToUInt32())
+        {
+            Log.Error($"[AccessibilityMod] PrismHandler: voice id {id} out of range (count={count}).");
+            return;
+        }
+        PrismNative.BackendSetVoice(_backend, (UIntPtr)id);
     }
 
     private void RebindBackend()
