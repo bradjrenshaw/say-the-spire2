@@ -47,7 +47,7 @@ fi
 
 echo "=== Building Loadstone standalone installer (v$VERSION) ==="
 cmake -S "$MODMANAGER_DIR/app" -B "$MODMANAGER_DIR/build" -G Ninja     -DCMAKE_BUILD_TYPE=Release     -DCMAKE_PREFIX_PATH="$WX_DIR"     -DLOADSTONE_EMBED_PROFILE="$SCRIPT_DIR/installer/loadstone-profile.json" >/dev/null
-cmake --build "$MODMANAGER_DIR/build" >/dev/null
+cmake --build "$MODMANAGER_DIR/build"
 cp "$MODMANAGER_DIR/build/loadstone-manager.exe" "$ASSETS_DIR/SayTheSpire2Installer.exe"
 
 echo "=== Building loadstone-release.json ==="
