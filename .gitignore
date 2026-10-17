@@ -1,5 +1,6 @@
 bin/
 obj/
+Directory.Build.props
 *.user
 *.suo
 .vs/
