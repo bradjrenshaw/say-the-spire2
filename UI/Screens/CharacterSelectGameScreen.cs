@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
 using Godot;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
-using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Platform;
 using SayTheSpire2.Buffers;
@@ -16,29 +18,58 @@ using SayTheSpire2.UI.Elements;
 
 namespace SayTheSpire2.UI.Screens;
 
+/// <summary>
+/// Character select lobby. Wraps the game's NCharacterSelectScreen and, on
+/// the November beta, NBlitzScreen — a near-copy of it (same character
+/// buttons, ascension panel and lobby callbacks) with a mode info button
+/// added. The screen is held as a Control and its lobby read by reflection
+/// because NBlitzScreen doesn't exist on stable.
+/// </summary>
 public class CharacterSelectGameScreen : GameScreen
 {
+    public const string BlitzScreenTypeName = "MegaCrit.Sts2.Core.Nodes.Screens.Blitz.NBlitzScreen";
+
     public static CharacterSelectGameScreen? Current { get; private set; }
 
-    private readonly NCharacterSelectScreen _screen;
+    private readonly Control _screen;
+    private readonly System.Reflection.PropertyInfo _lobbyProperty;
+    // main_menu_ui key prefix of the game mode this lobby is for ("BLITZ"),
+    // or null for the standard character select.
+    private readonly string? _modeKey;
     private int _lastAscension = -1;
     private Control? _lastFocusedButton;
     private bool _isMultiplayer;
     private bool _lastLocalReady;
 
-    public override Message? ScreenName => Message.Localized("ui", "SCREENS.CHARACTER_SELECT");
+    private StartRunLobby? Lobby => _lobbyProperty.GetValue(_screen) as StartRunLobby;
+
+    // Mode lobbies are named as the mode select button names them.
+    public override Message? ScreenName => _modeKey != null
+        ? Message.Raw(new LocString("main_menu_ui", _modeKey + ".title").GetFormattedText())
+        : Message.Localized("ui", "SCREENS.CHARACTER_SELECT");
     public override System.Collections.Generic.IEnumerable<string> AlwaysEnabledBuffers =>
         _isMultiplayer ? new[] { "lobby" } : System.Array.Empty<string>();
 
-    public override System.Collections.Generic.List<HelpMessage> GetHelpMessages() => new()
+    public override System.Collections.Generic.List<HelpMessage> GetHelpMessages()
     {
-        new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.DECREASE_ASCENSION", "Decrease Ascension"), "mega_view_deck_and_tab_left"),
-        new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.INCREASE_ASCENSION", "Increase Ascension"), "mega_view_exhaust_pile_and_tab_right"),
-    };
+        var messages = new System.Collections.Generic.List<HelpMessage>
+        {
+            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.DECREASE_ASCENSION", "Decrease Ascension"), "mega_view_deck_and_tab_left"),
+            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.INCREASE_ASCENSION", "Increase Ascension"), "mega_view_exhaust_pile_and_tab_right"),
+        };
+        // The mode's info button is on the game's confirm action, which our
+        // Accept injects.
+        if (_modeKey != null)
+            messages.Add(new ControlHelpMessage(
+                LocalizationManager.GetOrDefault("ui", "HELP.MODE_INFO", "Mode Info"), "ui_accept"));
+        return messages;
+    }
 
-    public CharacterSelectGameScreen(NCharacterSelectScreen screen)
+    public CharacterSelectGameScreen(Control screen)
     {
         _screen = screen;
+        _lobbyProperty = AccessTools.Property(screen.GetType(), "Lobby")!;
+        _modeKey = screen.GetType().FullName == BlitzScreenTypeName ? "BLITZ" : null;
     }
 
     public override void OnPush()
@@ -48,7 +79,7 @@ public class CharacterSelectGameScreen : GameScreen
 
         try
         {
-            var lobby = _screen.Lobby;
+            var lobby = Lobby;
             _isMultiplayer = lobby?.NetService.Type.IsMultiplayer() == true;
 
             if (_isMultiplayer)
@@ -101,8 +132,8 @@ public class CharacterSelectGameScreen : GameScreen
             else if (current != _lastAscension)
             {
                 _lastAscension = current;
-                var title = AscensionHelper.GetTitle(current).GetFormattedText();
-                var description = AscensionHelper.GetDescription(current).GetFormattedText();
+                var title = AscensionText.Title(current, panel);
+                var description = AscensionText.Description(current, panel);
                 SpeechManager.Output(Message.Localized("ui", "SPEECH.ASCENSION_CHANGED", new { value = current, title, description }));
             }
         }
@@ -113,7 +144,7 @@ public class CharacterSelectGameScreen : GameScreen
         {
             try
             {
-                var lobby = _screen.Lobby;
+                var lobby = Lobby;
                 if (lobby == null) return;
 
                 var localReady = Views.LobbyPlayerView.LocalPlayerOf(lobby)?.IsReady == true;
@@ -132,7 +163,7 @@ public class CharacterSelectGameScreen : GameScreen
 
     // Multiplayer lobby callbacks (called from ScreenHooks postfixes)
 
-    public void OnLobbyPlayerConnected(NCharacterSelectScreen screen, Views.LobbyPlayerView player)
+    public void OnLobbyPlayerConnected(Views.LobbyPlayerView player)
     {
         if (!_isMultiplayer) return;
         var name = GetPlayerName(player.Id);
@@ -140,13 +171,13 @@ public class CharacterSelectGameScreen : GameScreen
         UpdateLobbyBuffer();
     }
 
-    public void OnLobbyPlayerChanged(NCharacterSelectScreen screen, Views.LobbyPlayerView player)
+    public void OnLobbyPlayerChanged(Views.LobbyPlayerView player)
     {
         if (!_isMultiplayer) return;
         try
         {
             // Skip local player changes — handled by polling
-            if (player.Id == Views.LobbyPlayerView.LocalPlayerOf(screen.Lobby)?.Id) return;
+            if (player.Id == Views.LobbyPlayerView.LocalPlayerOf(Lobby)?.Id) return;
         }
         catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Lobby local player check failed: {e.Message}"); }
 
@@ -159,7 +190,7 @@ public class CharacterSelectGameScreen : GameScreen
         UpdateLobbyBuffer();
     }
 
-    public void OnLobbyPlayerDisconnected(NCharacterSelectScreen screen, Views.LobbyPlayerView player)
+    public void OnLobbyPlayerDisconnected(Views.LobbyPlayerView player)
     {
         if (!_isMultiplayer) return;
         var name = GetPlayerName(player.Id);
@@ -167,7 +198,7 @@ public class CharacterSelectGameScreen : GameScreen
         UpdateLobbyBuffer();
     }
 
-    public void OnLobbyLocalDisconnected(NCharacterSelectScreen screen, NetErrorInfo info)
+    public void OnLobbyLocalDisconnected(NetErrorInfo info)
     {
         if (!_isMultiplayer) return;
         SpeechManager.Output(Message.Localized("ui", "SPEECH.DISCONNECTED"));
@@ -177,7 +208,7 @@ public class CharacterSelectGameScreen : GameScreen
     {
         try
         {
-            return MultiplayerHelper.GetPlayerName(playerId, _screen.Lobby?.NetService.Platform);
+            return MultiplayerHelper.GetPlayerName(playerId, Lobby?.NetService.Platform);
         }
         catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Player name lookup failed: {e.Message}"); }
         return $"Player {playerId}";

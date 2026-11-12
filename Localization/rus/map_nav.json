@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "Древний",
   "STATE.TRAVELABLE": "достижимо",
   "STATE.TRAVELED": "пройдено",
+  "STATE.CURRENT": "текущее местоположение",
   "STATE.UNTRAVELABLE": "не добраться",
   "NAV.CHOICE": "развилка",
   "NAV.PATH_ITEM": "{type}",

@@ -244,8 +244,8 @@ public class CustomRunLoadGameScreen : GameScreen
             return;
 
         _lastAscension = current;
-        var title = AscensionHelper.GetTitle(current).GetFormattedText();
-        var description = AscensionHelper.GetDescription(current).GetFormattedText();
+        var title = AscensionText.Title(current, _ascensionPanel);
+        var description = AscensionText.Description(current, _ascensionPanel);
         SpeechManager.Output(Message.Raw($"{Ui("CUSTOM_RUN.ASCENSION", new { value = current })}: {title}. {description}"));
         _stateToken = null;
     }
@@ -406,8 +406,8 @@ public class CustomRunLoadGameScreen : GameScreen
             return null;
 
         var value = _ascensionPanel.Ascension;
-        var title = AscensionHelper.GetTitle(value).GetFormattedText();
-        var description = AscensionHelper.GetDescription(value).GetFormattedText();
+        var title = AscensionText.Title(value, _ascensionPanel);
+        var description = AscensionText.Description(value, _ascensionPanel);
         return string.IsNullOrWhiteSpace(description)
             ? Message.Raw(title)
             : Message.Join(". ", Message.Raw(title), Message.Raw(description));

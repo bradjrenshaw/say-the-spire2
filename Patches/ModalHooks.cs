@@ -51,6 +51,21 @@ public static class ModalHooks
         }
         if (toggleLeft != null || toggleRight != null)
             Log.Info("[AccessibilityMod] NCombatRulesFtue page turn hooks patched.");
+
+        // Beta-only: the Blitz mode info popup (shown on first opening the
+        // Blitz lobby and from its info button) is added as a child of the
+        // lobby screen rather than through NModalContainer, so it is hooked
+        // at _Ready. Absent on stable; resolved by name and skipped.
+        if (AccessTools.TypeByName(ModalScreen.BlitzDisclaimerTypeName) is { } blitzDisclaimer)
+            HarmonyHelper.PatchIfFound(harmony, blitzDisclaimer, "_Ready",
+                typeof(ModalHooks), nameof(DisclaimerReadyPostfix), "NBlitzInfoDisclaimer._Ready");
+    }
+
+    // Same path as a modal: wait a frame (so the lobby screen it opens over
+    // is pushed first), read its header and description, push a ModalScreen.
+    public static void DisclaimerReadyPostfix(Node __instance)
+    {
+        AddPostfix(__instance);
     }
 
     public static void AddPostfix(Node modalToCreate)

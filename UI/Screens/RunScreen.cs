@@ -147,6 +147,14 @@ public class RunScreen : Screen
     {
         var player = GetLocalPlayer();
         if (player == null) return;
+        // Blitz has no gold: the game hides it everywhere (top bar, saved-run
+        // summaries, score), so say so rather than read a number that means
+        // nothing there.
+        if (SayTheSpire2.Map.BlitzRun.IsBlitz(player.RunState))
+        {
+            SpeechManager.Output(Message.Localized("ui", "RESOURCE.NO_GOLD_IN_MODE"));
+            return;
+        }
         UI.Announcements.HotkeyAnnouncementRegistry.Announce(
             "announce_gold", new UI.Announcements.GoldAnnouncement(player.Gold));
     }

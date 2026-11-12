@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "Starożytny",
   "STATE.TRAVELABLE": "dostępne",
   "STATE.TRAVELED": "odwiedzone",
+  "STATE.CURRENT": "obecna pozycja",
   "STATE.UNTRAVELABLE": "niedostępne",
   "NAV.CHOICE": "wybór",
   "NAV.PATH_ITEM": "{type}",

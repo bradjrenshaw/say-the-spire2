@@ -11,6 +11,8 @@ namespace SayTheSpire2.UI.Screens;
 
 public class ModalScreen : Screen
 {
+    public const string BlitzDisclaimerTypeName = "MegaCrit.Sts2.Core.Nodes.Screens.Blitz.NBlitzInfoDisclaimer";
+
     public static ModalScreen? Current { get; private set; }
 
     private readonly Node _modal;
@@ -41,6 +43,16 @@ public class ModalScreen : Screen
                 new ControlHelpMessage(
                     LocalizationManager.GetOrDefault("ui", "HELP.NEXT_PAGE", "Next Page"),
                     "ui_right", exclusive: true),
+            };
+        }
+
+        // The mode info popup has a single button on the game's confirm
+        // action (our Accept), not select, and nothing to cancel.
+        if (_modal.GetType().FullName == BlitzDisclaimerTypeName)
+        {
+            return new()
+            {
+                new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.CONFIRM", "Confirm"), "ui_accept", exclusive: true),
             };
         }
 

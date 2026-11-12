@@ -13,6 +13,10 @@ public class MapVoteEvent : GameEvent
         LocalVote,
         RemoteSkip,
         LocalSkip,
+        // Blitz has no map to vote on: pressing Proceed is a vote for the
+        // one next room, so it reads as being ready to move on.
+        RemoteProceed,
+        LocalProceed,
     }
 
     private readonly string _playerName;
@@ -44,6 +48,11 @@ public class MapVoteEvent : GameEvent
             player = _playerName
         }),
         VoteKind.LocalSkip => Message.Localized("ui", "EVENT.MAP_VOTE_SKIP_LOCAL"),
+        VoteKind.RemoteProceed => Message.Localized("ui", "SPEECH.PLAYER_READY_PROCEED", new
+        {
+            name = _playerName
+        }),
+        VoteKind.LocalProceed => Message.Localized("ui", "SPEECH.MARKED_READY"),
         _ => Message.Localized("ui", "EVENT.MAP_VOTE", new
         {
             player = _playerName,

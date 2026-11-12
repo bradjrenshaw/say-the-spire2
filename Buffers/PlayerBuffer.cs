@@ -100,7 +100,9 @@ public class PlayerBuffer : Buffer
         if (pcs != null)
             yield return new ResourcesAnnouncement(pcs);
 
-        yield return new GoldAnnouncement(player.Gold);
+        // Blitz has no gold; the game hides it everywhere in that mode.
+        if (!SayTheSpire2.Map.BlitzRun.IsBlitz(player.RunState))
+            yield return new GoldAnnouncement(player.Gold);
 
         if (pcs != null)
             yield return new PilesAnnouncement(

@@ -106,9 +106,12 @@ public static class CustomRunHooks
             ScreenManager.RemoveScreen(CustomRunLoadGameScreen.Current);
     }
 
-    public static void CustomRunLoadPlayerConnectedPostfix(ulong playerId)
+    // __0 is object: the argument is `ulong playerId` on stable and
+    // `LoadRunLobbyPlayer player` on the November beta, so it is matched by
+    // position (the names differ) and boxed; LobbyPlayerView.IdOf reads either.
+    public static void CustomRunLoadPlayerConnectedPostfix(object __0)
     {
-        CustomRunLoadGameScreen.Current?.OnPlayerConnected(playerId);
+        CustomRunLoadGameScreen.Current?.OnPlayerConnected(Views.LobbyPlayerView.IdOf(__0));
     }
 
     public static void CustomRunLoadPlayerReadyChangedPostfix(ulong playerId)

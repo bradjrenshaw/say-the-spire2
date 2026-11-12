@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "เทพโบราณ",
   "STATE.TRAVELABLE": "ไปได้",
   "STATE.TRAVELED": "ผ่านแล้ว",
+  "STATE.CURRENT": "ตำแหน่งปัจจุบัน",
   "STATE.UNTRAVELABLE": "ไปไม่ได้",
   "NAV.CHOICE": "ทางเลือก",
   "NAV.PATH_ITEM": "{type}",

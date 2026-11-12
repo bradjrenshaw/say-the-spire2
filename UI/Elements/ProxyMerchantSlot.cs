@@ -5,16 +5,19 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Shops;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
-// [AnnouncementOrder] used only for the card-removal fallback (no inner proxy).
+// [AnnouncementOrder] used for entries with no inner proxy: card removal and
+// the Blitz shop's offers (title + description, no price — they're free picks).
 // When wrapping a card/relic/potion the composer uses the inner's order via
 // AnnouncementOrderType below.
 [ElementSettingsKey("shop_item")]
 [AnnouncementOrder(
     typeof(LabelAnnouncement),
     typeof(TypeAnnouncement),
+    typeof(TooltipAnnouncement),
     typeof(PriceAnnouncement)
 )]
 public class ProxyMerchantSlot : ProxyElement
@@ -38,6 +41,16 @@ public class ProxyMerchantSlot : ProxyElement
                 yield break;
             }
             yield return new PriceAnnouncement(entry.Cost, canAfford: entry.EnoughGold);
+            yield break;
+        }
+
+        // Blitz offer: no inner proxy and no price. Used and disabled offers
+        // can't take focus, so there is no sold-out state to report.
+        if (BlitzMerchantEntryView.FromEntry(entry) is { } blitz)
+        {
+            yield return new LabelAnnouncement(Message.Raw(blitz.Title));
+            yield return new TypeAnnouncement("shop_item");
+            yield return new TooltipAnnouncement(Message.Raw(StripBbcode(blitz.Description)));
             yield break;
         }
 
@@ -102,9 +115,16 @@ public class ProxyMerchantSlot : ProxyElement
         var entry = GetEntry();
         if (entry is MerchantCardRemovalEntry)
             return Message.Localized("ui", "LABELS.CARD_REMOVAL");
+        if (BlitzMerchantEntryView.FromEntry(entry) is { } blitz)
+            return Message.Raw(blitz.Title);
 
         return Message.Raw(CleanNodeName(Control!.Name));
     }
+
+    public override Message? GetTooltip() =>
+        BlitzMerchantEntryView.FromEntry(GetEntry()) is { } blitz
+            ? Message.Raw(StripBbcode(blitz.Description))
+            : null;
 
     public override string? GetTypeKey()
     {
@@ -123,6 +143,9 @@ public class ProxyMerchantSlot : ProxyElement
         if (entry is MerchantCardRemovalEntry removalEntry)
             return HandleRemovalBuffers(buffers, removalEntry);
 
+        if (BlitzMerchantEntryView.FromEntry(entry) is { } blitz)
+            return HandleBlitzBuffers(buffers, blitz);
+
         var inner = GetInnerProxy();
         if (inner == null) return base.HandleBuffers(buffers);
 
@@ -140,6 +163,24 @@ public class ProxyMerchantSlot : ProxyElement
         }
 
         return result;
+    }
+
+    private static string? HandleBlitzBuffers(BufferManager buffers, BlitzMerchantEntryView blitz)
+    {
+        var uiBuffer = buffers.GetBuffer("ui");
+        if (uiBuffer != null)
+        {
+            uiBuffer.Clear();
+            uiBuffer.Add(blitz.Title);
+            uiBuffer.Add(StripBbcode(blitz.Description));
+            // The first tip repeats the title and description above; the rest
+            // explain what the offer references (e.g. its enchantment).
+            BufferAnnouncementComposer.Compose(uiBuffer,
+                new[] { new HoverTipsAnnouncement(blitz.HoverTips, skipFirst: true) });
+            buffers.EnableBuffer("ui", true);
+        }
+
+        return "ui";
     }
 
     private string? HandleRemovalBuffers(BufferManager buffers, MerchantCardRemovalEntry removalEntry)

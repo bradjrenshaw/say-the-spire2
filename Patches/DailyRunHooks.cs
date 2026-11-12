@@ -109,9 +109,12 @@ public static class DailyRunHooks
             ScreenManager.RemoveScreen(DailyRunLoadGameScreen.Current);
     }
 
-    public static void DailyRunLoadPlayerConnectedPostfix(ulong playerId)
+    // __0 is object: the argument is `ulong playerId` on stable and
+    // `LoadRunLobbyPlayer player` on the November beta, so it is matched by
+    // position (the names differ) and boxed; LobbyPlayerView.IdOf reads either.
+    public static void DailyRunLoadPlayerConnectedPostfix(object __0)
     {
-        DailyRunLoadGameScreen.Current?.OnPlayerConnected(playerId);
+        DailyRunLoadGameScreen.Current?.OnPlayerConnected(Views.LobbyPlayerView.IdOf(__0));
     }
 
     public static void DailyRunLoadPlayerReadyChangedPostfix(ulong playerId)

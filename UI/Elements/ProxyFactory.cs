@@ -98,6 +98,10 @@ public static class ProxyFactory
         if (control is NTopBarPortraitTip)
             return new ProxyAscension(control);
 
+        // Blitz top-bar map points (beta-only type, matched by name)
+        if (ProxyBlitzMapPoint.Handles(control))
+            return new ProxyBlitzMapPoint(control);
+
         // Combat-specific types
         if (control is NOrb)
             return new ProxyOrb(control);

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Godot;
 using HarmonyLib;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
@@ -45,13 +44,14 @@ public class ProxyAscension : ProxyElement
         {
             uiBuffer.Clear();
 
-            int level = GetAscensionLevel();
+            var runState = GetRunState();
+            int level = runState?.AscensionLevel ?? 0;
             uiBuffer.Add(Message.Localized("ui", "ASCENSION.LABEL", new { level }).Resolve());
 
-            for (int i = 1; i <= level; i++)
+            for (int i = 1; runState != null && i <= level; i++)
             {
-                var title = AscensionHelper.GetTitle(i).GetFormattedText();
-                var description = AscensionHelper.GetDescription(i).GetFormattedText();
+                var title = AscensionText.Title(i, runState);
+                var description = AscensionText.Description(i, runState);
                 uiBuffer.Add(
                     Message.Localized("ui", "ASCENSION.MODIFIER", new { title, description }).Resolve());
             }
@@ -61,10 +61,12 @@ public class ProxyAscension : ProxyElement
         return "ui";
     }
 
-    private static int GetAscensionLevel()
+    private static int GetAscensionLevel() => GetRunState()?.AscensionLevel ?? 0;
+
+    private static RunState? GetRunState()
     {
         var run = NRun.Instance;
-        if (run == null) return 0;
-        return (RunStateField.GetValue(run) as RunState)?.AscensionLevel ?? 0;
+        if (run == null) return null;
+        return RunStateField.GetValue(run) as RunState;
     }
 }

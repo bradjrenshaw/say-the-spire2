@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "Kadim",
   "STATE.TRAVELABLE": "ulaşılabilir",
   "STATE.TRAVELED": "geçildi",
+  "STATE.CURRENT": "mevcut konum",
   "STATE.UNTRAVELABLE": "ulaşılamaz",
   "NAV.CHOICE": "seçim",
   "NAV.PATH_ITEM": "{type}",

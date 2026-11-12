@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "仙古之民",
   "STATE.TRAVELABLE": "可前往",
   "STATE.TRAVELED": "已到达",
+  "STATE.CURRENT": "当前位置",
   "STATE.UNTRAVELABLE": "不可前往",
   "NAV.CHOICE": "选择",
   "NAV.PATH_ITEM": "{type}",

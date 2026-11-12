@@ -15,6 +15,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Map;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Events;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Map;
 using SayTheSpire2.Multiplayer;
 
 namespace SayTheSpire2.Patches;
@@ -42,6 +43,12 @@ public static class VotingHooks
         HarmonyHelper.PatchIfFound(harmony, typeof(NMapScreen), "TravelToMapCoord",
             typeof(VotingHooks), nameof(TravelToMapCoordPrefix), "Map TravelToMapCoord", isPrefix: true);
 
+        // Blitz (beta-only) travels through the top-bar map, not the map
+        // screen. Resolved by name; absent on stable.
+        if (AccessTools.TypeByName("MegaCrit.Sts2.Core.Nodes.CommonUi.NBlitzTopBarMap") is { } blitzMap)
+            HarmonyHelper.PatchIfFound(harmony, blitzMap, "TravelToMapCoord",
+                typeof(VotingHooks), nameof(BlitzTravelPrefix), "BlitzMap TravelToMapCoord", isPrefix: true);
+
         // Event voting: player vote changed (shared events)
         HarmonyHelper.PatchIfFound(harmony, typeof(NEventLayout), "OnPlayerVoteChanged",
             typeof(VotingHooks), nameof(EventVoteChangedPostfix), "Event OnPlayerVoteChanged");
@@ -60,6 +67,11 @@ public static class VotingHooks
         try
         {
             if (!MultiplayerHelper.IsMultiplayer()) return;
+            if (BlitzRun.IsActive)
+            {
+                AnnounceBlitzProceedVote(player, oldLocation, newLocation);
+                return;
+            }
             if (MultiplayerHelper.IsLocalPlayer(player)) return;
             if (newLocation == null) return;
 
@@ -71,6 +83,44 @@ public static class VotingHooks
         catch (Exception e)
         {
             Log.Error($"[AccessibilityMod] MapVoteChanged error: {e.Message}");
+        }
+    }
+
+    // In Blitz there is one next room and no map screen: a player's map vote
+    // is them pressing Proceed (the game shows it as their icon on the Proceed
+    // button). The map screen still exists and still receives the vote, so
+    // this arrives through the same hook. Only a fresh vote is announced —
+    // the synchronizer re-fires the event when it reconciles a local vote.
+    private static void AnnounceBlitzProceedVote(Player player, MapVote? oldLocation, MapVote? newLocation)
+    {
+        if (oldLocation != null || newLocation == null) return;
+
+        if (!MultiplayerHelper.IsLocalPlayer(player))
+        {
+            EventDispatcher.Enqueue(new MapVoteEvent(MultiplayerHelper.GetPlayerName(player), "",
+                player.Creature, MapVoteEvent.VoteKind.RemoteProceed));
+            return;
+        }
+
+        // Our own Proceed: only worth saying when we're left waiting on
+        // others. If ours was the last vote the party moves on at once.
+        var runState = RunManager.Instance.DebugOnlyGetState();
+        if (runState == null || WouldCompleteAllMapVotes(runState, player)) return;
+        EventDispatcher.Enqueue(new MapVoteEvent("", "", player.Creature, MapVoteEvent.VoteKind.LocalProceed));
+    }
+
+    public static void BlitzTravelPrefix(MapCoord coord)
+    {
+        try
+        {
+            var point = RunManager.Instance.DebugOnlyGetState()?.Map.GetPoint(coord);
+            if (point == null) return;
+            // No coordinates: the act is a single line of rooms.
+            EventDispatcher.Enqueue(new TravelEvent(Map.MapNode.GetPointTypeName(point.PointType)));
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[AccessibilityMod] Blitz TravelToMapCoord error: {e.Message}");
         }
     }
 
@@ -86,7 +136,12 @@ public static class VotingHooks
             var me = LocalContext.GetMe(runState);
             if (me == null) return;
 
-            if (__instance.PlayerVoteDictionary.TryGetValue(me, out var currentVote) && currentVote == point.Point.coord)
+            // Re-selecting the node we already voted for changes nothing. Read
+            // from the synchronizer (as the game does): the November beta
+            // removed NMapScreen.PlayerVoteDictionary, and GetVote exists on
+            // both branches.
+            var currentVote = RunManager.Instance.MapSelectionSynchronizer.GetVote(me);
+            if (currentVote.HasValue && currentVote.Value.coord == point.Point.coord)
                 return;
 
             if (WouldCompleteAllMapVotes(runState, me))

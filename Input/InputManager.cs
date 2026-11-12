@@ -717,9 +717,21 @@ public static class InputManager
         return control switch
         {
             LineEdit lineEdit => lineEdit.Editable && lineEdit.IsEditing(),
-            NMegaTextEdit textEdit => textEdit.Editable && textEdit.IsEditing(),
+            TextEdit textEdit => textEdit.Editable && IsMegaTextEditing(textEdit),
             _ => false,
         };
+    }
+
+    // Branch-divergent: on stable NMegaTextEdit *is* the TextEdit; the
+    // November beta made it a Control wrapping a child TextEdit, which takes
+    // focus while editing. Either way the focused node is a TextEdit and the
+    // NMegaTextEdit is that node or its parent. The object cast keeps this
+    // compiling against both shapes.
+    private static bool IsMegaTextEditing(TextEdit textEdit)
+    {
+        object node = textEdit;
+        var mega = node as NMegaTextEdit ?? textEdit.GetParent() as NMegaTextEdit;
+        return mega?.IsEditing() ?? false;
     }
 
     private static bool IsTextEditingKey(InputEventKey keyEvent)

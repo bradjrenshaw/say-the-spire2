@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "エンシェント",
   "STATE.TRAVELABLE": "移動可能",
   "STATE.TRAVELED": "通過済み",
+  "STATE.CURRENT": "現在地",
   "STATE.UNTRAVELABLE": "移動不可",
   "NAV.CHOICE": "分岐",
   "NAV.PATH_ITEM": "{type}",

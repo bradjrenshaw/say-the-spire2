@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "Ahnen",
   "STATE.TRAVELABLE": "erreichbar",
   "STATE.TRAVELED": "besucht",
+  "STATE.CURRENT": "aktuelle Position",
   "STATE.UNTRAVELABLE": "unerreichbar",
   "NAV.CHOICE": "Auswahl",
   "NAV.PATH_ITEM": "{type}",

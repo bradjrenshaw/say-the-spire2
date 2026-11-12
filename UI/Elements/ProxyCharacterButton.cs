@@ -180,20 +180,17 @@ public class ProxyCharacterButton : ProxyElement
 
     private static Message? GetAscensionText(NCharacterSelectButton button)
     {
-        Node? node = button;
-        while (node != null && node is not NCharacterSelectScreen && node is not NCustomRunScreen)
-            node = node.GetParent();
-        var panel = node switch
-        {
-            NCharacterSelectScreen characterSelect => characterSelect.GetNodeOrNull<NAscensionPanel>("%AscensionPanel"),
-            NCustomRunScreen customRun => customRun.GetNodeOrNull<NAscensionPanel>("%AscensionPanel"),
-            _ => null,
-        };
+        // The button is instanced into its lobby screen (character select,
+        // custom run, Blitz), so walk up until an ancestor inside that
+        // screen's scene can resolve the screen's ascension panel.
+        NAscensionPanel? panel = null;
+        for (Node? node = button.GetParent(); node != null && panel == null; node = node.GetParent())
+            panel = node.GetNodeOrNull<NAscensionPanel>("%AscensionPanel");
         if (panel != null && panel.Visible)
         {
             var asc = panel.Ascension;
-            var title = AscensionHelper.GetTitle(asc).GetFormattedText();
-            var description = AscensionHelper.GetDescription(asc).GetFormattedText();
+            var title = AscensionText.Title(asc, panel);
+            var description = AscensionText.Description(asc, panel);
             return Message.Localized("ui", "CHARACTER.ASCENSION_DETAIL", new
             {
                 level = asc,

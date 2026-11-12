@@ -18,26 +18,13 @@ public static class LobbyHooks
 
     public static void Initialize(Harmony harmony)
     {
-        // Character select hooks
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuOpened",
-            typeof(LobbyHooks), nameof(CharacterSelectOpenedPostfix), "CharacterSelect OnSubmenuOpened");
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnSubmenuClosed",
-            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), "CharacterSelect OnSubmenuClosed");
-        // CleanUpLobby is called when a run starts (bypasses OnSubmenuClosed)
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "CleanUpLobby",
-            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), "CharacterSelect CleanUpLobby");
+        PatchCharacterSelect(harmony, typeof(NCharacterSelectScreen), "CharacterSelect");
 
-        // Multiplayer lobby hooks (IStartRunLobbyListener on NCharacterSelectScreen)
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerConnected",
-            typeof(LobbyHooks), nameof(LobbyPlayerConnectedPostfix), "Lobby PlayerConnected");
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "PlayerChanged",
-            typeof(LobbyHooks), nameof(LobbyPlayerChangedPostfix), "Lobby PlayerChanged");
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "RemotePlayerDisconnected",
-            typeof(LobbyHooks), nameof(LobbyPlayerDisconnectedPostfix), "Lobby RemotePlayerDisconnected");
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "LocalPlayerDisconnected",
-            typeof(LobbyHooks), nameof(LobbyLocalDisconnectedPostfix), "Lobby LocalPlayerDisconnected");
-        HarmonyHelper.PatchIfFound(harmony, typeof(NCharacterSelectScreen), "OnUnreadyPressed",
-            typeof(LobbyHooks), nameof(LobbyUnreadyPostfix), "Lobby OnUnreadyPressed");
+        // Beta-only: the Blitz lobby is a near-copy of character select
+        // with the same listener methods. Absent on stable, so resolved by
+        // name and skipped when missing.
+        if (AccessTools.TypeByName(CharacterSelectGameScreen.BlitzScreenTypeName) is { } blitzScreen)
+            PatchCharacterSelect(harmony, blitzScreen, "Blitz");
 
         HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerConnected",
             typeof(LobbyHooks), nameof(LoadLobbyPlayerConnectedPostfix), "LoadLobby PlayerConnected");
@@ -53,7 +40,32 @@ public static class LobbyHooks
             typeof(LobbyHooks), nameof(LoadLobbyUnreadyPostfix), "LoadLobby OnUnreadyPressed");
     }
 
-    public static void CharacterSelectOpenedPostfix(NCharacterSelectScreen __instance)
+    private static void PatchCharacterSelect(Harmony harmony, System.Type screen, string label)
+    {
+        HarmonyHelper.PatchIfFound(harmony, screen, "OnSubmenuOpened",
+            typeof(LobbyHooks), nameof(CharacterSelectOpenedPostfix), $"{label} OnSubmenuOpened");
+        HarmonyHelper.PatchIfFound(harmony, screen, "OnSubmenuClosed",
+            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), $"{label} OnSubmenuClosed");
+        // CleanUpLobby is called when a run starts (bypasses OnSubmenuClosed)
+        HarmonyHelper.PatchIfFound(harmony, screen, "CleanUpLobby",
+            typeof(LobbyHooks), nameof(CharacterSelectClosedPostfix), $"{label} CleanUpLobby");
+
+        // Multiplayer lobby hooks (IStartRunLobbyListener)
+        HarmonyHelper.PatchIfFound(harmony, screen, "PlayerConnected",
+            typeof(LobbyHooks), nameof(LobbyPlayerConnectedPostfix), $"{label} PlayerConnected");
+        HarmonyHelper.PatchIfFound(harmony, screen, "PlayerChanged",
+            typeof(LobbyHooks), nameof(LobbyPlayerChangedPostfix), $"{label} PlayerChanged");
+        HarmonyHelper.PatchIfFound(harmony, screen, "RemotePlayerDisconnected",
+            typeof(LobbyHooks), nameof(LobbyPlayerDisconnectedPostfix), $"{label} RemotePlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, screen, "LocalPlayerDisconnected",
+            typeof(LobbyHooks), nameof(LobbyLocalDisconnectedPostfix), $"{label} LocalPlayerDisconnected");
+        HarmonyHelper.PatchIfFound(harmony, screen, "OnUnreadyPressed",
+            typeof(LobbyHooks), nameof(LobbyUnreadyPostfix), $"{label} OnUnreadyPressed");
+    }
+
+    // __instance is Control: these patch both NCharacterSelectScreen and the
+    // beta's NBlitzScreen.
+    public static void CharacterSelectOpenedPostfix(Godot.Control __instance)
     {
         if (CharacterSelectGameScreen.Current == null)
             ScreenManager.PushScreen(new CharacterSelectGameScreen(__instance));
@@ -68,36 +80,40 @@ public static class LobbyHooks
     // Player params are object: the struct type is branch-divergent
     // (LobbyPlayer on stable, StartRunLobbyPlayer on beta), so Harmony boxes
     // it for us and LobbyPlayerView reads the shared field names.
-    public static void LobbyPlayerConnectedPostfix(NCharacterSelectScreen __instance, object player)
+    public static void LobbyPlayerConnectedPostfix(object player)
     {
         if (Views.LobbyPlayerView.FromBoxed(player) is { } view)
-            CharacterSelectGameScreen.Current?.OnLobbyPlayerConnected(__instance, view);
+            CharacterSelectGameScreen.Current?.OnLobbyPlayerConnected(view);
     }
 
-    public static void LobbyPlayerChangedPostfix(NCharacterSelectScreen __instance, object player)
+    public static void LobbyPlayerChangedPostfix(object player)
     {
         if (Views.LobbyPlayerView.FromBoxed(player) is { } view)
-            CharacterSelectGameScreen.Current?.OnLobbyPlayerChanged(__instance, view);
+            CharacterSelectGameScreen.Current?.OnLobbyPlayerChanged(view);
     }
 
-    public static void LobbyPlayerDisconnectedPostfix(NCharacterSelectScreen __instance, object player)
+    public static void LobbyPlayerDisconnectedPostfix(object player)
     {
         if (Views.LobbyPlayerView.FromBoxed(player) is { } view)
-            CharacterSelectGameScreen.Current?.OnLobbyPlayerDisconnected(__instance, view);
+            CharacterSelectGameScreen.Current?.OnLobbyPlayerDisconnected(view);
     }
 
-    public static void LobbyLocalDisconnectedPostfix(NCharacterSelectScreen __instance, NetErrorInfo info)
+    public static void LobbyLocalDisconnectedPostfix(NetErrorInfo info)
     {
-        CharacterSelectGameScreen.Current?.OnLobbyLocalDisconnected(__instance, info);
+        CharacterSelectGameScreen.Current?.OnLobbyLocalDisconnected(info);
     }
 
-    public static void LobbyUnreadyPostfix(NCharacterSelectScreen __instance)
+    public static void LobbyUnreadyPostfix()
     {
         CharacterSelectGameScreen.Current?.OnLobbyStateChanged();
     }
 
-    public static void LoadLobbyPlayerConnectedPostfix(NMultiplayerLoadGameScreen __instance, ulong playerId)
+    // __0 is object: the argument is `ulong playerId` on stable and
+    // `LoadRunLobbyPlayer player` on the November beta, so it is matched by
+    // position (the names differ) and boxed; LobbyPlayerView.IdOf reads either.
+    public static void LoadLobbyPlayerConnectedPostfix(NMultiplayerLoadGameScreen __instance, object __0)
     {
+        var playerId = Views.LobbyPlayerView.IdOf(__0);
         var lobby = GetLoadLobby(__instance);
         if (!IsMultiplayer(lobby))
             return;

@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "고대",
   "STATE.TRAVELABLE": "이동 가능",
   "STATE.TRAVELED": "통과함",
+  "STATE.CURRENT": "현재 위치",
   "STATE.UNTRAVELABLE": "이동 불가",
   "NAV.CHOICE": "분기",
   "NAV.PATH_ITEM": "{type}",

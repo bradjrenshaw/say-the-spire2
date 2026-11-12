@@ -65,6 +65,19 @@ public sealed class LobbyPlayerView
     }
 
     /// <summary>
+    /// The player id from a Harmony-boxed listener argument that is a bare
+    /// ulong on one branch and a lobby player struct on the other (the
+    /// November beta changed the load screens' PlayerConnected from
+    /// <c>ulong playerId</c> to <c>LoadRunLobbyPlayer player</c>, which has
+    /// an id but no character, so FromBoxed doesn't fit it).
+    /// </summary>
+    public static ulong IdOf(object boxed)
+    {
+        if (boxed is ulong id) return id;
+        return AccessTools.Field(boxed.GetType(), "id")!.GetValue(boxed) is ulong fieldId ? fieldId : 0;
+    }
+
+    /// <summary>
     /// The lobby's LocalPlayer, read via reflection because the property's
     /// return type is the branch-divergent struct.
     /// </summary>

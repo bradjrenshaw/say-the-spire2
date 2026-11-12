@@ -12,6 +12,7 @@
   "NODE_TYPES.ANCIENT": "Ancient",
   "STATE.TRAVELABLE": "travelable",
   "STATE.TRAVELED": "traveled",
+  "STATE.CURRENT": "current location",
   "STATE.UNTRAVELABLE": "untravelable",
   "NAV.CHOICE": "choice",
   "NAV.PATH_ITEM": "{type}",
