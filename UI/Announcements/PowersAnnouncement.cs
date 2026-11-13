@@ -8,6 +8,7 @@ using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
 using SayTheSpire2.UI.Elements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Announcements;
 
@@ -25,11 +26,16 @@ namespace SayTheSpire2.UI.Announcements;
 /// </summary>
 public sealed class PowersAnnouncement : Announcement
 {
-    private readonly IReadOnlyList<PowerModel> _powers;
+    private readonly IReadOnlyList<PowerView> _powers;
 
+    /// <summary>
+    /// Takes a creature's full power list; powers the game hides from the
+    /// local player are dropped here (see <see cref="PowerView"/>), so every
+    /// caller — buffers and hotkeys alike — reads the same set.
+    /// </summary>
     public PowersAnnouncement(IEnumerable<PowerModel> powers)
     {
-        _powers = new List<PowerModel>(powers);
+        _powers = new List<PowerView>(PowerView.Shown(powers));
     }
 
     public override string Key => "powers";
@@ -55,15 +61,16 @@ public sealed class PowersAnnouncement : Announcement
         bool includeDescriptions = ctx.HotkeyKey == null
             || ctx.ResolveBool(Key, "verbose", false);
 
-        foreach (var power in _powers)
+        foreach (var view in _powers)
         {
-            foreach (var line in RenderPower(power, includeDescriptions))
+            foreach (var line in RenderPower(view, includeDescriptions))
                 yield return line;
         }
     }
 
-    private static IEnumerable<Message> RenderPower(PowerModel power, bool includeDescriptions)
+    private static IEnumerable<Message> RenderPower(PowerView view, bool includeDescriptions)
     {
+        var power = view.Entity;
         var title = power.Title.GetFormattedText();
         var amount = power.DisplayAmount;
         var hasStacks = power.StackType == PowerStackType.Counter;
@@ -73,6 +80,13 @@ public sealed class PowersAnnouncement : Announcement
         var second = UI.PowerSecondAmount.Get(power);
         if (second != null)
             line += $" ({second})";
+
+        // Another player's copy of a per-player power (e.g. their Sandpit
+        // countdown): say whose it is. The game gives hidden powers no hover
+        // tip, so these read as name, amount and player only.
+        var otherPlayer = view.OtherPlayerName;
+        if (otherPlayer != null)
+            line = Message.Localized("ui", "POWER.FOR_PLAYER", new { power = line, player = otherPlayer }).Resolve();
 
         if (!includeDescriptions)
         {

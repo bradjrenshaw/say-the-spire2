@@ -2,12 +2,13 @@ using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Entities.Players;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Settings;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Announcements;
 
 /// <summary>
-/// Combined player resources line — energy plus stars (when present), joined
-/// with commas. The card focus path reuses <see cref="EnergyAnnouncement"/>
+/// Combined player resources line — energy plus stars, arrows and held
+/// melodies (when present), joined with commas. The card focus path reuses <see cref="EnergyAnnouncement"/>
 /// and <see cref="StarsAnnouncement"/> separately so the user can reorder
 /// them; the player buffer and the Ctrl+Y hotkey want the resources to
 /// share one browsable / spoken entry.
@@ -15,8 +16,8 @@ namespace SayTheSpire2.UI.Announcements;
 /// <para>Honors a "verbose" setting (default true) that cascades per-buffer
 /// / global:</para>
 /// <list type="bullet">
-/// <item>Verbose: "3/3 energy, 2 stars"</item>
-/// <item>Compact: "3/3, 2"</item>
+/// <item>Verbose: "3/3 energy, 2 stars" / "3/3 energy, 1/2 arrows"</item>
+/// <item>Compact: "3/3, 2" / "3/3, 1/2"</item>
 /// </list>
 /// </summary>
 [ShowInGlobalSettings]
@@ -47,6 +48,20 @@ public sealed class ResourcesAnnouncement : Announcement
             parts.Add(verbose
                 ? Message.Localized("ui", "RESOURCE.STARS", new { amount = _pcs.Stars })
                 : Message.Localized("ui", "RESOURCE.STARS_COMPACT", new { amount = _pcs.Stars }));
+        }
+        // The Fool's arrows: in hand / still owned this combat.
+        if (ArrowsView.FromCombatState(_pcs) is { } arrows)
+        {
+            var counts = new { current = arrows.Available, max = arrows.Total };
+            parts.Add(verbose
+                ? Message.Localized("ui", "RESOURCE.ARROWS", counts)
+                : Message.Localized("ui", "RESOURCE.ARROWS_COMPACT", counts));
+        }
+        // The Fool's melodies held this turn, by the game's own names.
+        if (MelodiesView.FromCombatState(_pcs) is { } melodies)
+        {
+            foreach (var title in melodies.ActiveTitles)
+                parts.Add(Message.Raw(title));
         }
         return Message.Join(", ", parts.ToArray());
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MegaCrit.Sts2.Core.Entities.Players;
 using SayTheSpire2.Localization;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI;
 
@@ -18,6 +19,13 @@ public static class ResourceHelper
         };
         if (pcs.Stars > 0)
             parts.Add(Message.Localized("ui", "RESOURCE.STARS", new { amount = pcs.Stars }));
+        if (ArrowsView.FromCombatState(pcs) is { } arrows)
+            parts.Add(Message.Localized("ui", "RESOURCE.ARROWS", new { current = arrows.Available, max = arrows.Total }));
+        if (MelodiesView.FromCombatState(pcs) is { } melodies)
+        {
+            foreach (var title in melodies.ActiveTitles)
+                parts.Add(Message.Raw(title));
+        }
         return Message.Join(", ", parts.ToArray());
     }
 }

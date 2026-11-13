@@ -36,6 +36,7 @@ public class CharacterSelectGameScreen : GameScreen
     // main_menu_ui key prefix of the game mode this lobby is for ("BLITZ"),
     // or null for the standard character select.
     private readonly string? _modeKey;
+    private bool _checkedUnderConstruction;
     private int _lastAscension = -1;
     private Control? _lastFocusedButton;
     private bool _isMultiplayer;
@@ -117,6 +118,8 @@ public class CharacterSelectGameScreen : GameScreen
     {
         if (!GodotObject.IsInstanceValid(_screen)) return;
 
+        AnnounceUnderConstructionOnce();
+
         // Ascension polling — only announce when the user changes ascension (D/F),
         // not when switching characters causes the displayed ascension to change.
         var focusedButton = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
@@ -159,6 +162,21 @@ public class CharacterSelectGameScreen : GameScreen
             }
             catch (Exception e) { MegaCrit.Sts2.Core.Logging.Log.Error($"[AccessibilityMod] Multiplayer ready state poll failed: {e.Message}"); }
         }
+    }
+
+    // The Blitz lobby shows an "Under Construction" badge in singleplayer
+    // (the game hides it once the multiplayer player list is shown). Spoken
+    // once per visit, with the game's own text.
+    private void AnnounceUnderConstructionOnce()
+    {
+        if (_checkedUnderConstruction) return;
+        _checkedUnderConstruction = true;
+
+        if (_screen.GetNodeOrNull<Control>("%UnderConstruction") is not { } badge || !badge.IsVisibleInTree())
+            return;
+        var text = badge.GetNodeOrNull<RichTextLabel>("%Label")?.Text;
+        if (!string.IsNullOrWhiteSpace(text))
+            SpeechManager.Output(Message.Raw(ProxyElement.StripBbcode(text).Trim()));
     }
 
     // Multiplayer lobby callbacks (called from ScreenHooks postfixes)

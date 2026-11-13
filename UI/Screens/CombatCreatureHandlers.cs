@@ -30,10 +30,19 @@ internal class CombatCreatureHandlers
         EventDispatcher.Enqueue(new HpEvent(_creature, oldHp, newHp));
     }
 
+    // Power change events follow the game's visibility strictly: the game
+    // plays no effect for a power it hides from the local player (another
+    // player's copy of a per-player power), so nothing is announced either.
+    // The read-anyway exceptions in PowerView apply to state readouts
+    // (buffers, hotkeys), not to these per-change announcements — otherwise
+    // every player's Sandpit tick would be spoken each turn.
+    private static bool IsHiddenFromLocalPlayer(PowerModel power) =>
+        !Views.PowerView.FromModel(power).IsVisibleInGame;
+
     public void OnPowerIncreased(PowerModel power, int change, bool silent)
     {
         Log.Info($"[EventDebug] CreatureHandler.PowerIncreased: {_creature.Name} {power.Title.GetFormattedText()} +{change} silent={silent} handler={GetHashCode()}");
-        if (silent) return;
+        if (silent || IsHiddenFromLocalPlayer(power)) return;
         // Single-stack powers (Illusion on Eye With Teeth, Shrink, etc.) get
         // BOTH PowerApplied AND PowerIncreased on initial application — and
         // sometimes more PowerIncreased events later. Without this filter
@@ -47,7 +56,7 @@ internal class CombatCreatureHandlers
     public void OnPowerDecreased(PowerModel power, bool silent)
     {
         Log.Info($"[EventDebug] CreatureHandler.PowerDecreased: {_creature.Name} {power.Title.GetFormattedText()} amount={power.Amount} silent={silent} handler={GetHashCode()}");
-        if (silent || power.Amount == 0) return;
+        if (silent || power.Amount == 0 || IsHiddenFromLocalPlayer(power)) return;
         // Single-stack powers (Shrink, etc.) fire PowerDecreased when they're
         // first applied with a negative sentinel amount because the game's
         // InvokePowerModified treats the negative delta as a decrease. There
@@ -66,12 +75,14 @@ internal class CombatCreatureHandlers
         // Only Single-stack powers need the Applied path — for those the
         // matching PowerDecreased was skipped above.
         if (power.StackType == MegaCrit.Sts2.Core.Entities.Powers.PowerStackType.Counter) return;
+        if (IsHiddenFromLocalPlayer(power)) return;
         EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Applied));
     }
 
     public void OnPowerRemoved(PowerModel power)
     {
         Log.Info($"[EventDebug] CreatureHandler.PowerRemoved: {_creature.Name} {power.Title.GetFormattedText()} handler={GetHashCode()}");
+        if (IsHiddenFromLocalPlayer(power)) return;
         EventDispatcher.Enqueue(new PowerEvent(_creature, power, PowerEventType.Removed));
     }
 

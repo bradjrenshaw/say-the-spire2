@@ -72,7 +72,8 @@ public class CharacterBuffer : Buffer
             yield return new DescriptionAnnouncement(desc);
 
         yield return new StartingHpAnnouncement(character.StartingHp);
-        yield return new StartingGoldAnnouncement(character.StartingGold);
+        if (UI.Elements.ProxyCharacterButton.LobbyShowsStartingGold(button))
+            yield return new StartingGoldAnnouncement(character.StartingGold);
         yield return new EnergyAnnouncement(character.MaxEnergy, character.MaxEnergy);
     }
 }

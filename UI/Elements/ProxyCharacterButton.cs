@@ -74,7 +74,8 @@ public class ProxyCharacterButton : ProxyElement
             // Real stats are unknown for BaseLib entries until the entry
             // resolves to a character, so only vanilla buttons announce them.
             yield return new StartingHpAnnouncement(character.StartingHp);
-            yield return new StartingGoldAnnouncement(character.StartingGold);
+            if (LobbyShowsStartingGold(button))
+                yield return new StartingGoldAnnouncement(character.StartingGold);
             var remoteCount = button.RemoteSelectedPlayers.Count;
             if (remoteCount > 0)
                 yield return new RemoteSelectionAnnouncement(remoteCount);
@@ -176,6 +177,25 @@ public class ProxyCharacterButton : ProxyElement
             parts.Add(ascension);
 
         return parts.Count > 0 ? Message.Join(". ", parts.ToArray()) : null;
+    }
+
+    // Path of the starting-gold display inside a lobby screen's info panel.
+    private const string LobbyGoldPath = "InfoPanel/VBoxContainer/HpGoldSpacer/HpGold/Gold";
+
+    /// <summary>
+    /// Whether the lobby this button sits in shows starting gold. Character
+    /// select does; the Blitz lobby has the same info panel with the gold
+    /// entry hidden (Blitz has no gold). Lobbies without that panel are
+    /// treated as showing it, as before.
+    /// </summary>
+    public static bool LobbyShowsStartingGold(NCharacterSelectButton button)
+    {
+        for (Node? node = button.GetParent(); node != null; node = node.GetParent())
+        {
+            if (node.GetNodeOrNull<Control>(LobbyGoldPath) is { } gold)
+                return gold.Visible;
+        }
+        return true;
     }
 
     private static Message? GetAscensionText(NCharacterSelectButton button)

@@ -19,6 +19,7 @@ namespace SayTheSpire2.UI.Elements;
     typeof(BlockAnnouncement),
     typeof(EnergyAnnouncement),
     typeof(StarsAnnouncement),
+    typeof(ArrowsAnnouncement),
     typeof(CardsInHandAnnouncement),
     typeof(MonsterIntentsAnnouncement),
     typeof(PlayerIntentsAnnouncement)
@@ -59,6 +60,8 @@ public class ProxyCreature : ProxyElement
                 yield return new EnergyAnnouncement(pcs.Energy, pcs.MaxEnergy);
                 if (pcs.Stars > 0)
                     yield return new StarsAnnouncement(pcs.Stars);
+                if (ArrowsView.FromCombatState(pcs) is { } arrows)
+                    yield return new ArrowsAnnouncement(arrows.Available, arrows.Total);
                 yield return new CardsInHandAnnouncement(pcs.Hand.Cards.Count);
             }
 

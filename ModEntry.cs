@@ -104,6 +104,7 @@ public static class ModEntry
         PotionPopupHooks.Initialize(_harmony);
         TopBarReturnHooks.Initialize();
         BlitzTopBarHooks.Initialize(_harmony);
+        FoolHooks.Initialize(_harmony);
         EventHooks.Initialize(_harmony);
         VotingHooks.Initialize(_harmony);
         MultiplayerHooks.Initialize(_harmony);
