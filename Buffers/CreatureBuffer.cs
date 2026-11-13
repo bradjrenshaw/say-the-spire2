@@ -13,6 +13,7 @@ namespace SayTheSpire2.Buffers;
     typeof(HpAnnouncement),
     typeof(BlockAnnouncement),
     typeof(MonsterIntentsAnnouncement),
+    typeof(MelodiesAnnouncement),
     typeof(PowersAnnouncement)
 )]
 public class CreatureBuffer : Buffer
@@ -76,6 +77,10 @@ public class CreatureBuffer : Buffer
             }
         }
         yield return new MonsterIntentsAnnouncement(intents);
+
+        // The Fool's melodies (local player only; null for everyone else).
+        if (MelodiesView.FromCombatState(CreatureView.FromEntity(creature).PlayerCombatState) is { } melodies)
+            yield return new MelodiesAnnouncement(melodies);
 
         if (creature.Powers.Count > 0)
             yield return new PowersAnnouncement(creature.Powers);

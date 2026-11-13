@@ -59,32 +59,62 @@ public sealed class MelodiesView
     public static string TitleOf(object tag) =>
         new LocString("static_hover_tips", tag.ToString()?.ToUpperInvariant() + "_MELODY.title").GetFormattedText();
 
+    /// <summary>
+    /// The game's hover tip text for a melody ("Activates if you played a
+    /// "Wah" card this turn."), the same tip its symbol shows on mouse hover.
+    /// </summary>
+    public static string DescriptionOf(object tag) =>
+        new LocString("static_hover_tips", tag.ToString()?.ToUpperInvariant() + "_MELODY.description").GetFormattedText();
+
     /// <summary>Titles of the melodies the player holds right now.</summary>
     public IReadOnlyList<string> ActiveTitles
     {
         get
         {
             var titles = new List<string>();
-            if (PlayedThisTurnMethod == null)
-                return titles;
-
-            var tagType = PlayedThisTurnMethod.GetParameters()[1].ParameterType;
-            foreach (var name in TagNames)
-            {
-                try
-                {
-                    var tag = Enum.Parse(tagType, name);
-                    if (PlayedThisTurnMethod.Invoke(null, new[] { _player, tag }) is true)
-                        titles.Add(TitleOf(tag));
-                }
-                catch (Exception e)
-                {
-                    // The game reads this from the current combat's history;
-                    // outside a combat there is none to ask.
-                    Log.Info($"[AccessibilityMod] Melody lookup failed for {name}: {e.Message}");
-                }
-            }
+            foreach (var tag in ActiveTags())
+                titles.Add(TitleOf(tag));
             return titles;
         }
+    }
+
+    /// <summary>
+    /// Title and hover tip description of each melody the player holds right now.
+    /// </summary>
+    public IReadOnlyList<(string Title, string Description)> ActiveTips
+    {
+        get
+        {
+            var tips = new List<(string, string)>();
+            foreach (var tag in ActiveTags())
+                tips.Add((TitleOf(tag), DescriptionOf(tag)));
+            return tips;
+        }
+    }
+
+    // The CardTag values of the melodies held right now, boxed.
+    private List<object> ActiveTags()
+    {
+        var tags = new List<object>();
+        if (PlayedThisTurnMethod == null)
+            return tags;
+
+        var tagType = PlayedThisTurnMethod.GetParameters()[1].ParameterType;
+        foreach (var name in TagNames)
+        {
+            try
+            {
+                var tag = Enum.Parse(tagType, name);
+                if (PlayedThisTurnMethod.Invoke(null, new[] { _player, tag }) is true)
+                    tags.Add(tag);
+            }
+            catch (Exception e)
+            {
+                // The game reads this from the current combat's history;
+                // outside a combat there is none to ask.
+                Log.Info($"[AccessibilityMod] Melody lookup failed for {name}: {e.Message}");
+            }
+        }
+        return tags;
     }
 }

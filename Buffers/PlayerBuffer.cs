@@ -19,6 +19,7 @@ namespace SayTheSpire2.Buffers;
     typeof(ResourcesAnnouncement),
     typeof(GoldAnnouncement),
     typeof(PilesAnnouncement),
+    typeof(MelodiesAnnouncement),
     typeof(PowersAnnouncement)
 )]
 public class PlayerBuffer : Buffer
@@ -110,6 +111,10 @@ public class PlayerBuffer : Buffer
                 pcs.Hand.Cards.Count,
                 pcs.DiscardPile.Cards.Count,
                 pcs.ExhaustPile.Cards.Count);
+
+        // The Fool's melodies (local player only; null for everyone else).
+        if (MelodiesView.FromCombatState(pcs) is { } melodies)
+            yield return new MelodiesAnnouncement(melodies);
 
         if (creature.Powers.Count > 0)
             yield return new PowersAnnouncement(creature.Powers);
