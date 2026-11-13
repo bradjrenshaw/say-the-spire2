@@ -51,6 +51,20 @@ public static class AscensionText
     public static string Description(int level, RunState run) =>
         Format(DescriptionMethod, level, run.GameMode);
 
+    // Beta-only (and private in the game): the first line of the portrait
+    // tip, "Game Mode: Dread" (", Multiplayer" appended in multiplayer).
+    private static readonly MethodInfo? GameModeLineMethod =
+        AccessTools.Method(typeof(AscensionHelper), "GetGameModeLine");
+
+    /// <summary>
+    /// The game mode line the portrait tip opens with on the November beta,
+    /// or null on stable, whose tip has none.
+    /// </summary>
+    public static string? GameModeLine(RunState run) =>
+        GameModeLineMethod?.Invoke(null, new object[] { run.GameMode, run.Players.Count > 1 }) is LocString line
+            ? Localization.Message.StripBbcode(line.GetFormattedText())
+            : null;
+
     private static object ModeOf(NAscensionPanel panel) =>
         PanelGameModeField?.GetValue(panel) ?? GameMode.Standard;
 

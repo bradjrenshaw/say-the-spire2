@@ -59,6 +59,11 @@ public static class ModalHooks
         if (AccessTools.TypeByName(ModalScreen.BlitzDisclaimerTypeName) is { } blitzDisclaimer)
             HarmonyHelper.PatchIfFound(harmony, blitzDisclaimer, "_Ready",
                 typeof(ModalHooks), nameof(DisclaimerReadyPostfix), "NBlitzInfoDisclaimer._Ready");
+
+        // The Dread lobby's info popup works the same way.
+        if (AccessTools.TypeByName(ModalScreen.DreadDisclaimerTypeName) is { } dreadDisclaimer)
+            HarmonyHelper.PatchIfFound(harmony, dreadDisclaimer, "_Ready",
+                typeof(ModalHooks), nameof(DisclaimerReadyPostfix), "NDreadInfoDisclaimer._Ready");
     }
 
     // Same path as a modal: wait a frame (so the lobby screen it opens over
@@ -118,6 +123,20 @@ public static class ModalHooks
             sb.Append(body);
         }
 
+        // The Dread info popup also lists every ascension modifier (they are
+        // all on in Dread), in two columns of title-over-description labels.
+        foreach (var listName in new[] { "LeftList", "RightList" })
+        {
+            if (FindNodeRecursive(modal, listName) is not { } list) continue;
+            foreach (var child in list.GetChildren())
+            {
+                var entry = ExtractText(child);
+                if (string.IsNullOrWhiteSpace(entry)) continue;
+                if (sb.Length > 0) sb.Append(". ");
+                sb.Append(entry.Trim().Replace("\n", ": "));
+            }
+        }
+
         if (sb.Length > 0)
         {
             var text = sb.ToString();
@@ -153,6 +172,17 @@ public static class ModalHooks
         {
             var text = FindTextNodeRecursive(root, name);
             if (text != null) return text;
+        }
+        return null;
+    }
+
+    private static Node? FindNodeRecursive(Node node, string targetName)
+    {
+        if (node.Name == targetName) return node;
+        for (int i = 0; i < node.GetChildCount(); i++)
+        {
+            var result = FindNodeRecursive(node.GetChild(i), targetName);
+            if (result != null) return result;
         }
         return null;
     }

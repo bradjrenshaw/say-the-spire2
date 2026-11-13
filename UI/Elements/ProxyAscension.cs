@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Localization;
 using SayTheSpire2.UI.Announcements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -16,6 +17,12 @@ namespace SayTheSpire2.UI.Elements;
 /// modifier. Focus reads "Ascension N"; the UI buffer lists each modifier
 /// ("Swarming Elites: Elites spawn more often." etc.) so the user can browse
 /// the same detail the sighted hover tip shows.
+///
+/// On the November beta the tip opens with a "Game Mode: …" line, which the
+/// buffer includes. In a Dread run the indicator is the Dread icon with the
+/// win streak on it (no number at zero) and the tip is the mode line, the
+/// streak and the four Dread rules — no modifier list; focus reads "Dread,
+/// Streak N" and the buffer follows the tip.
 /// </summary>
 [AnnouncementOrder(typeof(LabelAnnouncement))]
 public class ProxyAscension : ProxyElement
@@ -34,8 +41,15 @@ public class ProxyAscension : ProxyElement
             yield return new LabelAnnouncement(label);
     }
 
-    public override Message? GetLabel() =>
-        Message.Localized("ui", "ASCENSION.LABEL", new { level = GetAscensionLevel() });
+    public override Message? GetLabel()
+    {
+        if (DreadRunView.FromRunState(GetRunState()) is { } dread)
+        {
+            var mode = Message.Raw(dread.ModeTitle);
+            return dread.StreakText is { } streak ? Message.Join(", ", mode, Message.Raw(streak)) : mode;
+        }
+        return Message.Localized("ui", "ASCENSION.LABEL", new { level = GetAscensionLevel() });
+    }
 
     public override string? HandleBuffers(BufferManager buffers)
     {
@@ -46,14 +60,31 @@ public class ProxyAscension : ProxyElement
 
             var runState = GetRunState();
             int level = runState?.AscensionLevel ?? 0;
-            uiBuffer.Add(Message.Localized("ui", "ASCENSION.LABEL", new { level }).Resolve());
+            var modeLine = runState != null ? AscensionText.GameModeLine(runState) : null;
 
-            for (int i = 1; runState != null && i <= level; i++)
+            if (DreadRunView.FromRunState(runState) is { } dread)
             {
-                var title = AscensionText.Title(i, runState);
-                var description = AscensionText.Description(i, runState);
-                uiBuffer.Add(
-                    Message.Localized("ui", "ASCENSION.MODIFIER", new { title, description }).Resolve());
+                // Dread's tip: mode, streak, rules. No ascension number or
+                // modifier list (rule 1 says they are all on).
+                uiBuffer.Add(modeLine ?? dread.ModeTitle);
+                if (dread.StreakText is { } streak)
+                    uiBuffer.Add(streak);
+                foreach (var rule in dread.Rules)
+                    uiBuffer.Add(rule);
+            }
+            else
+            {
+                uiBuffer.Add(Message.Localized("ui", "ASCENSION.LABEL", new { level }).Resolve());
+                if (modeLine != null)
+                    uiBuffer.Add(modeLine);
+
+                for (int i = 1; runState != null && i <= level; i++)
+                {
+                    var title = AscensionText.Title(i, runState);
+                    var description = AscensionText.Description(i, runState);
+                    uiBuffer.Add(
+                        Message.Localized("ui", "ASCENSION.MODIFIER", new { title, description }).Resolve());
+                }
             }
 
             buffers.EnableBuffer("ui", true);

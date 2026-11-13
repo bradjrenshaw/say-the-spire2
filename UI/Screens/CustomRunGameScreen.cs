@@ -47,6 +47,16 @@ public class CustomRunGameScreen : GameScreen
     private Control? _lastFocusedControl;
 
     private LineEdit? _seedInput;
+    // November beta: the game mode dropdown (Standard / Blitz / Dread), shown
+    // once a mode other than Standard is unlocked for everyone in the lobby.
+    // Held as plain controls — its type doesn't exist on stable, where the
+    // node is simply absent.
+    private Control? _gameModeDropdown;
+    private List<Control> _gameModeOptions = new();
+    private string? _lastGameMode;
+    private bool _gameModeListWasOpen;
+    // Frames to leave focus alone after the list closes (see EnsureFocus).
+    private int _gameModeFocusGrace;
     private Control? _characterButtonContainer;
     private List<NCharacterSelectButton> _characterButtons = new();
     private NAscensionPanel? _ascensionPanel;
@@ -58,6 +68,9 @@ public class CustomRunGameScreen : GameScreen
     private NClickableControl? _unreadyButton;
     private NClickableControl? _backButton;
     private readonly ListContainer _seedRow = NewRow(UiStatic("CUSTOM_RUN.ROWS.SEED"), announcePosition: false);
+    private readonly ListContainer _gameModeRow = NewRow(UiStatic("CUSTOM_RUN.ROWS.GAME_MODE"), announcePosition: false);
+    // The dropdown's open list. Unnamed: it is reached only from the dropdown.
+    private readonly ListContainer _gameModeOptionsRow = new() { AnnounceName = false, AnnouncePosition = true };
     private readonly ListContainer _characterRow = NewRow(UiStatic("CUSTOM_RUN.ROWS.CHARACTERS"));
     private readonly ListContainer _ascensionRow = NewRow(UiStatic("CUSTOM_RUN.ROWS.ASCENSION"), announcePosition: false);
     private readonly ListContainer _modifierRow = NewRow(UiStatic("CUSTOM_RUN.ROWS.MODIFIERS"));
@@ -102,6 +115,7 @@ public class CustomRunGameScreen : GameScreen
 
         ResolveControls();
         PollAscension();
+        PollGameMode();
 
         var token = BuildStateToken();
         if (token != _stateToken)
@@ -133,6 +147,12 @@ public class CustomRunGameScreen : GameScreen
         {
             case "ui_cancel":
             case "mega_pause_and_back":
+                // With the game mode list open, back out of the list first.
+                if (IsGameModeListOpen())
+                {
+                    _gameModeDropdown?.GetNodeOrNull<NClickableControl>("%Dismisser")?.ForceClick();
+                    return true;
+                }
                 Activate(_backButton);
                 return true;
             default:
@@ -144,12 +164,26 @@ public class CustomRunGameScreen : GameScreen
     {
         _root.Clear();
         _seedRow.Clear();
+        _gameModeRow.Clear();
+        _gameModeOptionsRow.Clear();
         _characterRow.Clear();
         _ascensionRow.Clear();
         _modifierRow.Clear();
 
         if (_seedInput != null)
             RegisterRowItem(_seedRow, _seedInput, GetOrCreate(_seedInput, () => ProxyFactory.Create(_seedInput)));
+
+        if (_gameModeDropdown != null && IsUsable(_gameModeDropdown))
+        {
+            // The dropdown shows only its current value; the row names it.
+            RegisterRowItem(_gameModeRow, _gameModeDropdown, GetOrCreate(_gameModeDropdown, () => new ActionElement(
+                () => CurrentGameModeText() is { } mode ? Message.Raw(mode) : null,
+                status: GetGameModeStatus,
+                typeKey: () => "dropdown")));
+
+            foreach (var option in _gameModeOptions)
+                RegisterRowItem(_gameModeOptionsRow, option, GetOrCreate(option, () => ProxyFactory.Create(option)));
+        }
 
         foreach (var button in _characterButtons.Where(IsUsable))
             RegisterRowItem(_characterRow, button, GetOrCreate(button, () => new ProxyCharacterButton(button)));
@@ -168,6 +202,8 @@ public class CustomRunGameScreen : GameScreen
             RegisterRowItem(_modifierRow, tickbox, GetOrCreate(tickbox, () => ProxyFactory.Create(tickbox)));
 
         AddRowIfNotEmpty(_seedRow);
+        AddRowIfNotEmpty(_gameModeRow);
+        AddRowIfNotEmpty(_gameModeOptionsRow);
         AddRowIfNotEmpty(_characterRow);
         AddRowIfNotEmpty(_ascensionRow);
         AddRowIfNotEmpty(_modifierRow);
@@ -187,6 +223,10 @@ public class CustomRunGameScreen : GameScreen
     private void ResolveControls()
     {
         _seedInput ??= _screen.GetNodeOrNull<LineEdit>("%SeedInput");
+        _gameModeDropdown ??= _screen.GetNodeOrNull<Control>("%GameModeDropdown");
+        _gameModeOptions = IsGameModeListOpen() && GameModeOptionList() is { } optionList
+            ? optionList.GetChildren().OfType<Control>().Where(IsUsable).ToList()
+            : new List<Control>();
         _characterButtonContainer ??= _screen.GetNodeOrNull<Control>("LeftContainer/CharSelectButtons/ButtonContainer");
         if (_characterButtonContainer != null)
             _characterButtons = _characterButtonContainer.GetChildren().OfType<NCharacterSelectButton>().ToList();
@@ -234,6 +274,61 @@ public class CustomRunGameScreen : GameScreen
 
         if (BufferManager.Instance.GetBuffer("lobby") is LobbyBuffer buffer)
             buffer.Update();
+    }
+
+    // The dropdown's list lives inside its own scene; the game shows the
+    // container while the list is open.
+    private Control? GameModeOptionContainer() =>
+        _gameModeDropdown != null && GodotObject.IsInstanceValid(_gameModeDropdown)
+            ? _gameModeDropdown.GetNodeOrNull<Control>("%DropdownContainer")
+            : null;
+
+    private Control? GameModeOptionList() =>
+        GameModeOptionContainer()?.GetNodeOrNull<Control>("VBoxContainer");
+
+    private bool IsGameModeListOpen() =>
+        IsUsable(_gameModeDropdown) && GameModeOptionContainer() is { Visible: true };
+
+    // The selected mode as the dropdown shows it ("Standard", "Blitz", "Dread").
+    private string? CurrentGameModeText()
+    {
+        if (!IsUsable(_gameModeDropdown)) return null;
+        var text = _gameModeDropdown!.GetNodeOrNull<Label>("%Label")?.Text;
+        return string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+    }
+
+    // Only the host picks the mode; the game disables the dropdown for clients.
+    private Message? GetGameModeStatus() =>
+        _gameModeDropdown is NClickableControl { IsEnabled: false } ? Ui("CUSTOM_RUN.READ_ONLY") : null;
+
+    // Says the mode when it changes without the user being on the dropdown —
+    // in multiplayer the host changes it for everyone. A change the user just
+    // made is read by the focus returning to the dropdown instead.
+    private void PollGameMode()
+    {
+        // Picking an option closes the list and changes the mode in one go,
+        // and the option that had focus is hidden before the dropdown takes
+        // it back — so "the list was open a moment ago" is what marks a
+        // change as the user's own.
+        var listOpen = IsGameModeListOpen();
+        var wasOpen = _gameModeListWasOpen;
+        _gameModeListWasOpen = listOpen;
+        if (wasOpen && !listOpen)
+            _gameModeFocusGrace = 2;
+
+        var mode = CurrentGameModeText();
+        if (mode == _lastGameMode) return;
+
+        var previous = _lastGameMode;
+        _lastGameMode = mode;
+        if (previous == null || mode == null) return;
+        if (listOpen || wasOpen) return;
+
+        var focused = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
+        if (focused != null && focused == _gameModeDropdown)
+            return;
+
+        SpeechManager.Output(Message.Join(", ", Message.Raw(UiStatic("CUSTOM_RUN.ROWS.GAME_MODE")), Message.Raw(mode)));
     }
 
     private void PollAscension()
@@ -375,6 +470,9 @@ public class CustomRunGameScreen : GameScreen
     private void WireFocusNeighbors()
     {
         var seed = IsUsable(_seedInput) ? _seedInput : null;
+        // Between the seed and the characters, which is also where the game
+        // itself points the characters' Up and the dropdown's Down.
+        var mode = IsUsable(_gameModeDropdown) ? _gameModeDropdown : null;
         var chars = _characterButtons.Where(IsUsable).Cast<Control>().ToList();
         var ascension = IsUsable(_ascensionPanel) ? _ascensionPanel : null;
         var modifiers = _modifierTickboxes.Where(IsUsable).Cast<Control>().ToList();
@@ -387,11 +485,21 @@ public class CustomRunGameScreen : GameScreen
         if (seed != null)
         {
             var self = seed.GetPath();
-            Control downTarget = firstChar ?? firstModifier ?? firstButton ?? (Control?)ascension ?? seed;
+            Control downTarget = mode ?? firstChar ?? firstModifier ?? firstButton ?? (Control?)ascension ?? seed;
             seed.FocusNeighborTop = self;
             seed.FocusNeighborLeft = self;
             seed.FocusNeighborRight = self;
             seed.FocusNeighborBottom = downTarget.GetPath();
+        }
+
+        if (mode != null)
+        {
+            var self = mode.GetPath();
+            Control downTarget = firstChar ?? (Control?)ascension ?? firstModifier ?? firstButton ?? mode;
+            mode.FocusNeighborTop = seed?.GetPath() ?? self;
+            mode.FocusNeighborLeft = self;
+            mode.FocusNeighborRight = self;
+            mode.FocusNeighborBottom = downTarget.GetPath();
         }
 
         for (int i = 0; i < chars.Count; i++)
@@ -399,13 +507,13 @@ public class CustomRunGameScreen : GameScreen
             var self = chars[i].GetPath();
             chars[i].FocusNeighborLeft = i > 0 ? chars[i - 1].GetPath() : self;
             chars[i].FocusNeighborRight = i < chars.Count - 1 ? chars[i + 1].GetPath() : self;
-            chars[i].FocusNeighborTop = seed?.GetPath() ?? self;
+            chars[i].FocusNeighborTop = (mode ?? seed)?.GetPath() ?? self;
             chars[i].FocusNeighborBottom = ((Control?)ascension ?? firstModifier ?? firstButton ?? chars[i]).GetPath();
         }
 
         if (ascension != null)
         {
-            Control targetAboveControl = firstChar as Control ?? seed as Control ?? ascension;
+            Control targetAboveControl = firstChar as Control ?? mode ?? seed as Control ?? ascension;
             var targetAbove = targetAboveControl.GetPath();
             var targetBelow = (firstModifier ?? firstButton ?? ascension).GetPath();
             var self = ascension.GetPath();
@@ -440,7 +548,7 @@ public class CustomRunGameScreen : GameScreen
             var self = modifiers[i].GetPath();
             modifiers[i].FocusNeighborLeft = i > 0 ? modifiers[i - 1].GetPath() : self;
             modifiers[i].FocusNeighborRight = i < modifiers.Count - 1 ? modifiers[i + 1].GetPath() : self;
-            modifiers[i].FocusNeighborTop = (ascension ?? firstChar ?? seed ?? modifiers[i]).GetPath();
+            modifiers[i].FocusNeighborTop = (ascension ?? firstChar ?? mode ?? seed ?? modifiers[i]).GetPath();
             modifiers[i].FocusNeighborBottom = (firstButton ?? modifiers[i]).GetPath();
         }
 
@@ -451,7 +559,7 @@ public class CustomRunGameScreen : GameScreen
             buttons[i].FocusNeighborRight = self;
             buttons[i].FocusNeighborTop = i > 0
                 ? buttons[i - 1].GetPath()
-                : (firstModifier ?? ascension ?? firstChar ?? seed ?? buttons[i]).GetPath();
+                : (firstModifier ?? ascension ?? firstChar ?? mode ?? seed ?? buttons[i]).GetPath();
             buttons[i].FocusNeighborBottom = i < buttons.Count - 1
                 ? buttons[i + 1].GetPath()
                 : self;
@@ -460,6 +568,15 @@ public class CustomRunGameScreen : GameScreen
 
     private void EnsureFocus()
     {
+        // Closing the game mode list hides the focused option (which drops
+        // focus) and the game hands focus back to the dropdown a moment
+        // later; don't jump to the seed box in between.
+        if (_gameModeFocusGrace > 0)
+        {
+            _gameModeFocusGrace--;
+            return;
+        }
+
         var focusOwner = _screen.GetViewport()?.GuiGetFocusOwner() as Control;
         if (focusOwner != null && GetElement(focusOwner) != null)
             return;
@@ -521,7 +638,8 @@ public class CustomRunGameScreen : GameScreen
         var parts = new List<string>
         {
             $"{_seedInput?.Text}|{_seedInput?.Editable}|{_seedInput?.Visible}",
-            $"{_ascensionPanel?.Visible}|{_ascensionPanel?.Ascension}"
+            $"{_ascensionPanel?.Visible}|{_ascensionPanel?.Ascension}",
+            $"{IsUsable(_gameModeDropdown)}|{(_gameModeDropdown as NClickableControl)?.IsEnabled}|{string.Join(",", _gameModeOptions.Select(o => o.GetInstanceId()))}"
         };
 
         parts.AddRange(_characterButtons.Select(b => $"{b.GetInstanceId()}:{b.Visible}:{b.IsEnabled}:{b.IsLocked}"));

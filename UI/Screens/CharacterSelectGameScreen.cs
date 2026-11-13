@@ -7,10 +7,12 @@ using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
+using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
 using MegaCrit.Sts2.Core.Platform;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.Help;
+using SayTheSpire2.Input;
 using SayTheSpire2.Localization;
 using SayTheSpire2.Multiplayer;
 using SayTheSpire2.Speech;
@@ -22,8 +24,11 @@ namespace SayTheSpire2.UI.Screens;
 /// Character select lobby. Wraps the game's NCharacterSelectScreen and, on
 /// the November beta, NBlitzScreen — a near-copy of it (same character
 /// buttons, ascension panel and lobby callbacks) with a mode info button
-/// added. The screen is held as a Control and its lobby read by reflection
-/// because NBlitzScreen doesn't exist on stable.
+/// added — and NDreadScreen, which has the same buttons and callbacks but
+/// win streaks and a "Begin Rotating Streak" tickbox in place of the info and
+/// ascension panels (see <see cref="Views.DreadLobbyView"/>). The screen is
+/// held as a Control and its lobby read by reflection because the mode
+/// screens don't exist on stable.
 /// </summary>
 public class CharacterSelectGameScreen : GameScreen
 {
@@ -33,9 +38,14 @@ public class CharacterSelectGameScreen : GameScreen
 
     private readonly Control _screen;
     private readonly System.Reflection.PropertyInfo _lobbyProperty;
-    // main_menu_ui key prefix of the game mode this lobby is for ("BLITZ"),
-    // or null for the standard character select.
+    // main_menu_ui key prefix of the game mode this lobby is for ("BLITZ",
+    // "DREAD"), or null for the standard character select.
     private readonly string? _modeKey;
+    // Set only for the Dread lobby.
+    private readonly Views.DreadLobbyView? _dread;
+    private int _dreadButtonCount = -1;
+    private Control? _wiredButton;
+    private bool _wiredTickboxUsable;
     private bool _checkedUnderConstruction;
     private int _lastAscension = -1;
     private Control? _lastFocusedButton;
@@ -53,11 +63,13 @@ public class CharacterSelectGameScreen : GameScreen
 
     public override System.Collections.Generic.List<HelpMessage> GetHelpMessages()
     {
-        var messages = new System.Collections.Generic.List<HelpMessage>
+        var messages = new System.Collections.Generic.List<HelpMessage>();
+        // The Dread lobby has no ascension control (always 10).
+        if (_dread == null)
         {
-            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.DECREASE_ASCENSION", "Decrease Ascension"), "mega_view_deck_and_tab_left"),
-            new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.INCREASE_ASCENSION", "Increase Ascension"), "mega_view_exhaust_pile_and_tab_right"),
-        };
+            messages.Add(new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.DECREASE_ASCENSION", "Decrease Ascension"), "mega_view_deck_and_tab_left"));
+            messages.Add(new ControlHelpMessage(LocalizationManager.GetOrDefault("ui", "HELP.INCREASE_ASCENSION", "Increase Ascension"), "mega_view_exhaust_pile_and_tab_right"));
+        }
         // The mode's info button is on the game's confirm action, which our
         // Accept injects.
         if (_modeKey != null)
@@ -70,7 +82,32 @@ public class CharacterSelectGameScreen : GameScreen
     {
         _screen = screen;
         _lobbyProperty = AccessTools.Property(screen.GetType(), "Lobby")!;
-        _modeKey = screen.GetType().FullName == BlitzScreenTypeName ? "BLITZ" : null;
+        _dread = Views.DreadLobbyView.FromScreen(screen);
+        _modeKey = _dread != null ? "DREAD"
+            : screen.GetType().FullName == BlitzScreenTypeName ? "BLITZ"
+            : null;
+
+        // The game's select action embarks from anywhere on this screen, and
+        // also clicks whatever is focused — on the rotating-streak tickbox it
+        // would do both. Take it over there and only toggle the tickbox.
+        if (_dread != null)
+            ClaimAction("ui_select", condition: IsDreadTickboxFocused);
+    }
+
+    private bool IsDreadTickboxFocused()
+    {
+        if (!GodotObject.IsInstanceValid(_screen)) return false;
+        var tickbox = _dread?.Tickbox;
+        return tickbox != null && tickbox.HasFocus() && _dread?.IsTickboxUsable == true;
+    }
+
+    public override bool OnActionJustPressed(InputAction action)
+    {
+        if (action.Key != "ui_select" || !IsDreadTickboxFocused())
+            return false;
+        // ProxyCheckbox announces the new state from the tickbox's Toggled signal.
+        _dread?.Tickbox?.ForceClick();
+        return true;
     }
 
     public override void OnPush()
@@ -119,6 +156,7 @@ public class CharacterSelectGameScreen : GameScreen
         if (!GodotObject.IsInstanceValid(_screen)) return;
 
         AnnounceUnderConstructionOnce();
+        UpdateDreadLobby();
 
         // Ascension polling — only announce when the user changes ascension (D/F),
         // not when switching characters causes the displayed ascension to change.
@@ -177,6 +215,53 @@ public class CharacterSelectGameScreen : GameScreen
         var text = badge.GetNodeOrNull<RichTextLabel>("%Label")?.Text;
         if (!string.IsNullOrWhiteSpace(text))
             SpeechManager.Output(Message.Raw(ProxyElement.StripBbcode(text).Trim()));
+    }
+
+    // Dread lobby upkeep, every frame.
+    private void UpdateDreadLobby()
+    {
+        if (_dread == null) return;
+
+        var container = _screen.GetNodeOrNull<Control>("CharSelectButtons/ButtonContainer");
+        if (container == null) return;
+
+        // The Rotating button appears and disappears with the rotating
+        // streak (the game re-decides after the streak animation), so the
+        // character list is rebuilt when the visible buttons change.
+        var visibleButtons = container.GetChildren().OfType<NCharacterSelectButton>().Count(b => b.Visible);
+        if (_dreadButtonCount != -1 && visibleButtons != _dreadButtonCount)
+        {
+            ClearRegistry();
+            BuildRegistry();
+        }
+        _dreadButtonCount = visibleButtons;
+
+        // The game gives the tickbox no hotkey and no place in the focus
+        // order (every character button's up and down lead back to itself),
+        // so it is mouse-only. Make Down from the focused character reach it
+        // and Up come back, while the game has it showing and enabled.
+        var tickbox = _dread.Tickbox;
+        if (tickbox == null) return;
+
+        // Its scene sets no focus mode (unlike the game's other tickboxes),
+        // so it can't take focus at all, and the game puts it back to
+        // unfocusable every time it re-enables it. Keep it focusable.
+        if (tickbox.FocusMode != Control.FocusModeEnum.All)
+            tickbox.FocusMode = Control.FocusModeEnum.All;
+
+        if (_screen.GetViewport()?.GuiGetFocusOwner() is not NCharacterSelectButton focused
+            || focused.GetParent() != container)
+            return;
+
+        var usable = _dread.IsTickboxUsable;
+        if (focused == _wiredButton && usable == _wiredTickboxUsable)
+            return;
+        _wiredButton = focused;
+        _wiredTickboxUsable = usable;
+
+        var buttonPath = focused.GetPath();
+        focused.FocusNeighborBottom = usable ? tickbox.GetPath() : buttonPath;
+        tickbox.FocusNeighborTop = buttonPath;
     }
 
     // Multiplayer lobby callbacks (called from ScreenHooks postfixes)
@@ -287,6 +372,23 @@ public class CharacterSelectGameScreen : GameScreen
         var charButtons = new System.Collections.Generic.List<Control>();
         foreach (var (ctrl, _) in GetRegisteredControls())
             charButtons.Add(ctrl);
+
+        // Dread, singleplayer: the rotating-streak tickbox, reached with Down
+        // from a character (wired in UpdateDreadLobby). Always registered;
+        // the proxy drops out of the list positions while the game hides it.
+        if (_dread != null && !_isMultiplayer && _dread.Tickbox is { } tickbox)
+        {
+            var tickboxProxy = new ProxyDreadRotationTickbox(tickbox, _dread);
+            list.Add(tickboxProxy);
+            Register(tickbox, tickboxProxy);
+
+            var self = tickbox.GetPath();
+            tickbox.FocusNeighborLeft = self;
+            tickbox.FocusNeighborRight = self;
+            tickbox.FocusNeighborBottom = self;
+        }
+        // The rebuild below resets the buttons' down neighbours.
+        _wiredButton = null;
 
         if (Settings.UIEnhancementsSettings.CharacterSelect.Get())
         {

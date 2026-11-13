@@ -26,6 +26,11 @@ public static class LobbyHooks
         if (AccessTools.TypeByName(CharacterSelectGameScreen.BlitzScreenTypeName) is { } blitzScreen)
             PatchCharacterSelect(harmony, blitzScreen, "Blitz");
 
+        // Likewise the Dread lobby: same buttons and listener methods, with
+        // win streaks in place of the info and ascension panels.
+        if (AccessTools.TypeByName(Views.DreadLobbyView.ScreenTypeName) is { } dreadScreen)
+            PatchCharacterSelect(harmony, dreadScreen, "Dread");
+
         HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerConnected",
             typeof(LobbyHooks), nameof(LoadLobbyPlayerConnectedPostfix), "LoadLobby PlayerConnected");
         HarmonyHelper.PatchIfFound(harmony, typeof(NMultiplayerLoadGameScreen), "PlayerReadyChanged",
@@ -63,8 +68,8 @@ public static class LobbyHooks
             typeof(LobbyHooks), nameof(LobbyUnreadyPostfix), $"{label} OnUnreadyPressed");
     }
 
-    // __instance is Control: these patch both NCharacterSelectScreen and the
-    // beta's NBlitzScreen.
+    // __instance is Control: these patch NCharacterSelectScreen and the
+    // beta's NBlitzScreen and NDreadScreen.
     public static void CharacterSelectOpenedPostfix(Godot.Control __instance)
     {
         if (CharacterSelectGameScreen.Current == null)

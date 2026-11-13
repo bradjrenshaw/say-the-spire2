@@ -12,7 +12,8 @@ namespace SayTheSpire2.Buffers;
     typeof(DescriptionAnnouncement),
     typeof(StartingHpAnnouncement),
     typeof(StartingGoldAnnouncement),
-    typeof(EnergyAnnouncement)
+    typeof(EnergyAnnouncement),
+    typeof(DreadStreakAnnouncement)
 )]
 public class CharacterBuffer : Buffer
 {
@@ -71,9 +72,18 @@ public class CharacterBuffer : Buffer
         if (!string.IsNullOrEmpty(desc))
             yield return new DescriptionAnnouncement(desc);
 
-        yield return new StartingHpAnnouncement(character.StartingHp);
-        if (UI.Elements.ProxyCharacterButton.LobbyShowsStartingGold(button))
-            yield return new StartingGoldAnnouncement(character.StartingGold);
+        // The Dread lobby shows no starting HP or gold; it shows the
+        // character's win streak instead.
+        var dread = Views.DreadLobbyView.FromControl(button);
+        if (dread == null)
+        {
+            yield return new StartingHpAnnouncement(character.StartingHp);
+            if (UI.Elements.ProxyCharacterButton.LobbyShowsStartingGold(button))
+                yield return new StartingGoldAnnouncement(character.StartingGold);
+        }
         yield return new EnergyAnnouncement(character.MaxEnergy, character.MaxEnergy);
+
+        if (dread != null && dread.StreakLinesFor(button) is { Count: > 0 } streak)
+            yield return new DreadStreakAnnouncement(streak);
     }
 }

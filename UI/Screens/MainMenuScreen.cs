@@ -40,7 +40,10 @@ public class MainMenuScreen : GameScreen
             if (child is not NButton button) continue;
             if (!button.IsVisible() || !button.IsEnabled) continue;
 
-            var proxy = new ProxyButton(button);
+            // Continue shows a summary of the saved run when focused.
+            var proxy = button.Name == "ContinueButton" && mainMenu.ContinueRunInfo is { } runInfo
+                ? new ProxyContinueButton(button, runInfo)
+                : new ProxyButton(button);
             root.Add(proxy);
             Register(button, proxy);
         }

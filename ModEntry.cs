@@ -105,6 +105,7 @@ public static class ModEntry
         TopBarReturnHooks.Initialize();
         BlitzTopBarHooks.Initialize(_harmony);
         FoolHooks.Initialize(_harmony);
+        DreadHooks.Initialize(_harmony);
         EventHooks.Initialize(_harmony);
         VotingHooks.Initialize(_harmony);
         MultiplayerHooks.Initialize(_harmony);

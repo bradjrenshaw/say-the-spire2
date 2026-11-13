@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 using SayTheSpire2.Buffers;
 using SayTheSpire2.UI.Announcements;
+using SayTheSpire2.Views;
 
 namespace SayTheSpire2.UI.Elements;
 
@@ -82,6 +83,11 @@ public class ProxyTopBar : ProxyElement
     {
         try
         {
+            // Dread: the boss icon's tip is the act's Dominion, whose title
+            // ("Test Subject's Dominion") is what says the rule is one.
+            if (_type == TopBarType.Boss && GetDominion() is { } dominion)
+                return SayTheSpire2.Localization.Message.Raw($"{dominion.DominionTitle}: {dominion.DominionDescription}");
+
             var (_, tipDesc) = GetFormattedTooltip();
             return !string.IsNullOrEmpty(tipDesc) ? SayTheSpire2.Localization.Message.Raw(StripBbcode(tipDesc)) : null;
         }
@@ -109,6 +115,13 @@ public class ProxyTopBar : ProxyElement
                 uiBuffer.Add(StripBbcode(tipTitle));
             if (!string.IsNullOrEmpty(tipDesc))
                 uiBuffer.Add(StripBbcode(tipDesc));
+
+            // The Dominion's own extra tips (cards and keywords it names).
+            if (_type == TopBarType.Boss && GetDominion() is { } dominion)
+            {
+                foreach (var line in dominion.DominionExtraTips)
+                    uiBuffer.Add(line);
+            }
         }
         catch (Exception e) { Log.Error($"[AccessibilityMod] Top bar tooltip access failed: {e.Message}"); }
 
@@ -176,12 +189,24 @@ public class ProxyTopBar : ProxyElement
         return (title, desc);
     }
 
+    // The Dread run's Dominion for this act, when the boss has one. In
+    // Dread the game shows it on the boss icon in place of the plain
+    // "the boss of this act" tip.
+    private DreadRunView? GetDominion()
+    {
+        var dread = DreadRunView.FromRunState(BossRunStateField?.GetValue(Control) as IRunState);
+        return dread is { HasDominion: true } ? dread : null;
+    }
+
     private (string? title, string? desc) GetBossTooltip()
     {
         try
         {
             var runState = BossRunStateField?.GetValue(Control) as IRunState;
             if (runState == null) return (null, null);
+
+            if (GetDominion() is { } dominion)
+                return (dominion.DominionTitle, dominion.DominionDescription);
 
             var boss1 = runState.Act.BossEncounter;
             var boss2 = runState.Act.SecondBossEncounter;
