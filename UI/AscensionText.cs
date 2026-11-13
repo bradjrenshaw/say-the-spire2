@@ -65,6 +65,35 @@ public static class AscensionText
             ? Localization.Message.StripBbcode(line.GetFormattedText())
             : null;
 
+    // Whether a run earns no achievements or epochs. The check moved between
+    // branches: the beta asks GameModeHelper about the run (daily and custom
+    // runs), stable asks a GameMode extension (every non-standard mode).
+    private static readonly MethodInfo? LockedForRunMethod =
+        AccessTools.TypeByName("MegaCrit.Sts2.Core.Helpers.GameModeHelper") is { } helper
+            ? AccessTools.Method(helper, "AreAchievementsAndEpochsLockedForRun")!
+            : null;
+    private static readonly MethodInfo? LockedForModeMethod =
+        LockedForRunMethod != null
+            ? null
+            : AccessTools.Method(AccessTools.TypeByName("MegaCrit.Sts2.Core.Runs.GameModeExtension")!, "AreAchievementsAndEpochsLocked")!;
+
+    /// <summary>
+    /// The line the portrait tip ends with when the run earns no achievements
+    /// or epochs ("Achievements &amp; Epochs are locked for this run."), or
+    /// null when it does.
+    /// </summary>
+    public static string? AchievementsLockedLine(RunState run)
+    {
+        var locked = LockedForRunMethod != null
+            ? LockedForRunMethod.Invoke(null, new object[] { run })
+            : LockedForModeMethod!.Invoke(null, new object[] { run.GameMode });
+        if (locked is not true) return null;
+
+        var text = Localization.Message.StripBbcode(
+            new LocString("gameplay_ui", "ACHIEVEMENTS_LOCKED").GetFormattedText()).Trim();
+        return text.Length > 0 ? text : null;
+    }
+
     private static object ModeOf(NAscensionPanel panel) =>
         PanelGameModeField?.GetValue(panel) ?? GameMode.Standard;
 

@@ -87,6 +87,11 @@ public class ProxyAscension : ProxyElement
                 }
             }
 
+            // Daily and custom runs: the tip ends by saying achievements
+            // and epochs are locked.
+            if (runState != null && AscensionText.AchievementsLockedLine(runState) is { } locked)
+                uiBuffer.Add(locked);
+
             buffers.EnableBuffer("ui", true);
         }
         return "ui";

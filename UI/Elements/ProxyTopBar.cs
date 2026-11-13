@@ -83,13 +83,19 @@ public class ProxyTopBar : ProxyElement
     {
         try
         {
-            // Dread: the boss icon's tip is the act's Dominion, whose title
-            // ("Test Subject's Dominion") is what says the rule is one.
-            if (_type == TopBarType.Boss && GetDominion() is { } dominion)
-                return SayTheSpire2.Localization.Message.Raw($"{dominion.DominionTitle}: {dominion.DominionDescription}");
-
             var (_, tipDesc) = GetFormattedTooltip();
-            return !string.IsNullOrEmpty(tipDesc) ? SayTheSpire2.Localization.Message.Raw(StripBbcode(tipDesc)) : null;
+            var plain = !string.IsNullOrEmpty(tipDesc) ? StripBbcode(tipDesc) : null;
+
+            // Dread: the boss icon's tip is the act's Dominion, whose title
+            // ("Test Subject's Dominion") is what says the rule is one. In
+            // the last act it follows the two-boss tip.
+            if (_type == TopBarType.Boss && GetDominion() is { } dominion)
+            {
+                var rule = $"{dominion.DominionTitle}: {dominion.DominionDescription}";
+                return SayTheSpire2.Localization.Message.Raw(plain != null ? $"{plain} {rule}" : rule);
+            }
+
+            return plain != null ? SayTheSpire2.Localization.Message.Raw(plain) : null;
         }
         catch
         {
@@ -116,9 +122,13 @@ public class ProxyTopBar : ProxyElement
             if (!string.IsNullOrEmpty(tipDesc))
                 uiBuffer.Add(StripBbcode(tipDesc));
 
-            // The Dominion's own extra tips (cards and keywords it names).
+            // Dread: the Dominion tip, then its own extra tips (cards and
+            // keywords it names).
             if (_type == TopBarType.Boss && GetDominion() is { } dominion)
             {
+                uiBuffer.Add(dominion.DominionTitle);
+                if (dominion.DominionDescription is { Length: > 0 } rule)
+                    uiBuffer.Add(rule);
                 foreach (var line in dominion.DominionExtraTips)
                     uiBuffer.Add(line);
             }
@@ -191,7 +201,8 @@ public class ProxyTopBar : ProxyElement
 
     // The Dread run's Dominion for this act, when the boss has one. In
     // Dread the game shows it on the boss icon in place of the plain
-    // "the boss of this act" tip.
+    // "the boss of this act" tip, or after the two-boss tip in the last act
+    // (Dread is ascension 10, so the last act always has two bosses).
     private DreadRunView? GetDominion()
     {
         var dread = DreadRunView.FromRunState(BossRunStateField?.GetValue(Control) as IRunState);
@@ -204,9 +215,6 @@ public class ProxyTopBar : ProxyElement
         {
             var runState = BossRunStateField?.GetValue(Control) as IRunState;
             if (runState == null) return (null, null);
-
-            if (GetDominion() is { } dominion)
-                return (dominion.DominionTitle, dominion.DominionDescription);
 
             var boss1 = runState.Act.BossEncounter;
             var boss2 = runState.Act.SecondBossEncounter;
@@ -221,6 +229,11 @@ public class ProxyTopBar : ProxyElement
                 descLoc.Add("BossName2", boss2.Title);
                 return (titleLoc.GetFormattedText(), descLoc.GetFormattedText());
             }
+
+            // Dread shows no single-boss tip; the Dominion stands in for it
+            // (added by the callers).
+            if (GetDominion() != null)
+                return (null, null);
 
             var activeBoss = (boss2 != null && ShouldOnlyShowSecondBoss(runState)) ? boss2 : boss1;
             var singleTitle = new LocString("static_hover_tips", "BOSS.title");
