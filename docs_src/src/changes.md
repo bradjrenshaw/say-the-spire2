@@ -1,3 +1,8 @@
+## V1.6.1
+* The game's beta received another update which broke viewing card upgrades. The upgrade buffer works again, on both the beta and the stable version of the game.
+* In Dread mode, the boss icon in the top bar now follows a change the game made: the act's Dominion no longer applies during the boss fight itself, so while you are in the boss fight the icon reads its normal boss description instead.
+* Adjusted the Blitz and Dread info popups for the new beta. The game now handles focus for these popups differently, which could have left the character you land on unread after closing the popup.
+
 ## V1.6.0
 * Added support for the new Dread mode in the beta. I am nowhere near good enough at the game to reach Dread myself (it is hidden until you have reached ascension 10 on every character), so this has had very little real testing. If you play it, please report anything that does not read or reads incorrectly.
 * The Dread character select screen reads each character's current win streak and best streak records. Starting HP and gold are not read there since the Dread screen does not show them. The Dread info popup is read out, including the ten ascension modifiers it lists.

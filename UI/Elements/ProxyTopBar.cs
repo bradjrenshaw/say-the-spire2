@@ -199,10 +199,11 @@ public class ProxyTopBar : ProxyElement
         return (title, desc);
     }
 
-    // The Dread run's Dominion for this act, when the boss has one. In
-    // Dread the game shows it on the boss icon in place of the plain
-    // "the boss of this act" tip, or after the two-boss tip in the last act
-    // (Dread is ascension 10, so the last act always has two bosses).
+    // The Dread run's current Dominion. In Dread the game shows it on the
+    // boss icon in place of the plain "the boss of this act" tip, or after
+    // the two-boss tip in the last act (Dread is ascension 10, so the last
+    // act always has two bosses). The run has none during the boss fight
+    // itself, and the icon goes back to its plain tip.
     private DreadRunView? GetDominion()
     {
         var dread = DreadRunView.FromRunState(BossRunStateField?.GetValue(Control) as IRunState);

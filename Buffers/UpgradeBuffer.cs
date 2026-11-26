@@ -1,4 +1,6 @@
 using System;
+using System.Reflection;
+using HarmonyLib;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
@@ -8,6 +10,15 @@ namespace SayTheSpire2.Buffers;
 
 public class UpgradeBuffer : Buffer
 {
+    // The late-November beta gave UpgradeInternal a parameter
+    // (bool silent = false); stable takes none. A direct call binds to one
+    // signature at compile time and throws MissingMethodException on the
+    // other, so it is resolved by name and invoked with whatever it takes.
+    private static readonly MethodInfo UpgradeInternalMethod =
+        AccessTools.Method(typeof(CardModel), "UpgradeInternal")!;
+    private static readonly object[] UpgradeInternalArgs =
+        UpgradeInternalMethod.GetParameters().Length == 0 ? Array.Empty<object>() : new object[] { false };
+
     private CardModel? _model;
     private CardModel? _previewModel;
     private bool _forceUnavailable;
@@ -106,7 +117,7 @@ public class UpgradeBuffer : Buffer
             CardModel clone = cardScope == null || cardScope is NullRunState
                 ? (CardModel)model.MutableClone()
                 : cardScope.CloneCard(model);
-            clone.UpgradeInternal();
+            UpgradeInternalMethod.Invoke(clone, UpgradeInternalArgs);
             return clone;
         }
         catch (Exception e)

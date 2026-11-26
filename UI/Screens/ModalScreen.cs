@@ -165,8 +165,10 @@ public class ModalScreen : Screen
         HoldFocus();
     }
 
-    // The game focuses a lobby control whenever it likes (opening the lobby,
-    // re-enabling buttons); take focus back and remember where it wanted to be.
+    // The game focuses something else whenever it likes (a lobby control on
+    // opening the lobby or re-enabling buttons; since the late-November beta
+    // the popup itself, which is its screen's default focus); take focus
+    // back and remember which lobby control it wanted.
     private void HoldFocus()
     {
         if (_trapButton == null || !GodotObject.IsInstanceValid(_trapButton) || !_trapButton.IsVisibleInTree())
@@ -174,12 +176,17 @@ public class ModalScreen : Screen
 
         var owner = _trapButton.GetViewport()?.GuiGetFocusOwner();
         if (owner == _trapButton) return;
-        if (owner != null)
+        if (IsLobbyControl(owner))
             _returnFocus = owner;
         _trapButton.GrabFocus();
     }
 
     // Popup gone: hand focus back to the lobby, which announces it normally.
+    // The late-November beta refocuses the lobby itself as the popup leaves
+    // the tree, which can land while announcements were still suppressed
+    // (and a suppressed focus is never read later). So prefer wherever focus
+    // is now, fall back to the control the trap displaced, and focus it
+    // afresh either way so it is announced.
     private void ReleaseFocus()
     {
         if (_trapButton == null) return;
@@ -187,10 +194,23 @@ public class ModalScreen : Screen
 
         var target = _returnFocus;
         _returnFocus = null;
-        if (target != null && GodotObject.IsInstanceValid(target) && target.IsVisibleInTree()
-            && target.FocusMode != Control.FocusModeEnum.None)
-            target.GrabFocus();
+
+        var current = (Engine.GetMainLoop() as SceneTree)?.Root?.GuiGetFocusOwner();
+        if (IsLobbyControl(current))
+            target = current;
+        if (target == null || !IsLobbyControl(target)) return;
+
+        if (target.HasFocus())
+            target.ReleaseFocus();
+        target.GrabFocus();
     }
+
+    // A live, focusable control that isn't part of the popup.
+    private bool IsLobbyControl(Control? control) =>
+        control != null && GodotObject.IsInstanceValid(control) && control.IsVisibleInTree()
+        && control.FocusMode != Control.FocusModeEnum.None
+        && control != _modal
+        && !(GodotObject.IsInstanceValid(_modal) && _modal.IsAncestorOf(control));
 
     public override UIElement? GetElement(Control control)
     {

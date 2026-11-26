@@ -19,7 +19,10 @@ namespace SayTheSpire2.Views;
 /// extra rules, a win streak in place of the ascension number on the top bar,
 /// and a per-act "Dominion" — an extra rule named after the act's boss that
 /// applies to every fight before it. The game shows the Dominion as the boss
-/// icon's hover tip and the streak and rules in the portrait's.
+/// icon's hover tip and the streak and rules in the portrait's. The run holds
+/// its current Dominion (<c>IRunState.Dominion</c>): set on entering an act
+/// and cleared on entering that act's boss fight, where the boss icon goes
+/// back to its plain tip.
 ///
 /// <see cref="FromRunState"/> returns null for any other run and on stable,
 /// where the mode doesn't exist; everything Dread-specific is resolved by
@@ -30,19 +33,19 @@ namespace SayTheSpire2.Views;
 public sealed class DreadRunView
 {
     // Beta-only; null on stable.
-    private static readonly MethodInfo? DominionMethod =
-        AccessTools.Method(typeof(EncounterModel), "GetDominion");
+    private static readonly PropertyInfo? DominionProperty =
+        AccessTools.Property(typeof(IRunState), "Dominion");
 
     // Resolved only where Dread exists; a rename there should crash.
     private static readonly MethodInfo? RunStreakMethod =
-        DominionMethod == null ? null : AccessTools.Method(typeof(AscensionHelper), "GetDreadStreak", new[] { typeof(IRunState) })!;
+        DominionProperty == null ? null : AccessTools.Method(typeof(AscensionHelper), "GetDreadStreak", new[] { typeof(IRunState) })!;
 
     private readonly IRunState _run;
 
     private DreadRunView(IRunState run) { _run = run; }
 
     public static DreadRunView? FromRunState(IRunState? run) =>
-        run != null && DominionMethod != null && run.GameMode.ToString() == "Dread"
+        run != null && DominionProperty != null && run.GameMode.ToString() == "Dread"
             ? new DreadRunView(run)
             : null;
 
@@ -94,7 +97,7 @@ public sealed class DreadRunView
         }
     }
 
-    // The act's Dominion comes from its (last) boss, as the boss icon reads it.
+    // A Dominion is named after the act's (last) boss, as the boss icon names it.
     private EncounterModel DominionBoss => _run.Act.SecondBossEncounter ?? _run.Act.BossEncounter;
 
     private object? Dominion
@@ -103,7 +106,7 @@ public sealed class DreadRunView
         {
             try
             {
-                return DominionMethod?.Invoke(DominionBoss, null);
+                return DominionProperty?.GetValue(_run);
             }
             catch (Exception e)
             {
